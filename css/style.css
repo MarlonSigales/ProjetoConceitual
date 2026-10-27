@@ -103,7 +103,7 @@ kbd { background: #fff; border: 1px solid var(--borda); border-radius: 4px; padd
 .grade-campos .largo { grid-column: 1 / -1; }
 label { display: block; font-size: 0.86rem; font-weight: 600; color: var(--suave); }
 label > input, label > textarea, label > select { margin-top: 0.2rem; }
-input[type=text], input[type=number], textarea, select {
+input[type=text], input[type=number], input[type=email], input[type=password], textarea, select {
   width: 100%; font: inherit; font-size: 0.93rem; color: var(--texto); background: #fff; border: 1px solid var(--borda); border-radius: 6px; padding: 0.45rem 0.6rem; min-width: 0; }
 textarea { resize: vertical; line-height: 1.45; }
 input:focus, textarea:focus, select:focus { outline: none; border-color: var(--verde); box-shadow: 0 0 0 2px rgba(64,149,128,.2); }
@@ -503,3 +503,13 @@ body.esb-aberto { overflow: hidden; }
 .tabela-fmea textarea { min-width: 150px; font-size: 0.84rem; }
 .tabela-fmea select { min-width: 54px; padding: 0.25rem; }
 .tabela-fmea tr.fmea-critico td { background: #fdf0ef; }
+
+/* ---------------- nuvem da equipe ---------------- */
+.cartao-nuvem { border-left: 5px solid #2f6fb3; }
+.lista-nuvem { list-style: none; padding: 0; margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.lista-nuvem li { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; padding: 0.45rem 0.6rem; background: #f7faf9; border-radius: 6px; }
+.lista-nuvem li b { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.lista-nuvem select { width: auto; max-width: 100%; }
+.nuvem-form { width: min(100%, 440px); gap: 0.6rem; }
+.nuvem-form h2 { margin: 0; }
+.nuvem-erro { color: var(--perigo); font-size: 0.86rem; min-height: 1.2em; margin: 0; }

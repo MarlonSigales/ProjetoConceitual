@@ -323,6 +323,46 @@ teste('FMEA da concepção: sugere por função, calcula RPN e vai para o Gestã
     ok(sugerirModosFalha({ nome: 'Fazer algo raro' }, pr).length === 2, 'função genérica + tecnologia a desenvolver');
 });
 
+/** MEGA de mentira (mesma interface usada do megajs): pastas em memória. */
+function megaFalso() {
+    let t = 1_700_000_000;
+    const no = (name, directory, dados) => {
+        const n = { name, directory, children: directory ? [] : undefined, timestamp: t++, dados };
+        n.mkdir = async nome => { const d = no(nome, true); n.children.push(d); d.pai = n; return d; };
+        n.upload = (o, d) => ({ complete: (async () => { const f = no(o.name, false, new Uint8Array(d)); n.children.push(f); f.pai = n; return f; })() });
+        n.downloadBuffer = async () => n.dados;
+        n.delete = async () => { n.pai.children = n.pai.children.filter(x => x !== n); };
+        return n;
+    };
+    return { root: no('Cloud Drive', true), close() {} };
+}
+
+teste('Nuvem da equipe: salva versões, lista, abre e junta a biblioteca (MEGA simulado)', async () => {
+    const antesBib = localStorage.getItem(BIB_CHAVE), antesMail = localStorage.getItem('pc_nuvem_email');
+    NUVEM.storage = megaFalso(); NUVEM.email = 'equipe@exemplo.com';
+    try {
+        const p = clonar(EX);
+        const r1 = await salvarNaNuvem(p);
+        igual(r1.pasta, nomeSeguro(p.projeto.nome)); ok(r1.biblioteca > 20, 'biblioteca da nuvem criada');
+        await salvarNaNuvem(p);
+        const raiz = NUVEM.storage.root.children[0];
+        igual(raiz.name, 'SistemaProjetoConceitual');
+        const bibs = raiz.children.find(x => x.name === 'Biblioteca').children;
+        igual(bibs.length, 1, 'uma só biblioteca.json');
+        const lst = await listarProjetosNuvem();
+        igual(lst.length, 1); igual(lst[0].versoes.length, 2, 'cada salvamento é uma versão');
+        const zip = await JSZip.loadAsync(await baixar(lst[0].versoes[0]));
+        ok(zip.file('projeto-conceitual.json') && zip.file('gestao-conceitual.json'), 'ZIP completo na nuvem');
+        const r = await remontarBibliotecaNuvem();
+        igual(r.projetos, 1); igual(r.novos, 0, 'não duplica');
+        nuvemSair(); ok(!nuvemConectada() && !localStorage.getItem('pc_nuvem_email'));
+    } finally {
+        NUVEM.storage = null;
+        if (antesBib === null) localStorage.removeItem(BIB_CHAVE); else localStorage.setItem(BIB_CHAVE, antesBib);
+        if (antesMail !== null) localStorage.setItem('pc_nuvem_email', antesMail);
+    }
+});
+
 teste('Concepção com par incompatível é apontada', () => {
     const p = clonar(EX), v = p.variantes[0], ic = p.incompatibilidades[0];
     const fa = acharPrincipio(p, ic.a).funcId, fb = acharPrincipio(p, ic.b).funcId;

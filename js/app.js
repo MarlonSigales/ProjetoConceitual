@@ -221,6 +221,7 @@ const ACOES = {
     'importar-qfd': () => importarDoQFD(),
     'exemplo': () => carregarExemplo(),
     'novo': () => novoProjeto(),
+    'ir-nuvem': () => { location.hash = '#/inicio'; setTimeout(() => { const c = $('.cartao-nuvem'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100); },
     'tour': () => { location.hash = '#/inicio'; setTimeout(() => iniciarTour(true), 700); },
     'qfd-navegador': () => {
         const q = lerQFDDoNavegador();
@@ -275,12 +276,7 @@ function blobParaDataUrl(b) { return new Promise(ok => { const fr = new FileRead
 async function baixarZip() {
     const p = PC.p;
     avisar('Montando o ZIP…', 'ok', 2000);
-    const rec = await carregarRecursos();
-    const blob = await montarZip(p, {
-        diagramas: diagramasDoProjeto(p),
-        arquivos: Object.entries(rec).map(([n, b]) => ({ caminho: 'img/' + n, blob: b })),
-        relatorioHtml: mapa => documentoRelatorio(p, id => mapa[id] || '', n => rec[n] ? 'img/' + n : '')
-    });
+    const blob = await gerarZipDoProjeto(p);
     baixarArquivo(blob, `${nomeSeguro(p.projeto.nome || 'projeto-conceitual')}-${new Date().toISOString().slice(0, 10)}.zip`);
     avisar('ZIP baixado: dados, fotos, diagramas (SVG) e relatório.');
 }
@@ -369,7 +365,7 @@ PAGINAS.inicio = {
                       : '<a class="opcao" href="#/escopo"><b>✎ Começar em branco</b><span>Preencha as especificações à mão.</span></a>'}
             </div>
         </section>`;
-        if (!tem) return htmlQFDNavegador(p) + comecar + htmlFluxoMetodo();
+        if (!tem) return htmlQFDNavegador(p) + comecar + (typeof htmlCartaoNuvem === 'function' ? htmlCartaoNuvem() : '') + htmlFluxoMetodo();
         return `${htmlQFDNavegador(p)}
         <div class="proximo-passo">
             <div class="proximo-passo-texto">
@@ -396,6 +392,7 @@ PAGINAS.inicio = {
                 <span><b>${esc(nome)}</b><small>${esc(st[id].resumo)}</small></span></a>`).join('')}
         </section>
         ${comecar}
+        ${typeof htmlCartaoNuvem === 'function' ? htmlCartaoNuvem() : ''}
         ${htmlFluxoMetodo(true)}`;
     }
 };

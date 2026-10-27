@@ -23,7 +23,10 @@ Pahl et al. (2005) e Reis (2003).
 6. **Fotos, câmera e esboço com o dedo** nos princípios e na concepção; **custo** por princípio e custo estimado das
    concepções; **FMEA** da concepção; **biblioteca da equipe** (princípios de projetos anteriores, sem servidor);
    **busca de patentes** por princípio; **tour** na primeira visita.
-7. **Gestão de Projetos**: baixe o arquivo "…-para-gestao.json" (ou use o ZIP) e importe na fase conceitual do Gestão: as
+7. **Nuvem da equipe (MEGA)**: cada equipe usa a sua conta MEGA, protegida por senha (lembrada pelo gerenciador de senhas
+   do navegador; nada fica público). Salva os projetos com versões e mantém a biblioteca da equipe com os princípios de
+   todos os projetos. Não há servidor nosso: os dados vão do navegador direto para a conta da equipe, criptografados pelo MEGA.
+8. **Gestão de Projetos**: baixe o arquivo "…-para-gestao.json" (ou use o ZIP) e importe na fase conceitual do Gestão: as
    funções viram a árvore TRL.
 
 ## Etapas
@@ -63,6 +66,7 @@ js/esboco.js        desenho à mão (dedo, caneta, mouse)
 js/biblioteca.js    biblioteca da equipe e links de busca de patentes
 js/fmea.js          FMEA da concepção
 js/tour.js          tour da primeira visita
+js/nuvem.js         nuvem da equipe (conta MEGA; biblioteca megajs carregada só quando a nuvem é usada)
 js/ia.js            pacote e pedido para IA multiagente; importação da resposta
 js/analises.js      análises (pendências, desdobramento, maturidade/TRL, concorrentes) e exportação para o Gestão
 js/diagrama.js      editor e desenho da estrutura de funções (SVG)

@@ -157,5 +157,6 @@ function htmlCartaoBiblioteca() {
             <button type="button" class="btn btn-secondary btn-sm" data-acao="bib-exportar">⬇ Exportar biblioteca</button>
             <button type="button" class="btn btn-secondary btn-sm" data-acao="bib-url">🔗 Biblioteca compartilhada${urlBiblioteca() ? ' (ligada)' : ''}</button>
         </div>
-        <p class="nota">Sem servidor: a biblioteca fica neste navegador. Para a equipe toda, guarde <b>um único arquivo</b> (Exportar) numa pasta compartilhada e cada um importa; importar de novo não duplica. Ou deixe o arquivo num repositório público do GitHub e ligue a "Biblioteca compartilhada": ela é lida sozinha ao abrir esta etapa.</p></details>`;
+        <p class="nota"><b>Melhor caminho para a equipe:</b> a <a href="#/inicio" data-acao="ir-nuvem">nuvem da equipe</a> (conta MEGA com senha) junta a biblioteca de todos os projetos sozinha.</p>
+        <p class="nota">Sem nuvem: a biblioteca fica neste navegador. Para a equipe toda, guarde <b>um único arquivo</b> (Exportar) numa pasta compartilhada e cada um importa; importar de novo não duplica. Ou deixe o arquivo num repositório público do GitHub e ligue a "Biblioteca compartilhada": ela é lida sozinha ao abrir esta etapa.</p></details>`;
 }
