@@ -40,7 +40,9 @@ const MATURIDADES = {
     adaptar: { nome: 'Existe, mas precisa adaptar', trl: '4 a 6', cor: '#d4a017' },
     desenvolver: { nome: 'Precisa ser desenvolvido', trl: '1 a 3', cor: '#c0392b' }
 };
-const ORIGENS_PRINCIPIO = { manual: 'equipe', catalogo: 'catálogo', ia: 'IA', qfd: 'ideia do QFD' };
+/** Custo relativo do princípio (quando não se sabe o valor em R$). */
+const CUSTOS = { baixo: { nome: 'Barato', peso: 1 }, medio: { nome: 'Médio', peso: 5 }, alto: { nome: 'Caro', peso: 10 } };
+const ORIGENS_PRINCIPIO = { manual: 'equipe', catalogo: 'catálogo', ia: 'IA', qfd: 'ideia do QFD', biblioteca: 'biblioteca' };
 
 /** Quadro 1 — métodos de busca por princípios de solução (Reis, 2003, apud Spagnolo, 2011) */
 const METODOS_BUSCA = {
@@ -117,7 +119,8 @@ function criarProjetoVazio() {
         ideiasQFD: [],                   // caderno de ideias do QFD { id, titulo, descricao, status, especIds }
         ia: { importadoEm: '', resumo: '' },
         funcoesQFD: [],                  // requisitos "formadores de função" do QFD
-        ultimoPreenchimento: null,       // { em, itens: [{ etapa, texto }] } do preenchimento automático
+        ultimoPreenchimento: null,
+        fmea: [],                        // FMEA da concepção { id, funcId, modo, efeito, causa, s, o, d, acao }       // { em, itens: [{ etapa, texto }] } do preenchimento automático
         // 1 Escopo
         especificacoes: [],              // { id, codigo, descricao, sentido, meta, unidade, avaliacao, aspectos, peso, dificuldade, origem, ehCusto, funcao, funcoesIds }
         necessidades: [],                // requisitos dos clientes { id, descricao, peso }
@@ -188,6 +191,8 @@ function normalizarProjeto(p) {
             y.concorrentes = lista(x.concorrentes).map(c => txt(c, 120));
             if (!y.origem) y.origem = y.sugerido ? 'catalogo' : 'manual';
             if (!MATURIDADES[y.maturidade]) y.maturidade = '';
+            if (!CUSTOS[y.custo]) y.custo = '';
+            y.custoValor = y.custoValor === null || y.custoValor === undefined || y.custoValor === '' || !isFinite(+y.custoValor) ? null : +y.custoValor;
             return y;
         });
     });
@@ -212,6 +217,7 @@ function normalizarProjeto(p) {
     out.ideiasQFD = lista(p.ideiasQFD).map(r => Object.assign({ id: uid('id'), titulo: '', descricao: '', status: '' }, r, { especIds: lista(r.especIds) }));
     out.ia = Object.assign({ importadoEm: '', resumo: '' }, p.ia || {});
     out.funcoesQFD = lista(p.funcoesQFD).map(String);
+    out.fmea = lista(p.fmea).map(l => Object.assign({ id: uid('fm'), funcId: '', modo: '', efeito: '', causa: '', s: 5, o: 5, d: 5, acao: '' }, l));
     out.ultimoPreenchimento = p.ultimoPreenchimento && Array.isArray(p.ultimoPreenchimento.itens) ? p.ultimoPreenchimento : null;
     out.qfdBackup = p.qfdBackup && typeof p.qfdBackup === 'object' ? p.qfdBackup : null;
     out.metadata = Object.assign(base.metadata, p.metadata || {});
@@ -359,6 +365,21 @@ function numeroFuncao(est, id) {
 // ============================================================================
 // IMPORTAÇÃO DO QFD (backup JSON do Sistema QFD)
 // ============================================================================
+
+/**
+ * QFD aberto neste navegador: o Sistema QFD, o Projeto Conceitual e o Gestão de Projetos ficam no mesmo endereço
+ * (marlonsigales.github.io), então dividem o armazenamento do navegador. Lê o projeto do QFD sem precisar baixar arquivo.
+ * Devolve { dados, nome, modificado } ou null.
+ */
+function lerQFDDoNavegador() {
+    try {
+        const d = JSON.parse(localStorage.getItem('qfd_data') || 'null');
+        if (!d || typeof d !== 'object') return null;
+        if (!Array.isArray(d.especificacoesProjeto)) d.especificacoesProjeto = [];
+        if (!ehBackupQFD(d) || !d.requisitosProjeto.length) return null;
+        return { dados: d, nome: (d.projeto && d.projeto.nome) || 'projeto sem nome', modificado: (d.metadata && d.metadata.lastModified) || '' };
+    } catch (e) { return null; }
+}
 
 function ehBackupQFD(d) {
     return !!(d && typeof d === 'object' && Array.isArray(d.requisitosCliente) && Array.isArray(d.requisitosProjeto) && Array.isArray(d.especificacoesProjeto));
@@ -561,6 +582,28 @@ function gerarCombinacoes(p, est, limite = 20) {
     busca(0, {}, 0);
     out.sort((a, b) => a.custo - b.custo);
     return out.slice(0, limite);
+}
+
+/**
+ * Custo estimado de uma concepção: soma dos valores (R$) dos princípios escolhidos quando todos têm valor;
+ * senão, o nível médio (barato/médio/caro) dos que têm faixa. Devolve { valor, parcial, comValor, nivel, faltam, total }.
+ */
+function custoConcepcao(p, est, v) {
+    const xs = funcoesFolha(est).map(f => acharPrincipio(p, v.escolhas[f.id])).filter(Boolean);
+    const comValor = xs.filter(x => x.custoValor !== null && x.custoValor !== undefined && isFinite(x.custoValor));
+    const parcial = comValor.reduce((t, x) => t + (+x.custoValor), 0);
+    const niveis = xs.map(x => x.custo ? CUSTOS[x.custo].peso : null).filter(n => n !== null);
+    const media = niveis.length ? niveis.reduce((a, b) => a + b, 0) / niveis.length : null;
+    const nivel = media === null ? '' : media < 3.5 ? 'baixo' : media < 7.5 ? 'medio' : 'alto';
+    return { valor: xs.length && comValor.length === xs.length ? parcial : null, parcial, comValor: comValor.length, nivel, media, faltam: xs.filter(x => !x.custo && (x.custoValor === null || x.custoValor === undefined)).length, total: xs.length };
+}
+function textoCusto(c) {
+    if (!c) return '—';
+    if (c.valor !== null) return 'R$ ' + c.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const partes = [];
+    if (c.nivel) partes.push(CUSTOS[c.nivel].nome);
+    if (c.comValor) partes.push(`R$ ${c.parcial.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} em ${c.comValor}/${c.total}`);
+    return partes.join(' · ') || '—';
 }
 
 /** A variante usa algum par incompatível? Lista os pares. */

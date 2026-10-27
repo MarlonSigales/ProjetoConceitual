@@ -230,6 +230,49 @@ function svgSeta(pts, tipo, extra = '') {
     return s + `<polygon points="${p1} ${p2} ${p3}" fill="${cor}"/>`;
 }
 
+/**
+ * Escolhe onde pôr o rótulo de uma ligação: tenta o meio de cada segmento (do mais longo para o mais curto), acima e
+ * abaixo (ou dos dois lados, se vertical), deslizando ao longo do segmento; fica com a posição que menos se sobrepõe
+ * a blocos e a outros rótulos. Marca a área usada em "ocupados".
+ */
+function posicionarRotulo(texto, pts, ocupados) {
+    const segs = [];
+    for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i], b = pts[i + 1], dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y);
+        segs.push({ a, b, vertical: dx < 1, len: dx < 1 ? dy : dx });
+    }
+    segs.sort((p, q) => (q.vertical ? q.len * 0.6 : q.len) - (p.vertical ? p.len * 0.6 : p.len));
+    const caixa = (x, y, ancora, linhas) => {
+        const w = Math.max(...linhas.map(t => t.length), 2) * 6.4, h = linhas.length * 14;
+        const x0 = ancora === 'middle' ? x - w / 2 : ancora === 'end' ? x - w : x;
+        return { x: x0, y: y - 11, w, h };
+    };
+    const sobrep = (c) => ocupados.concat(ocupados.tracos || []).reduce((t, o) => {
+        const ix = Math.max(0, Math.min(c.x + c.w, o.x + o.w) - Math.max(c.x, o.x)), iy = Math.max(0, Math.min(c.y + c.h, o.y + o.h) - Math.max(c.y, o.y));
+        return t + ix * iy * (o.peso || 1);
+    }, 0);
+    let melhor = null;
+    segs.forEach((sg, k) => {
+        const max = sg.vertical ? 18 : Math.max(14, Math.min(30, Math.floor((sg.len - 8) / 6.4)));
+        const linhas = quebrarTexto(texto, max).slice(0, 3);
+        const nl = linhas.length;
+        [0.5, 0.3, 0.7, 0.15, 0.85].forEach(f => {
+            const mx = sg.a.x + (sg.b.x - sg.a.x) * f, my = sg.a.y + (sg.b.y - sg.a.y) * f;
+            const cands = sg.vertical
+                ? [{ x: mx + 8, y: my, ancora: 'start' }, { x: mx - 8, y: my, ancora: 'end' }]
+                : [{ x: mx, y: my - 8 - (nl - 1) * 14, ancora: 'middle' }, { x: mx, y: my + 18, ancora: 'middle' }];
+            cands.forEach((c, j) => {
+                const cx = caixa(c.x, c.y, c.ancora, linhas);
+                const custo = sobrep(cx) * 10 + k * 40 + Math.abs(f - 0.5) * 60 + j * 15;
+                if (!melhor || custo < melhor.custo) melhor = Object.assign({ custo, caixa: cx, max, yTexto: c.y + (nl - 1) * 7 }, c);
+            });
+        });
+    });
+    if (!melhor) return { x: pts[0].x, y: pts[0].y, ancora: 'start', max: 24 };
+    ocupados.push(melhor.caixa);
+    return { x: melhor.x, y: melhor.yTexto, ancora: melhor.ancora, max: melhor.max };
+}
+
 function svgRotulo(x, y, texto, cor, ancora = 'middle', max = 24) {
     if (!texto) return '';
     const linhas = quebrarTexto(texto, max).slice(0, 3);
@@ -262,6 +305,13 @@ function desenharNivel(est, pai, opcoes = {}) {
         if (it) s += `<circle cx="${pt.x}" cy="${pt.y}" r="14" fill="transparent"/>`;
         s += '</g>';
     });
+    // rótulos não podem cair em cima de blocos nem de outros rótulos
+    const ocupados = g.nos.map(n => ({ x: n.x - 2, y: n.y - 2, w: n.w + 4, h: n.h + 4 }));
+    Object.values(g.portas).forEach(pt => { const lin = quebrarTexto(pt.lig.rotulo || '', 17).slice(0, 3); ocupados.push({ x: pt.lado === 'entrada' ? pt.x - PORTA_STUB + 4 : pt.x + 8, y: pt.y - 10 - (lin.length - 1) * 7 - 12 - (lin.length - 1) * 7, w: Math.max(...lin.map(t => t.length), 4) * 6.4, h: lin.length * 14 + 4 }); });
+    // as próprias linhas também atrapalham a leitura (peso menor que blocos e rótulos)
+    const tracos = [];
+    g.linhas.forEach(({ pts }) => { for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1]; tracos.push({ x: Math.min(a.x, b.x) - 3, y: Math.min(a.y, b.y) - 3, w: Math.abs(b.x - a.x) + 6, h: Math.abs(b.y - a.y) + 6, peso: 0.35 }); } });
+    ocupados.tracos = tracos;
     // ligações
     g.linhas.forEach(({ l, pts, rot }) => {
         const ativo = sel.tipo === 'lig' && sel.id === l.id;
@@ -271,9 +321,8 @@ function desenharNivel(est, pai, opcoes = {}) {
         const portaL = portaLigada(est, l);
         const repete = portaL && semAcento(portaL.rotulo).includes(semAcento(l.rotulo));
         if (l.rotulo && !repete) {
-            const max = Math.max(16, Math.min(30, Math.floor((rot.len - 8) / 6.4)));
-            const nl = Math.min(3, quebrarTexto(l.rotulo, max).length);
-            s += rot.vertical ? svgRotulo(rot.x + 8, rot.y, l.rotulo, COR_FLUXO[l.tipo], 'start', 18) : svgRotulo(rot.x, rot.y - 8 - (nl - 1) * 7, l.rotulo, COR_FLUXO[l.tipo], 'middle', max);
+            const r = posicionarRotulo(l.rotulo, pts, ocupados);
+            s += svgRotulo(r.x, r.y, l.rotulo, COR_FLUXO[l.tipo], r.ancora, r.max);
         }
         s += '</g>';
     });

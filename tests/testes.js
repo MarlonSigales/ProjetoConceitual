@@ -279,6 +279,50 @@ teste('Combinações respeitam as incompatibilidades e preferem os primeiros pri
     igual(div.length, 3);
 });
 
+teste('Custo estimado da concepção: soma em R$ ou nível médio', () => {
+    const est = EX.estruturas[0];
+    const c1 = custoConcepcao(EX, est, EX.variantes[0]);
+    igual(c1.valor, 178, 'Urbana robusta'); igual(textoCusto(c1), 'R$ 178,00');
+    const p = clonar(EX), v = p.variantes[0];
+    const x = acharPrincipioReal(p, v.escolhas[funcoesFolha(p.estruturas[0])[0].id]); x.custoValor = null; x.custo = 'alto';
+    const c = custoConcepcao(p, p.estruturas[0], v);
+    igual(c.valor, null, 'sem todos os valores não soma'); ok(c.comValor === 6 && c.nivel, 'parcial e nível');
+    ok(/R\$ 163/.test(textoCusto(c)), textoCusto(c));
+});
+
+teste('Biblioteca da equipe: junta projetos sem repetir e sugere em funções parecidas', async () => {
+    const b = { itens: [] };
+    const n1 = juntarBiblioteca(b, itensDoProjeto(EX));
+    ok(n1 > 20, 'princípios do exemplo (sem os do catálogo)'); igual(juntarBiblioteca(b, itensDoProjeto(EX)), 0, 'não repete');
+    const zip = await JSZip.loadAsync(await montarZip(clonar(EX), {}));
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const itens = await itensDeArquivo(new File([blob], 'antigo.zip'));
+    ok(itens.length >= n1, 'lê o ZIP de um projeto');
+    const antes = localStorage.getItem(BIB_CHAVE);
+    gravarBiblioteca(b);
+    try {
+        const s = sugerirDaBiblioteca('Frear a roda traseira');
+        ok(s.some(x => /Freio a disco/.test(x.nome)), 'sugestão por palavras em comum');
+        igual(sugerirDaBiblioteca('Medir a umidade do ar').length, 0, 'sem relação, sem sugestão');
+    } finally { if (antes === null) localStorage.removeItem(BIB_CHAVE); else localStorage.setItem(BIB_CHAVE, antes); }
+    const lk = linksPatentes('Freio a disco & pinça', 'Frear a roda');
+    ok(lk.google.startsWith('https://patents.google.com/?q=') && !lk.google.includes('&q=(Freio') && lk.google.includes('%26'), 'consulta codificada');
+});
+
+teste('FMEA da concepção: sugere por função, calcula RPN e vai para o Gestão', () => {
+    ok(EX.fmea.length >= 7, 'uma ou mais linhas por função');
+    const folhas = funcoesFolha(EX.estruturas[0]);
+    folhas.forEach(f => ok(EX.fmea.some(l => l.funcId === f.id), 'FMEA sem a função ' + f.nome));
+    const fr = EX.fmea.find(l => /frenagem/.test(l.modo)); ok(fr && fmeaCritico(fr), 'frenagem é crítica (S 9)');
+    igual(rpn({ s: 5, o: 4, d: 5 }), 100); ok(fmeaCritico({ s: 5, o: 4, d: 5 }));
+    const p = clonar(EX); const n0 = p.fmea.length; igual(sugerirFMEA(p), 0, 'não repete'); igual(p.fmea.length, n0);
+    const g = exportarParaGestao(EX); igual(g.fmea.length, EX.fmea.length); ok(g.fmea.every(l => l.item.startsWith('F') && l.s && l.modo));
+    const q = clonar(EX); q.fmea[0].acao = ''; q.fmea[0].s = 10;
+    ok(pendencias(q).some(x => /FMEA/.test(x.texto)), 'crítico sem ação vira pendência');
+    const pr = { nome: 'X', maturidade: 'desenvolver' };
+    ok(sugerirModosFalha({ nome: 'Fazer algo raro' }, pr).length === 2, 'função genérica + tecnologia a desenvolver');
+});
+
 teste('Concepção com par incompatível é apontada', () => {
     const p = clonar(EX), v = p.variantes[0], ic = p.incompatibilidades[0];
     const fa = acharPrincipio(p, ic.a).funcId, fb = acharPrincipio(p, ic.b).funcId;

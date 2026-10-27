@@ -54,6 +54,29 @@ async function hidratarImagens(raiz = document) {
     }
 }
 
+/** Deixa o resultado pronto para o Gestão de Projetos abrir no mesmo navegador (sem baixar arquivo). */
+function publicarParaGestao() {
+    try {
+        const p = PC.p;
+        if (!p.estruturas.length || typeof exportarParaGestao !== 'function') return;
+        localStorage.setItem('pc_para_gestao', JSON.stringify(exportarParaGestao(p)));
+    } catch (e) { /* sem espaço: o arquivo para o Gestão continua disponível para baixar */ }
+}
+
+/** Cartão "Usar o QFD deste navegador" (quando o Sistema QFD foi usado neste navegador). */
+function htmlQFDNavegador(p) {
+    const q = lerQFDDoNavegador();
+    if (!q) return '';
+    const jaUsado = p.origemQFD && p.origemQFD.navegador && q.modificado && q.modificado <= (p.origemQFD.qfdModificado || '');
+    if (jaUsado) return '';
+    const quando = q.modificado ? new Date(q.modificado).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+    return `<section class="card qfd-navegador">
+        <div class="card-topo"><h2>📥 Há um QFD neste navegador</h2>
+            <button type="button" class="btn btn-primary" data-acao="qfd-navegador">Usar este QFD</button></div>
+        <p class="nota">Projeto <b>${esc(q.nome)}</b>${quando ? `, alterado em ${quando}` : ''}. Não precisa baixar nem escolher arquivo: tudo do QFD entra e as etapas são pré-preenchidas.${p.origemQFD ? ' O que você já fez aqui é mantido.' : ''}</p>
+    </section>`;
+}
+
 function projetoTemConteudo(p) {
     return !!(p.projeto.nome || p.especificacoes.length || p.estruturas.length || p.variantes.length);
 }
@@ -65,7 +88,7 @@ function projetoTemConteudo(p) {
 function salvar(adiado = false) {
     clearTimeout(App._timer);
     const faz = () => {
-        try { PC.salvar(); App.salvoEm = new Date(); atualizarCasca(); }
+        try { PC.salvar(); App.salvoEm = new Date(); atualizarCasca(); publicarParaGestao(); }
         catch (e) { avisar(e.message, 'erro', 8000); }
     };
     if (adiado) App._timer = setTimeout(faz, 350); else faz();
@@ -181,6 +204,7 @@ function renderPagina(manterRolagem = false) {
     atualizarCasca();
     if (pg.depois) pg.depois(raiz, p);
     hidratarImagens(raiz);
+    if (id === 'inicio' && typeof iniciarTour === 'function') setTimeout(() => { if (App.pagina === 'inicio' && !document.querySelector('.tour')) iniciarTour(false); }, 600);
     if (manterRolagem && !mudouPagina) window.scrollTo(0, y);
     else { window.scrollTo(0, 0); raiz.focus({ preventScroll: true }); }
     document.body.classList.remove('sidebar-aberta');
@@ -197,6 +221,12 @@ const ACOES = {
     'importar-qfd': () => importarDoQFD(),
     'exemplo': () => carregarExemplo(),
     'novo': () => novoProjeto(),
+    'tour': () => { location.hash = '#/inicio'; setTimeout(() => iniciarTour(true), 700); },
+    'qfd-navegador': () => {
+        const q = lerQFDDoNavegador();
+        if (!q) { avisar('Não achei o QFD neste navegador. Use "Importar do QFD" com o arquivo de backup.', 'erro'); return; }
+        if (importarArquivoQFD({ name: `QFD deste navegador (${q.nome})` }, q.dados)) { PC.p.origemQFD.navegador = true; PC.p.origemQFD.qfdModificado = q.modificado; salvar(); renderPagina(true); }
+    },
     'fechar-menu': () => { document.body.classList.remove('sidebar-aberta'); },
     'marcar-etapa': b => { if (!PC.p.etapasConcluidas.includes(b.dataset.id)) PC.p.etapasConcluidas.push(b.dataset.id); salvar(); },
     'desmarcar-etapa': b => { PC.p.etapasConcluidas = PC.p.etapasConcluidas.filter(x => x !== b.dataset.id); salvar(); },
@@ -286,13 +316,14 @@ async function importarDoQFD() {
 
 function importarArquivoQFD(arq, d) {
     if (!ehBackupQFD(d)) throw new Error('Este arquivo não é um backup do Sistema QFD (Backup & Export → Exportar backup).');
-    if (projetoTemConteudo(PC.p) && !confirm('Atualizar o projeto atual com os dados deste QFD? O que você já fez aqui é mantido; as especificações vindas do QFD são atualizadas.')) return;
+    if (projetoTemConteudo(PC.p) && !confirm('Atualizar o projeto atual com os dados deste QFD? O que você já fez aqui é mantido; as especificações vindas do QFD são atualizadas.')) return false;
     const r = importarQFD(PC.p, d, arq.name);
     const feito = preencherTudo(PC.p);   // o que der para montar a partir do QFD já sai pronto (só completa o vazio)
     salvar();
     location.hash = '#/inicio';
     renderPagina();
     avisar(`QFD importado: ${r.especificacoes} especificação(ões), ${r.necessidades} necessidade(s), ${PC.p.concorrentes.length} concorrente(s). ${feito.length} item(ns) pré-preenchido(s): revise no Início.`, 'ok', 7000);
+    return true;
 }
 
 async function carregarExemplo() {
@@ -338,8 +369,8 @@ PAGINAS.inicio = {
                       : '<a class="opcao" href="#/escopo"><b>✎ Começar em branco</b><span>Preencha as especificações à mão.</span></a>'}
             </div>
         </section>`;
-        if (!tem) return comecar + htmlFluxoMetodo();
-        return `
+        if (!tem) return htmlQFDNavegador(p) + comecar + htmlFluxoMetodo();
+        return `${htmlQFDNavegador(p)}
         <div class="proximo-passo">
             <div class="proximo-passo-texto">
                 <span class="proximo-passo-rotulo">Próximo passo</span> <b>${prox.numero}. ${esc(prox.nome)}</b>

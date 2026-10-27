@@ -108,6 +108,7 @@ As imagens anexadas (pasta \`imagens/\` e \`esbocos/\` do pacote) mostram princ�
 - Não invente: fabricantes, patentes, artigos e links precisam existir. Se não tiver certeza, deixe o campo vazio.
 - "imagemUrl" só com link direto de uma imagem que existe (foto do produto, figura da patente); senão, deixe vazio.
 - "maturidade": "mercado" (existe pronto para comprar), "adaptar" (existe, mas precisa adaptar) ou "desenvolver" (precisa ser desenvolvido).
+- "custo": custo relativo do princípio para este produto — "baixo", "medio" ou "alto".
 - "metodo": um destes — Pesquisa bibliográfica; Análise de sistemas naturais; Análise de sistemas técnicos existentes; Analogias; Medições e testes em modelos; Brainstorming; Método 635; Método Delphi; Sinergia; Analogia direta; Analogia simbólica; Combinação de métodos; Estudo sistemático de sistemas técnicos; Esquemas de classificação; Catálogo de projeto; TRIZ; Matriz morfológica.
 - Use exatamente os códigos das funções (${exemploCod}, …).
 
@@ -132,6 +133,7 @@ Termine a resposta com **um único bloco JSON** neste formato (o sistema importa
           "metodo": "Análise de sistemas técnicos existentes",
           "concorrentes": ["Produto que usa este princípio"],
           "maturidade": "mercado",
+          "custo": "baixo",
           "vantagens": "…",
           "desvantagens": "…",
           "fonte": "link ou referência (patente, artigo, catálogo)",
@@ -222,7 +224,7 @@ function importarRespostaIA(p, dados) {
             if (!nome) return;
             const campos = {
                 descricao: txt(px.descricao, 600), metodo: metodosValidos.find(m => semAcento(m) === semAcento(px.metodo || '')) || txt(px.metodo, 80),
-                concorrentes: lista(px.concorrentes).map(c => txt(c, 120)).filter(Boolean), maturidade: MATURIDADES[px.maturidade] ? px.maturidade : '',
+                concorrentes: lista(px.concorrentes).map(c => txt(c, 120)).filter(Boolean), maturidade: MATURIDADES[px.maturidade] ? px.maturidade : '', custo: CUSTOS[semAcento(px.custo || '')] ? semAcento(px.custo) : '',
                 vantagens: txt(px.vantagens, 400), desvantagens: txt(px.desvantagens, 400), fonte: txt(px.fonte, 400),
                 imagemUrl: /^https?:\/\/\S+$/i.test(String(px.imagemUrl || '').trim()) ? String(px.imagemUrl).trim().slice(0, 600) : ''
             };

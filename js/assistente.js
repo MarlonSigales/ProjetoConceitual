@@ -84,6 +84,16 @@ function preencherTudo(p) {
             nIdeia++;
         });
     });
+    let nBib = 0;
+    if (typeof sugerirDaBiblioteca === 'function') folhas.forEach(f => {
+        const l = principiosDe(p, f.id);
+        sugerirDaBiblioteca(f.nome, 3).forEach(i => {
+            if (l.some(x => semAcento(x.nome) === semAcento(i.nome))) return;
+            l.push({ id: uid('pr'), nome: i.nome, descricao: i.descricao, imagem: null, metodo: i.metodo || 'Análise de sistemas técnicos existentes', sugerido: true, origem: 'biblioteca', maturidade: i.maturidade, custo: i.custo, custoValor: null, concorrentes: i.concorrentes || [], fonte: i.fonte || '', imagemUrl: '', vantagens: '', desvantagens: '' });
+            nBib++;
+        });
+    });
+    if (nBib) anota('principios', `${nBib} princípio(s) da biblioteca da equipe (projetos anteriores).`);
     folhas.forEach(f => {
         const l = principiosDe(p, f.id);
         if (l.length >= 3) return;

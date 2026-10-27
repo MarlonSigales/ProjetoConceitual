@@ -462,3 +462,44 @@ details.sobre > summary h2 { display: inline; }
 .selo-qfd { background: #e2f4ea; color: #1f5f45; }
 .chips-fluxo { margin-top: 0.25rem; }
 .chips-fluxo .chip { font-size: 0.76rem; padding: 0.1rem 0.55rem; }
+
+/* ---------------- foto: câmera, imagem ou desenho ---------------- */
+.foto-vazia { display: flex; flex-direction: row; align-items: stretch; justify-content: center; gap: 0; font-size: 1rem; }
+.foto-vazia button { font: inherit; flex: 1 1 0; border: 0; background: none; cursor: pointer; color: var(--suave); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem; font-size: 1.35rem; }
+.foto-vazia button + button { border-left: 1px dashed var(--borda); }
+.foto-vazia button span { font-size: 0.76rem; }
+.foto-vazia button:hover { background: var(--verde-claro); color: var(--teal); }
+@media (hover: hover) and (pointer: fine) { .so-toque { display: none !important; } }
+
+/* ---------------- esboço à mão ---------------- */
+body.esb-aberto { overflow: hidden; }
+.esb-fundo { position: fixed; inset: 0; z-index: 200; background: rgba(8, 40, 42, .55); display: flex; align-items: center; justify-content: center; padding: 10px; }
+.esb-janela { background: #fff; border-radius: 10px; width: min(100%, 1000px); max-height: 100%; display: flex; flex-direction: column; gap: 0.5rem; padding: 0.8rem; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+.esb-topo { display: flex; gap: 0.6rem; align-items: baseline; flex-wrap: wrap; color: var(--teal); }
+.esb-dica { font-size: 0.82rem; color: var(--suave); }
+.esb-ferramentas { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+.esb-cor { width: 32px; height: 32px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--borda); background: var(--c, #fff); cursor: pointer; font-size: 0.9rem; }
+.esb-cor.ativa { box-shadow: 0 0 0 3px var(--limao); }
+.esb-espessura { display: inline-flex; align-items: center; gap: 0.3rem; font-weight: 400; }
+.esb-area { flex: 1 1 auto; min-height: 0; display: flex; justify-content: center; }
+.esb-area canvas { width: 100%; max-height: calc(100dvh - 200px); aspect-ratio: 3 / 2; object-fit: contain; border: 1px solid var(--borda); border-radius: 6px; touch-action: none; cursor: crosshair; background: #fff; }
+.esb-rodape { display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; }
+.principio-custo { display: flex; gap: 0.35rem; }
+.principio-custo select { flex: 1 1 50%; }
+.principio-custo input { flex: 1 1 50%; }
+.chip-bib { border-color: #b9c9e6; background: #eef3fb; color: #1f4f86; }
+.links-patentes { font-size: 0.8rem; }
+.cartao-bib > summary { cursor: pointer; }
+.cartao-bib > summary h2 { display: inline; }
+.selo-biblioteca { background: #eef3fb; color: #1f4f86; }
+
+/* ---------------- tour ---------------- */
+.tour { position: fixed; inset: 0; z-index: 300; }
+.tour-foco { position: fixed; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(8, 40, 42, .55); border: 3px solid var(--limao); transition: all .2s; pointer-events: none; }
+.tour-balao { position: fixed; background: #fff; border-radius: 10px; padding: 0.8rem 0.9rem; box-shadow: 0 10px 30px rgba(0,0,0,.3); font-size: 0.92rem; }
+.tour-balao small { color: var(--suave); }
+.tour-balao p { margin: 0.2rem 0 0.6rem; }
+.tour-botoes { display: flex; justify-content: flex-end; gap: 0.4rem; }
+.tabela-fmea textarea { min-width: 150px; font-size: 0.84rem; }
+.tabela-fmea select { min-width: 54px; padding: 0.25rem; }
+.tabela-fmea tr.fmea-critico td { background: #fdf0ef; }

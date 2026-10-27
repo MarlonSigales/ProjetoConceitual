@@ -7,7 +7,7 @@
     <title>Projeto Conceitual</title>
     <meta name="description" content="Ferramenta para o projeto conceitual: escopo, função global, estrutura de funções, princípios de solução, matriz morfológica, seleção e concepção (Pahl et al.; Reis; Spagnolo).">
     <link rel="icon" href="img/logo-nimeq.png">
-    <link rel="stylesheet" href="css/style.css?v=20261027b">
+    <link rel="stylesheet" href="css/style.css?v=20261027c">
 </head>
 <body>
     <header class="topbar">
@@ -35,6 +35,7 @@
                         <button type="button" class="sidebar-arquivo-link" data-acao="importar-qfd">⇪ Importar do QFD (.json)</button>
                         <button type="button" class="sidebar-arquivo-link" data-acao="exemplo">🚲 Carregar exemplo</button>
                         <button type="button" class="sidebar-arquivo-link" data-acao="novo">✚ Novo projeto</button>
+                        <button type="button" class="sidebar-arquivo-link" data-acao="tour">❓ Como usar (tour)</button>
                     </div>
                 </details>
             </div>
@@ -71,18 +72,24 @@
     <input type="file" id="arq-abrir" accept=".zip,.json,application/zip,application/json" hidden>
     <input type="file" id="arq-qfd" accept=".json,application/json" hidden>
     <input type="file" id="arq-imagem" accept="image/*" hidden>
+    <input type="file" id="arq-varios" accept=".zip,.json,application/zip,application/json" multiple hidden>
+    <input type="file" id="arq-camera" accept="image/*" capture="environment" hidden>
     <datalist id="dl-verbos"></datalist>
 
     <script src="lib/jszip.min.js"></script>
-    <script src="js/dados.js?v=20261027b"></script>
-    <script src="js/catalogo.js?v=20261027b"></script>
-    <script src="js/diagrama.js?v=20261027b"></script>
-    <script src="js/relatorio.js?v=20261027b"></script>
-    <script src="js/exemplo.js?v=20261027b"></script>
-    <script src="js/app.js?v=20261027b"></script>
-    <script src="js/etapas.js?v=20261027b"></script>
-    <script src="js/assistente.js?v=20261027b"></script>
-    <script src="js/ia.js?v=20261027b"></script>
-    <script src="js/analises.js?v=20261027b"></script>
+    <script src="js/dados.js?v=20261027c"></script>
+    <script src="js/catalogo.js?v=20261027c"></script>
+    <script src="js/diagrama.js?v=20261027c"></script>
+    <script src="js/relatorio.js?v=20261027c"></script>
+    <script src="js/exemplo.js?v=20261027c"></script>
+    <script src="js/app.js?v=20261027c"></script>
+    <script src="js/etapas.js?v=20261027c"></script>
+    <script src="js/esboco.js?v=20261027c"></script>
+    <script src="js/biblioteca.js?v=20261027c"></script>
+    <script src="js/tour.js?v=20261027c"></script>
+    <script src="js/fmea.js?v=20261027c"></script>
+    <script src="js/assistente.js?v=20261027c"></script>
+    <script src="js/ia.js?v=20261027c"></script>
+    <script src="js/analises.js?v=20261027c"></script>
 </body>
 </html>

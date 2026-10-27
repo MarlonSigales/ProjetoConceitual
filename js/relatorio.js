@@ -168,6 +168,7 @@ function corpoRelatorio(p, opcoes = {}) {
             matriz += `<p class="legenda-fluxos">${p.variantes.map(v => `<span class="ponto" style="background:${escAttr(v.cor)}"></span>${esc(v.nome)}`).join(' &nbsp; ')}</p>`;
             matriz += `<h3>Concepções</h3><table><thead><tr><th>Função</th>${p.variantes.map(v => `<th>${esc(v.nome)}</th>`).join('')}</tr></thead><tbody>
                 ${folhas.map(f => `<tr><td>F${esc(numeroFuncao(est, f.id))} ${esc(f.nome)}</td>${p.variantes.map(v => `<td>${v.escolhas[f.id] ? esc(nomePr(v.escolhas[f.id])) : '—'}</td>`).join('')}</tr>`).join('')}
+                <tr><td><b>Custo estimado</b></td>${p.variantes.map(v => `<td><b>${esc(textoCusto(custoConcepcao(p, est, v)))}</b></td>`).join('')}</tr>
                 ${p.variantes.some(v => v.descricao) ? `<tr><td><i>Ideia</i></td>${p.variantes.map(v => `<td><i>${esc(v.descricao)}</i></td>`).join('')}</tr>` : ''}</tbody></table>`;
         }
         if (p.incompatibilidades.length) matriz += `<h3>Incompatibilidades</h3><ul>${p.incompatibilidades.map(i => `<li>${esc(nomePr(i.a))} ✕ ${esc(nomePr(i.b))}${i.nota ? ' — ' + esc(i.nota) : ''}</li>`).join('')}</ul>`;
@@ -207,6 +208,8 @@ function corpoRelatorio(p, opcoes = {}) {
         concepcao += `<table><thead><tr><th>Função</th><th>Princípio de solução</th><th>Imagem</th></tr></thead><tbody>${folhas.map(f => { const x = acharPrincipio(p, v.escolhas[f.id]); return `<tr><td>F${esc(numeroFuncao(est, f.id))} ${esc(f.nome)}</td><td><b>${x ? esc(x.nome) : '—'}</b>${x && x.descricao ? '<br>' + esc(x.descricao) : ''}</td><td class="centro">${x ? img(x.imagem, x.nome, 'foto') : ''}</td></tr>`; }).join('')}</tbody></table>`;
         if (c.imagens.length) concepcao += `<h3>Esboços e fotos</h3><div class="galeria">${c.imagens.map(im => `<figure>${img(im.id, im.legenda)}<figcaption>${esc(im.legenda || '')}</figcaption></figure>`).join('')}</div>`;
         if (c.complementos.length) concepcao += `<h3>Complementos de outras concepções</h3><ul>${c.complementos.map(k => `<li><b>${esc(nomePr(k.principioId))}</b>${k.nota ? ' — ' + esc(k.nota) : ''}</li>`).join('')}</ul>`;
+        if (p.fmea.length) concepcao += `<h3>FMEA da concepção</h3><table><thead><tr><th>Função</th><th>Modo de falha</th><th>Efeito</th><th>Causa</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Ação</th></tr></thead><tbody>
+            ${p.fmea.slice().sort((a, b) => rpn(b) - rpn(a)).map(l => { const f = est.nos.find(n => n.id === l.funcId); return `<tr class="${fmeaCritico(l) ? 'melhor' : ''}"><td>${f ? 'F' + esc(numeroFuncao(est, f.id)) + ' ' + esc(f.nome) : ''}</td><td>${esc(l.modo)}</td><td>${esc(l.efeito)}</td><td>${esc(l.causa)}</td><td class="centro">${+l.s}</td><td class="centro">${+l.o}</td><td class="centro">${+l.d}</td><td class="centro"><b>${rpn(l)}</b></td><td>${esc(l.acao)}</td></tr>`; }).join('')}</tbody></table><p><small>RPN = S × O × D; em destaque os críticos (RPN ≥ ${FMEA_LIMITE} ou S ≥ 9).</small></p>`;
         if (c.proximosPassos) concepcao += `<h3>Próximos passos</h3><p class="pre">${esc(c.proximosPassos)}</p>`;
     }
 

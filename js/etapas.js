@@ -414,11 +414,13 @@ PAGINAS.principios = {
             ${dica(htmlQuadroMetodos(), 'Métodos de busca (Quadro 1)')}
         </section>
         ${htmlCartaoIA(p)}
+        ${htmlCartaoBiblioteca()}
         ${htmlIdeiasSoltas(p, est)}
         ${folhas.map(f => {
             const prs = principiosDe(p, f.id);
             const cad = ancestrais(est, f.id).slice(1, -1).filter(n => !n.global);
             const sug = sugerirPrincipios(f.nome).filter(s => !prs.some(x => semAcento(x.nome) === semAcento(s.nome)));
+            const bib = sugerirDaBiblioteca(f.nome).filter(s => !prs.some(x => semAcento(x.nome) === semAcento(s.nome)));
             return `<section class="card funcao-principios" id="f-${f.id}">
                 <div class="card-topo"><h2><span class="num-f">F${esc(numeroFuncao(est, f.id))}</span> ${esc(f.nome || 'função sem nome')}</h2>
                     <span class="contador">${prs.length} princípio(s)</span></div>
@@ -426,16 +428,23 @@ PAGINAS.principios = {
                 <div class="grade-principios">
                 ${prs.map((x, i) => `<article class="principio">
                     <div class="principio-foto">${x.imagem ? `${imgTag(x.imagem, x.nome)}<div class="foto-acoes"><button type="button" data-acao="pr-foto" data-f="${f.id}" data-id="${x.id}">Trocar</button><button type="button" data-acao="pr-foto-del" data-f="${f.id}" data-id="${x.id}">Remover</button></div>`
-                        : `<button type="button" class="foto-vazia" data-acao="pr-foto" data-f="${f.id}" data-id="${x.id}">📷<span>Foto ou esboço</span></button>`}</div>
+                        : `<div class="foto-vazia">
+                            <button type="button" class="so-toque" data-acao="pr-foto" data-cam="1" data-f="${f.id}" data-id="${x.id}">📷<span>Tirar foto</span></button>
+                            <button type="button" data-acao="pr-foto" data-f="${f.id}" data-id="${x.id}">🖼<span>Imagem</span></button>
+                            <button type="button" data-acao="pr-desenho" data-f="${f.id}" data-id="${x.id}">✏<span>Desenhar</span></button></div>`}</div>
                     <div class="principio-campos">
                         <div class="principio-linha"><span class="ordem">${i + 1}</span><input type="text" data-campo="principios.${f.id}#${x.id}.nome" value="${escAttr(x.nome)}" maxlength="120" aria-label="Princípio de solução" placeholder="Nome do princípio">${x.origem && x.origem !== 'manual' ? `<span class="selo-cat selo-${x.origem}" title="Origem">${esc(ORIGENS_PRINCIPIO[x.origem] || x.origem)}</span>` : ''}</div>
                         <textarea rows="2" data-campo="principios.${f.id}#${x.id}.descricao" maxlength="600" placeholder="Como funciona, vantagens e limitações" aria-label="Descrição">${esc(x.descricao)}</textarea>
                         ${selectMetodo(`principios.${f.id}#${x.id}.metodo`, x.metodo)}
                         <select data-campo="principios.${f.id}#${x.id}.maturidade" aria-label="Maturidade" class="resp-mat-${x.maturidade || 'vazia'}" data-rerender>
                             <option value="">Maturidade (para o TRL)…</option>${Object.entries(MATURIDADES).map(([k, m]) => `<option value="${k}" ${x.maturidade === k ? 'selected' : ''}>${esc(m.nome)} · TRL ${m.trl}</option>`).join('')}</select>
-                        ${x.concorrentes.length || x.fonte || x.imagemUrl || x.vantagens || x.desvantagens ? `<details class="principio-mais"><summary>${x.concorrentes.length ? `Usado por: ${esc(x.concorrentes.join(', '))}` : 'Mais informações'}</summary>
+                        <div class="principio-custo"><select data-campo="principios.${f.id}#${x.id}.custo" data-rerender aria-label="Custo">
+                            <option value="">Custo…</option>${Object.entries(CUSTOS).map(([k, c]) => `<option value="${k}" ${x.custo === k ? 'selected' : ''}>${esc(c.nome)}</option>`).join('')}</select>
+                            <input type="number" min="0" step="0.01" data-campo="principios.${f.id}#${x.id}.custoValor" data-tipo="num" value="${x.custoValor ?? ''}" placeholder="R$ (opcional)" aria-label="Custo em reais"></div>
+                        <details class="principio-mais"><summary>${x.concorrentes.length ? `Usado por: ${esc(x.concorrentes.join(', '))}` : 'Patentes e mais informações'}</summary>
+                            ${htmlLinksPatentes(x.nome, f.nome)}
                             ${x.vantagens ? `<p><b>+</b> ${esc(x.vantagens)}</p>` : ''}${x.desvantagens ? `<p><b>−</b> ${esc(x.desvantagens)}</p>` : ''}
-                            ${x.fonte ? `<p>Fonte: ${linkOuTexto(x.fonte)}</p>` : ''}${x.imagemUrl && !x.imagem ? `<p><a href="${escAttr(x.imagemUrl)}" target="_blank" rel="noopener">🔗 ver imagem indicada pela IA</a></p>` : ''}</details>` : ''}
+                            ${x.fonte ? `<p>Fonte: ${linkOuTexto(x.fonte)}</p>` : ''}${x.imagemUrl && !x.imagem ? `<p><a href="${escAttr(x.imagemUrl)}" target="_blank" rel="noopener">🔗 ver imagem indicada pela IA</a></p>` : ''}</details>
                         <div class="principio-acoes">
                             <button type="button" class="btn-icone" data-acao="pr-mover" data-f="${f.id}" data-id="${x.id}" data-d="-1" ${i ? '' : 'disabled'} title="Mais adequado (para a esquerda)" aria-label="Mover para antes">◀</button>
                             <button type="button" class="btn-icone" data-acao="pr-mover" data-f="${f.id}" data-id="${x.id}" data-d="1" ${i < prs.length - 1 ? '' : 'disabled'} title="Menos adequado" aria-label="Mover para depois">▶</button>
@@ -444,6 +453,7 @@ PAGINAS.principios = {
                     </div></article>`).join('')}
                     <button type="button" class="principio-novo" data-acao="pr-add" data-f="${f.id}">+ Princípio</button>
                 </div>
+                ${bib.length ? `<div class="chips"><span class="chips-rotulo">Da biblioteca da equipe:</span>${bib.map(s => `<button type="button" class="chip chip-bib" data-acao="pr-bib" data-f="${f.id}" data-nome="${escAttr(s.nome)}" title="${escAttr((s.descricao || '') + (s.projeto ? ' — usado em ' + s.projeto : ''))}">+ ${esc(s.nome)}</button>`).join('')}</div>` : ''}
                 ${sug.length ? `<div class="chips"><span class="chips-rotulo">Do catálogo:</span>${sug.map(s => `<button type="button" class="chip" data-acao="pr-sug" data-f="${f.id}" data-nome="${escAttr(s.nome)}" data-desc="${escAttr(s.descricao)}" title="${escAttr(s.descricao)}">+ ${esc(s.nome)}</button>`).join('')}</div>` : ''}
             </section>`;
         }).join('')}`;
@@ -486,6 +496,12 @@ Object.assign(ACOES, {
         const el = $(`[data-campo="principios.${b.dataset.f}#${x.id}.nome"]`); if (el) el.focus();
     },
     'pr-sug': b => { principiosDe(PC.p, b.dataset.f).push({ id: uid('pr'), nome: b.dataset.nome, descricao: b.dataset.desc || '', imagem: null, metodo: 'Catálogo de projeto', sugerido: true, origem: 'catalogo', maturidade: 'mercado', concorrentes: [], fonte: '', imagemUrl: '', vantagens: '', desvantagens: '' }); salvar(); renderPagina(true); },
+    'pr-bib': b => {
+        const i = sugerirDaBiblioteca(PC.estrutura().nos.find(n => n.id === b.dataset.f).nome, 50).find(x => x.nome === b.dataset.nome);
+        if (!i) return;
+        principiosDe(PC.p, b.dataset.f).push({ id: uid('pr'), nome: i.nome, descricao: i.descricao, imagem: null, metodo: i.metodo || 'Análise de sistemas técnicos existentes', sugerido: true, origem: 'biblioteca', maturidade: i.maturidade, custo: i.custo, custoValor: null, concorrentes: i.concorrentes, fonte: i.fonte || (i.projeto ? 'Projeto ' + i.projeto : ''), imagemUrl: '', vantagens: '', desvantagens: '' });
+        salvar(); renderPagina(true);
+    },
     'pr-catalogo-todas': () => {
         const p = PC.p; let n = 0;
         funcoesFolha(estEscolhida()).forEach(f => {
@@ -510,8 +526,16 @@ Object.assign(ACOES, {
         if (i < 0 || j < 0 || j >= l.length) return;
         [l[i], l[j]] = [l[j], l[i]]; salvar(); renderPagina(true);
     },
+    'pr-desenho': async b => {
+        const x = acharPr(b.dataset.f, b.dataset.id);
+        const arq = await abrirEsboco(`Esboço: ${x.nome || 'princípio de solução'}`);
+        if (!arq) return;
+        const id = await Imagens.salvar(arq, x.nome);
+        if (x.imagem) await Imagens.apagar(x.imagem);
+        x.imagem = id; salvar(); renderPagina(true);
+    },
     'pr-foto': async b => {
-        const arq = await escolherArquivo('#arq-imagem');
+        const arq = await escolherArquivo(b.dataset.cam ? '#arq-camera' : '#arq-imagem');
         if (!arq) return;
         const x = acharPr(b.dataset.f, b.dataset.id);
         const id = await Imagens.salvar(arq, x.nome);
@@ -629,7 +653,9 @@ PAGINAS.matriz = {
         ${htmlCartaoIA(p, true)}
         ${p.variantes.length ? `<section class="card"><h2>Resumo das concepções</h2>
             <div class="tabela-rolagem"><table class="tabela"><thead><tr><th>Função</th>${p.variantes.map(v => `<th><span class="ponto" style="background:${v.cor}"></span>${esc(v.nome)}</th>`).join('')}</tr></thead>
-            <tbody>${folhas.map(f => `<tr><td><span class="num-f">F${esc(numeroFuncao(est, f.id))}</span> ${esc(f.nome)}</td>${p.variantes.map(v => `<td>${v.escolhas[f.id] ? esc(nomePr(v.escolhas[f.id])) : '<span class="falta">—</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+            <tbody>${folhas.map(f => `<tr><td><span class="num-f">F${esc(numeroFuncao(est, f.id))}</span> ${esc(f.nome)}</td>${p.variantes.map(v => `<td>${v.escolhas[f.id] ? esc(nomePr(v.escolhas[f.id])) : '<span class="falta">—</span>'}</td>`).join('')}</tr>`).join('')}</tbody>
+            <tfoot><tr><th>Custo estimado</th>${p.variantes.map(v => `<td>${esc(textoCusto(custoConcepcao(p, est, v)))}</td>`).join('')}</tr></tfoot></table></div>
+            <p class="nota">O custo vem do campo "Custo" de cada princípio (Barato/Médio/Caro ou o valor em R$), em Princípios de solução.</p>
         </section>` : ''}
         ${dica(`<ol><li>Combine só princípios <b>compatíveis</b>.</li><li>Só os que atendem às <b>especificações</b> e ao orçamento.</li><li>Concentre-se nas combinações <b>promissoras</b> e registre o porquê.</li></ol><p>Critérios para limitar as combinações (Pahl et al., 2005).</p>`, 'Critérios para combinar')}`;
     },
@@ -782,12 +808,13 @@ PAGINAS.selecao = {
 
         <section class="card">
             <h2>Resultado</h2>
-            <div class="tabela-rolagem"><table class="tabela tabela-resultado"><thead><tr><th>Concepção</th><th>1 Viabilidade</th><th>2 Tecnologia</th><th>3 Passa/não passa</th><th>4 Avaliação</th><th></th></tr></thead>
+            <div class="tabela-rolagem"><table class="tabela tabela-resultado"><thead><tr><th>Concepção</th><th>1 Viabilidade</th><th>2 Tecnologia</th><th>3 Passa/não passa</th><th>4 Avaliação</th><th>Custo estimado</th><th></th></tr></thead>
             <tbody>${r.map(x => `<tr class="${melhor && melhor.id === x.id ? 'linha-melhor' : ''}"><td><span class="ponto" style="background:${x.cor}"></span><b>${esc(x.nome)}</b></td>
                 <td>${x.viabilidade ? (x.etapa1 ? '✓ ' : '✗ ') + ESTADOS_VIAB[x.viabilidade] : '…'}</td>
                 <td>${!x.etapa1 ? '' : x.respTec < x.nPerg ? `… ${x.respTec}/${x.nPerg}` : x.etapa2 ? `✓ ${x.naoTec} não` : `✗ ${x.naoTec} não`}</td>
                 <td>${!x.etapa2 ? '' : x.respPassa < x.nPassa ? `… ${x.respPassa}/${x.nPassa}` : x.etapa3 ? `✓ ${x.naoPassa} não` : `✗ ${x.naoPassa} não`}</td>
                 <td>${!x.etapa3 ? '' : x.ehRef ? 'referência' : refOk ? `${x.soma > 0 ? '+' : ''}${x.soma} (${x.ponderada.toLocaleString('pt-BR', { maximumFractionDigits: 2 })})` : '…'}</td>
+                <td class="pequeno">${esc(textoCusto(custoConcepcao(p, estEscolhida(), p.variantes.find(v => v.id === x.id))))}</td>
                 <td>${x.etapa3 ? (p.concepcao.varianteId === x.id ? '<span class="etapa-selo-ok">escolhida</span>' : `<button type="button" class="btn btn-secondary btn-sm" data-acao="sel-escolher" data-id="${x.id}">Escolher</button>`) : ''}</td></tr>`).join('')}</tbody></table></div>
             ${melhor ? `<p>Melhor avaliada: <b>${esc(melhor.nome)}</b>. ${p.concepcao.varianteId === melhor.id ? '' : `<button type="button" class="btn btn-primary btn-sm" data-acao="sel-escolher" data-id="${melhor.id}">Seguir com ${esc(melhor.nome)} →</button>`}</p>` : ''}
         </section>`;
@@ -846,7 +873,10 @@ PAGINAS.concepcao = {
             <textarea rows="6" data-campo="concepcao.descricao" placeholder="Como a concepção funciona, arranjo dos componentes, pontos fortes e riscos">${esc(c.descricao)}</textarea>
         </section>
         <section class="card">
-            <div class="card-topo"><h2>Esboços e fotos</h2><button type="button" class="btn btn-primary btn-sm" data-acao="conc-img-add">📷 Acrescentar imagem</button></div>
+            <div class="card-topo"><h2>Esboços e fotos</h2><div class="botoes">
+                <button type="button" class="btn btn-primary btn-sm so-toque" data-acao="conc-img-add" data-cam="1">📷 Tirar foto</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-acao="conc-img-add">🖼 Acrescentar imagem</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-acao="conc-desenho">✏ Desenhar esboço</button></div></div>
             ${c.imagens.length ? `<div class="grade-esbocos">${c.imagens.map(im => `<figure class="esboco">${imgTag(im.id, im.legenda)}
                 <input type="text" data-campo="concepcao.imagens#${im.id}.legenda" value="${escAttr(im.legenda || '')}" placeholder="Legenda" maxlength="160" aria-label="Legenda">
                 <button type="button" class="btn-icone perigo" data-acao="conc-img-del" data-id="${im.id}" aria-label="Remover">✕</button></figure>`).join('')}</div>`
@@ -859,6 +889,7 @@ PAGINAS.concepcao = {
                 <input type="text" id="comp-nota" placeholder="Como aproveitar" maxlength="200" aria-label="Como aproveitar"><button type="button" class="btn btn-secondary btn-sm" data-acao="conc-comp-add">Acrescentar</button></div>` : ''}
             <ul class="lista-incomp">${c.complementos.map(k => { const x = acharPrincipio(p, k.principioId); return `<li><b>${esc(x ? x.nome : '?')}</b>${k.nota ? ' — ' + esc(k.nota) : ''} <button type="button" class="btn-icone" data-acao="conc-comp-del" data-id="${k.id}" aria-label="Excluir">✕</button></li>`; }).join('')}</ul>
         </section>
+        ${htmlFMEA(p)}
         <section class="card">
             <div class="card-topo"><h2>Próximos passos (evoluir a concepção)</h2>${c.proximosPassos ? '' : '<button type="button" class="btn btn-secondary btn-sm" data-acao="conc-passos">Sugerir</button>'}</div>
             <textarea rows="6" data-campo="concepcao.proximosPassos">${esc(c.proximosPassos)}</textarea>
@@ -874,8 +905,15 @@ Object.assign(ACOES, {
         p.concepcao.descricao = rascunhoDescricao(p, v); salvar(); renderPagina(true);
     },
     'conc-passos': () => { PC.p.concepcao.proximosPassos = PROXIMOS_PASSOS_PADRAO; salvar(); renderPagina(true); },
-    'conc-img-add': async () => {
-        const arq = await escolherArquivo('#arq-imagem');
+    'conc-desenho': async () => {
+        const arq = await abrirEsboco('Esboço da concepção');
+        if (!arq) return;
+        const id = await Imagens.salvar(arq, 'esboço');
+        PC.p.concepcao.imagens.push({ id, legenda: 'Esboço ' + (PC.p.concepcao.imagens.length + 1) });
+        salvar(); renderPagina(true);
+    },
+    'conc-img-add': async b => {
+        const arq = await escolherArquivo(b && b.dataset.cam ? '#arq-camera' : '#arq-imagem');
         if (!arq) return;
         const id = await Imagens.salvar(arq, arq.name);
         PC.p.concepcao.imagens.push({ id, legenda: arq.name.replace(/\.[^.]+$/, '') });

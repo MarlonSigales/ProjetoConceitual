@@ -51,6 +51,11 @@ function pendencias(p) {
         const dev = folhas.filter(f => { const x = acharPrincipio(p, v.escolhas[f.id]); return x && x.maturidade === 'desenvolver'; });
         if (dev.length) add('info', `Funções que precisam ser desenvolvidas (TRL baixo, maior risco): ${dev.map(f => f.nome).join('; ')}.`, 'analises');
         if (!p.concepcao.descricao.trim()) add('media', 'A concepção escolhida está sem descrição.', 'concepcao');
+        if (typeof fmeaCritico === 'function') {
+            if (!p.fmea.length) add('media', 'FMEA da concepção não feita (o que pode falhar em cada função).', 'concepcao');
+            const crit = p.fmea.filter(l => fmeaCritico(l) && !String(l.acao || '').trim());
+            if (crit.length) add('media', `FMEA: ${crit.length} modo(s) de falha crítico(s) sem ação definida.`, 'concepcao');
+        }
     }
     return out;
 }
@@ -110,7 +115,8 @@ function exportarParaGestao(p) {
             id: gid(x.id), nome: x.nome, selecionada: x.id === p.concepcao.varianteId,
             descricao: (x.id === p.concepcao.varianteId && p.concepcao.descricao ? p.concepcao.descricao + '\n\n' : (x.descricao ? x.descricao + '\n\n' : '')) +
                 folhasTodas.filter(f => x.escolhas[f.id]).map(f => `${f.nome}: ${(acharPrincipio(p, x.escolhas[f.id]) || {}).nome}`).join('\n'),
-            avaliacao: [rr.viabilidade ? 'Viabilidade: ' + ({ viavel: 'viável', condicional: 'condicionalmente viável', nao: 'não viável' }[rr.viabilidade]) : '',
+            custoEstimado: textoCusto(custoConcepcao(p, est, x)),
+            avaliacao: ['Custo estimado: ' + textoCusto(custoConcepcao(p, est, x)), rr.viabilidade ? 'Viabilidade: ' + ({ viavel: 'viável', condicional: 'condicionalmente viável', nao: 'não viável' }[rr.viabilidade]) : '',
                 rr.etapa2 ? 'Tecnologia disponível' : '', rr.etapa3 ? 'Passou no passa/não passa' : '', rr.promissora ? 'Promissora na matriz de avaliação' : ''].filter(Boolean).join('; ')
         };
     });
@@ -119,6 +125,7 @@ function exportarParaGestao(p) {
         projeto: { nome: p.projeto.nome, cliente: p.projeto.cliente },
         qfd: p.qfdBackup || null,
         especificacoesManuais: p.especificacoes.filter(e => !e.idQFD).map(e => ({ id: gid(e.id), requisito: e.descricao, criterioAceite: e.meta })),
+        fmea: (p.fmea || []).map(l => { const f = est ? est.nos.find(n => n.id === l.funcId) : null; return { id: gid(l.id), item: f ? `F${numeroFuncao(est, f.id)} ${f.nome}` : '', modo: l.modo, efeito: l.efeito, causa: l.causa, s: +l.s || 5, o: +l.o || 5, d: +l.d || 5, acao: l.acao }; }),
         conceitual: { funcaoGlobal: { nome: p.funcaoGlobal.nome, entradas: fluxos('entradas'), saidas: fluxos('saidas') }, funcoes, desdobramento, concepcoes }
     };
 }

@@ -18,7 +18,12 @@ Pahl et al. (2005) e Reis (2003).
    Gemini…) e cole a resposta de volta — princípios dos concorrentes, de patentes e da literatura entram na matriz
    morfológica, com maturidade, fontes e concepções sugeridas.
 4. **Análises e TRL**: o que falta, especificação → função, maturidade de cada solução (TRL provável) e concorrentes.
-5. **Gestão de Projetos**: baixe o arquivo "…-para-gestao.json" (ou use o ZIP) e importe na fase conceitual do Gestão: as
+5. **Sem arquivos no mesmo navegador**: o QFD e o Gestão de Projetos ficam no mesmo endereço; "Usar este QFD" aqui e
+   "Usar o projeto conceitual deste navegador" no Gestão trazem tudo sem baixar nada.
+6. **Fotos, câmera e esboço com o dedo** nos princípios e na concepção; **custo** por princípio e custo estimado das
+   concepções; **FMEA** da concepção; **biblioteca da equipe** (princípios de projetos anteriores, sem servidor);
+   **busca de patentes** por princípio; **tour** na primeira visita.
+7. **Gestão de Projetos**: baixe o arquivo "…-para-gestao.json" (ou use o ZIP) e importe na fase conceitual do Gestão: as
    funções viram a árvore TRL.
 
 ## Etapas
@@ -54,6 +59,10 @@ css/style.css       identidade visual (Gestão de Projetos / QFD), responsivo
 js/dados.js         modelo, armazenamento, imagens, importação do QFD, cálculos, ZIP
 js/catalogo.js      catálogo de princípios, verbos de função, modelos prontos de estrutura e fluxos sugeridos
 js/assistente.js    preenchimento automático a partir do QFD
+js/esboco.js        desenho à mão (dedo, caneta, mouse)
+js/biblioteca.js    biblioteca da equipe e links de busca de patentes
+js/fmea.js          FMEA da concepção
+js/tour.js          tour da primeira visita
 js/ia.js            pacote e pedido para IA multiagente; importação da resposta
 js/analises.js      análises (pendências, desdobramento, maturidade/TRL, concorrentes) e exportação para o Gestão
 js/diagrama.js      editor e desenho da estrutura de funções (SVG)

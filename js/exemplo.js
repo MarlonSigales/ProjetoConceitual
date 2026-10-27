@@ -144,6 +144,15 @@ async function criarExemplo() {
     // princípios das funções que só existem na estrutura 2 seguem os da estrutura 1 (mesmo nome)
     est2.nos.filter(n => n.tipo === 'funcao').forEach(n => { const orig = est.nos.find(o => mapa[o.id] === n.id); if (orig && p.principios[orig.id]) p.principios[n.id] = p.principios[orig.id].map(x => Object.assign({}, x, { id: uid('pr'), imagem: null })); });
 
+    // custo estimado de cada princípio (R$ por roda, valores ilustrativos)
+    const CUSTO_EX = { 'Blocagem': 15, 'Eixo com porcas': 6, 'Eixo passante': 45, 'Rolamento selado': 20, 'Rolamento de esferas': 10, 'Bucha': 4,
+        'Raios de aço': 45, 'Braços': 600, 'Disco monobloco': 220, 'Pneu com câmara': 25, 'Pneu tubeless': 60, 'Pneu maciço': 70,
+        'Pneu largo': 5, 'Aro de perfil': 20, 'Elastômero': 25, 'Freio a disco': 40, 'Freio na pista': 20, 'Freio a tambor': 70, 'Contra-pedal': 55,
+        'Cubo livre': 28, 'Roda livre': 15, 'Cubo com marchas': 260, 'Pinhão fixo': 12 };
+    Object.values(p.principios).flat().forEach(x => {
+        const k = Object.keys(CUSTO_EX).find(c => x.nome.startsWith(c));
+        if (k) { x.custoValor = CUSTO_EX[k]; x.custo = CUSTO_EX[k] < 20 ? 'baixo' : CUSTO_EX[k] < 100 ? 'medio' : 'alto'; }
+    });
     // desdobramento especificação → função (ligações feitas à mão na etapa Análises)
     const fPorNome = n => est.nos.find(x => x.nome === n);
     const ligaEsp = { 'Massa': [f3, f2], 'Carga radial': [f3, f42], 'Número de raios': [f3], 'Desvio lateral': [f2, f3], 'Tempo de troca': [f1, f42] };
@@ -199,6 +208,9 @@ async function criarExemplo() {
     p.concepcao.imagens = imgs.esboco ? [{ id: imgs.esboco, legenda: 'Esboço da concepção: 32 raios, disco de 160 mm, blocagem rápida' }] : [];
     p.concepcao.complementos = [{ id: uid('cp'), principioId: tubeless.id, nota: 'Oferecer aro compatível com tubeless como opcional, para reduzir furos.' }];
     p.concepcao.proximosPassos = PROXIMOS_PASSOS_PADRAO_EX;
+    // FMEA da concepção: modos de falha sugeridos e ação nos críticos
+    sugerirFMEA(p);
+    p.fmea.forEach(l => { if (fmeaCritico(l)) l.acao = /Fratura|frenagem/i.test(l.modo) ? 'Ensaio no protótipo (ISO 4210-7) e revisão do dimensionamento' : 'Torque de aperto no manual e inspeção na revisão'; });
     return normalizarProjeto(p);
 }
 

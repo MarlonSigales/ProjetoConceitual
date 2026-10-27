@@ -2,7 +2,7 @@
 
 TODO / QA — Sistema de Projeto Conceitual
 Marcadores: [fazer] [futuro] [resolvido] [rejeitado]
-Atualizado em 27/10/2026. Os números são fixos (servem de referência); a ordem dentro de cada parte é do mais simples para o mais difícil.
+Atualizado em 27/10/2026 (versão 3). Os números são fixos (servem de referência); a ordem dentro de cada parte é do mais simples para o mais difícil.
 
 === DIRETRIZES PERMANENTES
 - SIMPLES PARA QUALQUER UM: quem nunca ouviu falar de projeto conceitual tem que conseguir usar sem ler manual.
@@ -20,18 +20,13 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
 
 === O QUE FALTA (do mais simples para o mais difícil)
 13 [fazer] Conferir o PDF real (Chrome/Edge: Imprimir → Salvar como PDF, "Gráficos de fundo" ligado) num computador de verdade.
+   Não dá para fazer daqui: o teste automático gera o PDF no Chromium sem tela, não no navegador de quem usa.
 14 [fazer] Testar o pacote para IA com ChatGPT, Claude e Gemini de verdade (com pesquisa na web) e ajustar o pedido se alguma
-   delas fugir do formato JSON. Simplicidade: a pessoa só baixa, cola e importa; se a IA errar o formato, a mensagem de erro
-   tem que dizer o que copiar.
-15 [futuro] Tour guiado na primeira vez (balões "clique aqui"), desligável. Simplicidade: no máximo 5 balões.
-16 [futuro] Foto pela câmera do celular direto no princípio e esboço desenhado com o dedo (canvas) na concepção.
-17 [futuro] Custo estimado por princípio (R$) → custo da concepção calculado e índice de custo (IDC) preenchido sozinho.
-   Simplicidade: campo opcional, faixa barato/médio/caro quando não souber o valor.
-18 [futuro] FMEA de concepção por função (o que pode falhar) já com sugestões do catálogo, exportada para Riscos do Gestão.
-19 [futuro] Biblioteca da equipe: exportar/importar os princípios usados em projetos anteriores como catálogo próprio.
-20 [futuro] Diagrama: roteamento das setas sem cruzar blocos e sem rótulos sobrepostos em diagramas grandes.
-21 [futuro] Abrir direto do QFD e voltar ao Gestão sem baixar arquivos (passar os dados entre os sistemas pelo navegador).
-22 [futuro] Busca de anterioridade por princípio (patentes que usam o princípio) ligada à aba Pesquisa do Gestão.
+   delas fugir do formato JSON. Não dá para fazer daqui (precisa das contas). Simplicidade: a pessoa só baixa, cola e importa;
+   se a IA errar o formato, a mensagem de erro diz o que copiar.
+23 [futuro] Biblioteca da equipe gravada direto num repositório do GitHub pelo próprio sistema (hoje: exporta o arquivo e alguém
+   sobe; a leitura pelo endereço já é automática). Precisa de token por pessoa — avaliar se vale a complexidade.
+24 [futuro] Abrir o QFD já com "Seguir para o projeto conceitual" importando sozinho (hoje: um clique em "Usar este QFD").
 
 === REJEITADO
 (nenhum)
@@ -63,3 +58,25 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
 12 [resolvido] Exportação para o Gestão de Projetos (arquivo "…-para-gestao.json" e gestao-conceitual.json no ZIP); o Gestão
    importa e monta a árvore TRL (commit no repositório do Gestão).
    QA: 27 testes automáticos ok; fluxo QFD → preenchimento → Gestão (versões completa e simplificada) sem erros.
+
+--- Versão 3 (27/10/2026)
+15 [resolvido] Tour de até 5 balões na primeira visita (pula o que não está na tela; some ao mudar de página); reabre em
+   "Mais opções → Como usar".
+16 [resolvido] "Tirar foto" (abre a câmera no celular; some no computador) e "Desenhar" (esboço com o dedo, caneta ou mouse:
+   cores, espessura, borracha, desfazer) nos princípios e na concepção.
+17 [resolvido] Custo por princípio (Barato/Médio/Caro e, se souber, o valor em R$) → custo estimado de cada concepção na
+   matriz, na seleção, no relatório, no pedido para IA e no Gestão. Mudança em relação ao texto original: o custo entra nas
+   concepções, não no IDC das estruturas (as estruturas ainda não têm princípios para custear).
+18 [resolvido] FMEA da concepção: modos de falha sugeridos por função (e pela maturidade do princípio), S/O/D de 1 a 10,
+   RPN e críticos (RPN ≥ 100 ou S ≥ 9) como no Gestão; pendência para crítico sem ação; vai para a FMEA do projeto
+   preliminar do Gestão, de onde os críticos seguem para Riscos.
+19 [resolvido] Biblioteca da equipe sem servidor: guarda os princípios do projeto, junta vários ZIPs antigos de uma vez,
+   exporta/importa um único arquivo (sem duplicar) e lê sozinha uma biblioteca publicada num endereço (ex.: GitHub "Raw");
+   sugere os princípios nas funções parecidas e entra no preenchimento automático.
+20 [resolvido] Rótulos das ligações escolhem o lugar com menos sobreposição a blocos, outros rótulos e linhas.
+21 [resolvido] Sem baixar arquivo no mesmo navegador (QFD, Projeto Conceitual e Gestão ficam em marlonsigales.github.io):
+   "Usar este QFD" aqui; "Usar o QFD deste navegador" e "Usar o projeto conceitual deste navegador" no Gestão; botão
+   "Seguir para o projeto conceitual" no QFD.
+22 [resolvido] Busca de patentes por princípio: Google Patents, Espacenet e INPI com a consulta pronta.
+   QA: 30 testes automáticos ok; telas em 360/768/1024/1920 px sem estouro; fluxos QFD → Conceitual → Gestão (com FMEA)
+   sem erros; t1/t2/t3 do Gestão sem erros.
