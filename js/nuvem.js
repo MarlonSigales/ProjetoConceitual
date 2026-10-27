@@ -159,7 +159,10 @@ async function salvarNaNuvem(p) {
     const carimbo = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', 'h');
     await enviar(dir, `${nome}-${carimbo}.zip`, blob);
     const n = await juntarBibliotecaNuvem(biblioteca, itensDoProjeto(p));
-    return { pasta: nome, biblioteca: n };
+    // componentes padronizados, materiais e fornecedores do projeto vão para o banco da equipe
+    let componentes = 0;
+    if (typeof sincronizarComponentesNuvem === 'function') { try { componentes = (await sincronizarComponentesNuvem(componentesDoProjeto(p))).novosNaNuvem; } catch (e) { /* o projeto já foi salvo */ } }
+    return { pasta: nome, biblioteca: n, componentes };
 }
 
 /** Lê a biblioteca da nuvem, junta itens e regrava (uma só cópia). Também atualiza a biblioteca deste navegador. */
@@ -244,7 +247,7 @@ Object.assign(ACOES, {
     'nuvem-salvar': async () => {
         const r = await comAviso('Salvando na nuvem da equipe…', () => salvarNaNuvem(PC.p));
         renderPagina(true);
-        avisar(`Salvo na nuvem: pasta "${r.pasta}"${r.biblioteca ? `; ${r.biblioteca} princípio(s) novo(s) na biblioteca da equipe` : ''}.`, 'ok', 7000);
+        avisar(`Salvo na nuvem: pasta "${r.pasta}"${r.biblioteca ? `; ${r.biblioteca} princípio(s) novo(s) na biblioteca da equipe` : ''}${r.componentes ? `; ${r.componentes} componente(s)/material(is) novo(s) no banco da equipe` : ''}.`, 'ok', 7000);
     },
     'nuvem-abrir': async () => {
         const lst = await comAviso('Lendo os projetos da equipe…', listarProjetosNuvem);

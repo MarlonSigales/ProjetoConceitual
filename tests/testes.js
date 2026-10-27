@@ -505,6 +505,85 @@ teste('Tese (Sigales, 2025): terços de importância e próximos passos por tipo
     p.tipoProjeto = 'agricola'; ok(/ISO 7256-1/.test(proximosPassosPara(p)));
 });
 
+teste('Preliminar: pré-preenche a partir da concepção (determinantes, interfaces, portadores, leiautes, auxiliares, protótipo, adequação)', () => {
+    const p = normalizarProjeto(JSON.parse(JSON.stringify(EX)));
+    p.preliminar = preliminarVazio();
+    const feitos = preencherPreliminar(p), pl = p.preliminar;
+    ok(feitos.length >= 5, 'lista do que foi preenchido');
+    ok(Object.keys(pl.determinantes).length >= 2, 'massa/carga marcadas');
+    ok(!pl.determinantes[p.especificacoes.find(e => e.ehCusto).id], 'custo não é determinante');
+    const est = estDoP(p), v = concepcaoEscolhida(p);
+    igual(pl.portadores.filter(x => x.papel !== 'auxiliar').length, funcoesFolha(est).filter(f => v.escolhas[f.id]).length);
+    ok(pl.portadores.some(x => x.papel === 'determinante'), 'há portador determinante');
+    ok(pl.portadores.some(x => x.papel === 'auxiliar' && x.origem === 'comprado'), 'auxiliares padronizadas');
+    igual(pl.leiautes.length, 2); ok(Object.keys(pl.leiautes[0].notas).length > 0, 'leiaute A herda as notas da avaliação final');
+    igual(pl.prototipo.ciclo.length, 5); ok(pl.prototipo.respostas, 'respostas = terço superior');
+    const massa = p.especificacoes.find(e => /Massa/.test(e.descricao));
+    igual(pl.adequacao[massa.id].valor, '1750'); igual(pl.adequacao[massa.id].estado, 'ok', '1750 g ≤ 1800 g');
+    ok(Object.values(pl.adequacao).every(a => a.estado), 'todas com resultado');
+    // não apaga nada numa segunda vez
+    pl.portadores[0].parametro = 'meu'; preencherPreliminar(p); igual(pl.portadores[0].parametro, 'meu');
+});
+
+teste('Preliminar: meta, leiautes, pendências, status e relatório', () => {
+    igual(atendeMeta({ meta: '≤ 1800 g' }, '1750'), true); igual(atendeMeta({ meta: '>= 1500 N' }, '1400'), false);
+    igual(atendeMeta({ meta: '= 32 un' }, '33'), true, 'tolerância de 5%'); igual(atendeMeta({ meta: '= 32 un' }, '36'), false); igual(atendeMeta({ meta: '' }, '3'), null);
+    igual(kgDe('1800 g'), 1.8); igual(kgDe('1,75 kg'), 1.75);
+    const p = normalizarProjeto(JSON.parse(JSON.stringify(EX)));
+    const av = avaliarLeiautes(p);
+    ok(av[0].tec > 0 && av[0].eco === 1 || av[0].eco === null || av[0].eco > 0);
+    ok(pendenciasPreliminar(p).length > 0);
+    const st = statusEtapas(p);
+    ok(st['p-requisitos'] && st['p-adequacao'], 'status das etapas do preliminar');
+    igual(st['p-leiautes'].estado, 'feito', 'exemplo tem leiaute escolhido');
+    ok(/Projeto preliminar/.test(corpoRelatorio(p)) && /Quadro 4.4/.test(corpoRelatorio(p)));
+    const semC = normalizarProjeto({}); ok(pendenciasPreliminar(semC)[0].etapa === 'concepcao');
+    igual(todasEtapas().length, ETAPAS.length + 6);
+});
+
+teste('Banco da equipe: junta sem repetir, atualiza preço mais recente, recebe peças do projeto', () => {
+    const b = { itens: [] };
+    let r = juntarComponentes(b, [{ tipo: 'componente', nome: 'Rolamento 6202', especificacao: '2RS', preco: 10, dataPreco: '2026-01-01', fornecedor: 'A' }]);
+    igual(r.novos, 1);
+    r = juntarComponentes(b, [{ tipo: 'componente', nome: 'rolamento 6202', especificacao: '2RS', preco: 12, dataPreco: '2026-06-01', fornecedor: 'B', cidade: 'Pelotas' }]);
+    igual(r.novos, 0); igual(b.itens[0].preco, 12); igual(b.itens[0].fornecedor, 'B'); igual(b.itens[0].cidade, 'Pelotas');
+    juntarComponentes(b, [{ tipo: 'componente', nome: 'Rolamento 6202', especificacao: '2RS', preco: 9, dataPreco: '2025-01-01' }]);
+    igual(b.itens[0].preco, 12, 'cotação antiga não substitui');
+    const p = normalizarProjeto(JSON.parse(JSON.stringify(EX)));
+    const itens = componentesDoProjeto(p);
+    ok(itens.some(i => i.tipo === 'componente'), 'peças compradas do projeto');
+    ok(COMPONENTES_BASE.length > 20 && COMPONENTES_BASE.every(i => i.preco === null), 'lista básica sem preço inventado');
+});
+
+teste('IA do preliminar: pedido com contexto e formato; importação só completa o vazio', () => {
+    const p = normalizarProjeto(JSON.parse(JSON.stringify(EX)));
+    const t = promptIAPreliminar(p);
+    ok(/projeto-preliminar-ia/.test(t) && /chavesVerificacao/.test(t) && /Não invente/.test(t));
+    const est = estDoP(p), f1 = funcoesFolha(est)[0], cod = `F${numeroFuncao(est, f1.id)}`;
+    const pt = p.preliminar.portadores.find(x => x.funcId === f1.id); pt.parametro = 'meu'; pt.material = '';
+    const esp1 = p.especificacoes[0];
+    const r = importarRespostaIAPreliminar(p, extrairJsonIA('texto antes ```json\n' + JSON.stringify({
+        formato: 'projeto-preliminar-ia', portadores: [{ codigo: cod, parametro: 'da IA', material: 'Alumínio 6061-T6' }],
+        auxiliares: [{ funcao: 'Travar', peca: 'Porca autotravante', especificacao: 'DIN 985 M6', quantidade: 4 }],
+        componentes: [{ tipo: 'componente', nome: 'Porca autotravante', especificacao: 'DIN 985 M6', preco: 0.5, dataPreco: '2026-10-01' }],
+        diretrizes: [{ chave: 'ergonomia', resposta: 'não', acao: 'alavanca maior' }, { chave: 'inexistente', resposta: 'sim' }],
+        verificacao: [{ chave: 'transporte', resposta: 'sim' }],
+        modosFalha: [{ codigo: cod, modo: 'Afrouxamento do eixo', s: 8, o: 3, d: 4 }],
+        planoEnsaio: { variaveis: 'velocidade' },
+        adequacao: [{ especificacao: esp1.codigo, valorEstimado: '1', estado: 'x', motivo: 'Falta teste ou ensaio' }]
+    }) + '\n```'));
+    igual(pt.parametro, 'meu', 'não sobrescreve'); igual(pt.material, 'Alumínio 6061-T6');
+    ok(p.preliminar.portadores.some(x => x.nome === 'Porca autotravante' && x.qtd === 4));
+    igual(p.preliminar.diretrizes.ergonomia.r, 'nao'); ok(!p.preliminar.diretrizes.inexistente);
+    ok(p.fmea.some(l => l.modo === 'Afrouxamento do eixo'));
+    const c = lerComponentes().itens.find(i => i.nome === 'Porca autotravante');
+    ok(c && c.preco === null, 'preço sem fonte não entra no banco');
+    ok(r.respostas >= 2 && r.falhas === 1);
+    // limpa o banco do teste
+    const b = lerComponentes(); b.itens = b.itens.filter(i => i.nome !== 'Porca autotravante'); gravarComponentes(b);
+    try { importarRespostaIAPreliminar(p, { qualquer: 1 }); ok(false, 'devia recusar'); } catch (e) { ok(/formato/.test(e.message)); }
+});
+
 // ---------------------------------------------------------------- execução
 (async () => {
     const lista = document.getElementById('lista');

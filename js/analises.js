@@ -160,7 +160,7 @@ PAGINAS.analises = {
         const pend = pendencias(p);
         const ordem = { alta: 0, media: 1, info: 2 };
         pend.sort((a, b) => ordem[a.nivel] - ordem[b.nivel]);
-        const nome = id => (ETAPAS.find(e => e[0] === id) || [])[2] || '';
+        const nome = id => (todasEtapas().find(e => e[0] === id) || [])[2] || '';
         const linhas = linhasMaturidade(p);
         const v = p.variantes.find(x => x.id === p.concepcao.varianteId);
         const cont = { mercado: 0, adaptar: 0, desenvolver: 0, '': 0 };

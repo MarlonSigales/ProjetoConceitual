@@ -541,3 +541,63 @@ body.esb-aberto { overflow: hidden; }
 .tabela-final select { min-width: 7.6rem; }
 .selo-terco { display: block; font-size: 0.68rem; font-weight: 600; margin-top: 2px; text-align: right; }
 .terco-superior { color: #1f5f45; } .terco-medio { color: #8a6d0b; } .terco-inferior { color: #6b7775; }
+
+/* ---------------- projeto preliminar ---------------- */
+.preenchido-auto { border-left: 4px solid var(--teal); background: #f2f9f6; }
+.preenchido-auto ul { margin: 0.3rem 0 0; padding-left: 1.2rem; }
+.pendencias-pagina { margin: 0 0 1rem; }
+.mini-foto { position: relative; width: 64px; height: 48px; }
+.mini-foto img { width: 64px; height: 48px; object-fit: cover; border-radius: 4px; background: #fff; }
+.mini-foto .btn-icone { position: absolute; top: -6px; right: -6px; background: #fff; padding: 0 4px; }
+.foto-vazia.mini { display: flex; gap: 2px; width: auto; min-height: 0; }
+.foto-vazia.mini button { padding: 4px 6px; font-size: 0.9rem; min-height: 36px; }
+.tabela-portadores tr.papel-determinante td:first-child { box-shadow: inset 4px 0 0 #2f7d57; }
+.leiaute.escolhido { box-shadow: 0 0 0 2px #2f7d57; }
+.titulo-campo { font-weight: 700; font-size: 1.02rem; color: var(--teal); border: 1px solid transparent; background: transparent; width: 100%; min-width: 0; }
+.titulo-campo:hover, .titulo-campo:focus { border-color: var(--borda); background: #fff; }
+.grafico-te { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-top: 0.8rem; }
+.grafico-te p { flex: 1 1 220px; margin: 0; }
+.selo-det { color: #2f7d57; font-weight: 600; }
+.chip.chip-ativo { background: #e3f3eb; border-color: #2f7d57; color: #1f5f45; font-weight: 600; }
+.ciclo { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+.ciclo li { border: 1px solid var(--borda); border-left: 5px solid #c9d5d2; border-radius: 6px; padding: 0.5rem 0.7rem; display: grid; gap: 0.35rem; }
+.ciclo li.ciclo-feito { border-left-color: #2f7d57; background: #f3faf6; }
+.ciclo li.ciclo-reprovou { border-left-color: #c0392b; background: #fdf3f2; }
+.ciclo-linha { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.ciclo-linha b { flex: 1 1 180px; }
+.ciclo input[type=text] { width: 100%; box-sizing: border-box; }
+.custo-resumo { margin-top: 0.6rem; font-size: 1rem; }
+.resumo-adeq { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+.resumo-adeq span { padding: 0.25rem 0.7rem; border-radius: 999px; font-weight: 700; }
+.adeq-ok { background: #e3f3eb; color: #1f5f45; } .adeq-x { background: #fdeceb; color: #a12a1e; } .adeq-q { background: #eef1f0; color: #55625f; }
+.tabela-adeq tr.adeq-ok td:first-child { box-shadow: inset 4px 0 0 #2f7d57; }
+.tabela-adeq tr.adeq-x td:first-child { box-shadow: inset 4px 0 0 #c0392b; }
+.tabela-check td:nth-child(2) { min-width: 220px; }
+.tabela-check tr.linha-alerta td { background: #fff4f2; }
+.resp-na { background: #eef1f0; }
+.tabela-partes input[type=text] { min-width: 7rem; }
+.cartao-prelim .cartoes-etapas { margin-top: 0.6rem; }
+.sidebar-link.etapa-prelim .sidebar-num { font-size: 0.7rem; }
+.link-ia { margin: 0 0 0.6rem; font-size: 0.9rem; } .link-ia a { color: var(--teal); }
+.leiaute .card-topo { flex-wrap: nowrap; align-items: center; } .leiaute .card-topo .btn-icone { flex: none; }
+.tabela-adeq .col-meta { white-space: nowrap; } .tabela-adeq select { min-width: 8.6rem; }
+/* telas estreitas: tabelas do preliminar viram cartões (sem rolar para o lado) */
+@media (max-width: 680px) {
+  .tabela-check thead, .tabela-partes thead, .tabela-adeq thead { display: none; }
+  .tabela-check, .tabela-check tbody, .tabela-check tr, .tabela-check td,
+  .tabela-partes, .tabela-partes tbody, .tabela-partes tr, .tabela-partes td,
+  .tabela-adeq, .tabela-adeq tbody, .tabela-adeq tr, .tabela-adeq td { display: block; width: 100%; box-sizing: border-box; }
+  .tabela-check tr, .tabela-partes tbody tr, .tabela-adeq tr { border: 1px solid var(--borda); border-radius: 8px; margin-bottom: 0.6rem; padding: 0.4rem 0.5rem; background: #fff; }
+  .tabela-check td, .tabela-partes td, .tabela-adeq td { border: 0 !important; padding: 0.2rem 0 !important; min-width: 0 !important; }
+  .tabela-partes td[data-rotulo]:not([data-rotulo=""])::before, .tabela-adeq td[data-rotulo]::before { content: attr(data-rotulo); display: block; font-size: 0.72rem; color: #55625f; text-transform: uppercase; letter-spacing: .04em; }
+  .tabela-partes tfoot, .tabela-partes tfoot tr { display: block; } .tabela-partes tfoot th, .tabela-partes tfoot td { display: inline-block; border: 0; }
+  .tabela-check select, .tabela-check input, .tabela-partes input, .tabela-partes select, .tabela-adeq input, .tabela-adeq select { width: 100% !important; }
+  .tabela-adeq .col-meta { white-space: normal; }
+}
+@media (max-width: 680px) {
+  .tabela-partes tbody tr { display: grid !important; grid-template-columns: 1fr 1fr; column-gap: 0.6rem; }
+  .tabela-partes tbody td:first-child { grid-column: 1 / -1; }
+  .tabela-partes td input, .tabela-adeq td input { max-width: none !important; min-width: 0 !important; }
+  .tabela-partes td.col-acao { text-align: right; }
+}
+@media (max-width: 680px) { .tabela-partes td, .tabela-adeq td, .tabela-check td { width: auto !important; } }

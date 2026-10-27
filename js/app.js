@@ -149,18 +149,23 @@ function atualizarCasca() {
     $('#sidebar-nav').innerHTML =
         `<a href="#/inicio" class="sidebar-link ${App.pagina === 'inicio' ? 'ativo' : ''}"><span class="sidebar-num">⌂</span><span>Início</span></a>
          <span class="sidebar-grupo">Etapas</span>` +
-        ETAPAS.map(([id, num, nome]) => {
-            const s = st[id];
-            const cls = ['sidebar-link', App.pagina === id ? 'ativo' : '', 'etapa-' + s.estado, prox.id === id && s.estado !== 'feito' ? 'etapa-proxima' : ''].join(' ');
-            return `<a href="#/${id}" class="${cls}" title="${escAttr(s.resumo)}"><span class="sidebar-num">${s.estado === 'feito' ? '✓' : num}</span><span>${esc(nome)}</span></a>`;
-        }).join('');
+        ETAPAS.map(linkEtapa).join('') +
+        (typeof ETAPAS_PRELIM !== 'undefined' ? `<span class="sidebar-grupo">Projeto preliminar${p.concepcao.varianteId ? '' : ' <small>(após a concepção)</small>'}</span>` + ETAPAS_PRELIM.map(linkEtapa).join('') : '');
+    function linkEtapa([id, num, nome]) {
+        const s = st[id];
+        const cls = ['sidebar-link', App.pagina === id ? 'ativo' : '', 'etapa-' + s.estado, prox.id === id && s.estado !== 'feito' ? 'etapa-proxima' : '', id.startsWith('p-') ? 'etapa-prelim' : ''].join(' ');
+        return `<a href="#/${id}" class="${cls}" title="${escAttr(s.resumo)}"><span class="sidebar-num">${s.estado === 'feito' ? '✓' : num}</span><span>${esc(nome)}</span></a>`;
+    }
+    const ativo = document.querySelector('#sidebar-nav .ativo');
+    if (ativo && ativo.scrollIntoView) ativo.scrollIntoView({ block: 'nearest' });
     const hora = App.salvoEm ? App.salvoEm.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
     $('#sidebar-estado').innerHTML = `${p.projeto.nome ? esc(p.projeto.nome) : 'Projeto sem nome'}<span>${hora ? 'salvo no navegador às ' + hora : 'guardado neste navegador'}</span>`;
     // navegação no fim da página
-    const i = ETAPAS.findIndex(([id]) => id === App.pagina);
+    const TODAS = todasEtapas();
+    const i = TODAS.findIndex(([id]) => id === App.pagina);
     const nav = $('#etapa-nav');
     if (i < 0) { nav.innerHTML = ''; return; }
-    const ant = i > 0 ? ETAPAS[i - 1] : null, pos = ETAPAS[i + 1];
+    const ant = i > 0 ? TODAS[i - 1] : null, pos = TODAS[i + 1];
     nav.innerHTML =
         (ant ? `<a class="btn btn-secondary" href="#/${ant[0]}"><small>← Voltar</small>${ant[1]}. ${esc(ant[2])}</a>` : `<a class="btn btn-secondary" href="#/inicio"><small>← Voltar</small>Início</a>`) +
         (pos ? `<a class="btn btn-primary etapa-nav-proxima" href="#/${pos[0]}"><small>Próxima etapa →</small>${pos[1]}. ${esc(pos[2])}</a>` : '');
@@ -191,7 +196,7 @@ function renderPagina(manterRolagem = false) {
     const pg = PAGINAS[id];
     const p = PC.p;
     const raiz = $('#app');
-    const num = (ETAPAS.find(e => e[0] === id) || [])[1];
+    const num = (todasEtapas().find(e => e[0] === id) || [])[1];
     raiz.innerHTML = `<div class="container">
         <header class="page-titulo">
             <h1>${num ? `<span class="titulo-num">${num}</span>` : ''}${esc(pg.titulo)}</h1>
@@ -386,6 +391,7 @@ PAGINAS.inicio = {
             ${htmlTipoProjeto(p)}
         </section>
         ${htmlPreenchimento(p)}
+        ${htmlInicioPreliminar(p, st)}
         <section class="cartoes-etapas">
             ${ETAPAS.map(([id, num, nome]) => `<a class="cartao-etapa estado-${st[id].estado}" href="#/${id}">
                 <span class="sidebar-num">${st[id].estado === 'feito' ? '✓' : num}</span>
@@ -396,6 +402,18 @@ PAGINAS.inicio = {
         ${htmlFluxoMetodo(true)}`;
     }
 };
+
+/** Cartão do projeto preliminar no Início: aparece quando a concepção já foi escolhida. */
+function htmlInicioPreliminar(p, st) {
+    if (typeof ETAPAS_PRELIM === 'undefined' || !p.concepcao.varianteId) return '';
+    const feitas = ETAPAS_PRELIM.filter(([id]) => st[id].estado === 'feito').length;
+    const prox = ETAPAS_PRELIM.find(([id]) => st[id].estado !== 'feito');
+    return `<section class="card cartao-prelim">
+        <div class="card-topo"><h2>Projeto preliminar</h2>${prox ? `<a class="btn btn-primary" href="#/${prox[0]}">${p.preliminar.iniciado ? 'Continuar' : 'Começar'}: ${prox[1]}. ${esc(prox[2])} →</a>` : '<span class="etapa-selo-ok">✓ concluído</span>'}</div>
+        <p class="nota">${p.preliminar.iniciado ? `${feitas} de ${ETAPAS_PRELIM.length} etapas concluídas.` : 'A concepção está escolhida. Ao abrir, o preliminar já vem preenchido a partir dela: requisitos determinantes, interfaces, portadores, dois leiautes, peças padronizadas, plano do protótipo e adequação às especificações.'}</p>
+        <div class="cartoes-etapas">${ETAPAS_PRELIM.map(([id, num, nome]) => `<a class="cartao-etapa estado-${st[id].estado}" href="#/${id}"><span class="sidebar-num">${st[id].estado === 'feito' ? '✓' : num}</span><span><b>${esc(nome)}</b><small>${esc(st[id].resumo)}</small></span></a>`).join('')}</div>
+    </section>`;
+}
 
 /** Escolha do tipo de projeto (muda catálogo, modelos e sugestões). */
 function htmlTipoProjeto(p) {

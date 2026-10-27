@@ -255,6 +255,7 @@ function corpoRelatorio(p, opcoes = {}) {
         ${secao('Seleção da concepção', selecao)}
         ${secao('Concepção selecionada', concepcao)}
         ${secao('Análises e TRL', analises)}
+        ${typeof htmlRelatorioPreliminar === 'function' ? secao('Projeto preliminar', htmlRelatorioPreliminar(p, img)) : ''}
         ${secao('Referências', referencias)}
     </div></div>`;
 }

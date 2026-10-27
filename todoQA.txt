@@ -66,22 +66,22 @@ Base, na ordem em que foram aplicadas nos trabalhos do grupo:
 Diretriz SIMPLES PARA QUALQUER UM: cada passo vem pré-preenchido do conceitual, do QFD e dos cadastros da equipe; a pessoa só
 confere e completa; o sistema avisa o que falta (pendências) e para onde voltar quando algo reprova.
 
-26 [futuro] Módulo "Projeto preliminar" no mesmo projeto (mesmo ZIP, mesma nuvem): menu com o grupo "Conceitual" (etapas 1–9)
+26 [feito] Módulo "Projeto preliminar" no mesmo projeto (mesmo ZIP, mesma nuvem): menu com o grupo "Conceitual" (etapas 1–9)
    e o grupo "Preliminar" nas etapas de Reis (3.1, 3.2, 3.3) + protótipo + testes; só abre depois da concepção escolhida;
    a evolução da concepção (massa, dimensões, esboço — já feita na seleção) aparece como ponto de partida.
-27 [futuro] 3.1.1 Requisitos determinantes: das especificações, marcar as que definem tamanho, arranjo e material —
+27 [feito] 3.1.1 Requisitos determinantes: das especificações, marcar as que definem tamanho, arranjo e material —
    pré-marcadas por palavra (massa, dimensão, carga, potência, volume, vazão). Simples: caixas de seleção.
-28 [futuro] 3.1.2 Restrições de espaço em escala: envelope (C × L × A), pontos de fixação e interfaces; sugestões prontas por
+28 [feito] 3.1.2 Restrições de espaço em escala: envelope (C × L × A), pontos de fixação e interfaces; sugestões prontas por
    tipo (agrícola: engate de três pontos cat. I/II, TDP 540/1000 rpm, espaçamento entre linhas, altura livre, suporte padrão
    do fabricante — ex.: berço do dosador, que permite trocar sem modificar a máquina (tese, 4.1); elétrico: tensão do trator
    12 V, conector ISOBUS ISO 11783; mangueiras e encaixes nos diâmetros mais comuns do mercado). Limite do equipamento de
    protótipo (ex.: impressora 3D de 30 × 30 × 30 cm) entra como restrição. Esboço em escala com a ferramenta de desenho.
-29 [futuro] 3.1.3 e 3.1.6 Portadores de efeito físico: cada função da concepção vira um componente, com o princípio, a foto e
+29 [feito] 3.1.3 e 3.1.6 Portadores de efeito físico: cada função da concepção vira um componente, com o princípio, a foto e
    o parâmetro característico (ex.: diâmetro do disco, nº de furos, rotação); marcar determinante ou demais; as funções
    auxiliares (3.2.1: fixar, vedar, lubrificar, proteger, conectar) sugerem peças padronizadas do cadastro (item 34).
-30 [futuro] 3.1.4 Leiautes preliminares: pelo menos dois arranjos (foto do CAD, do modelo ou desenho com o dedo), com as
+30 [feito] 3.1.4 Leiautes preliminares: pelo menos dois arranjos (foto do CAD, do modelo ou desenho com o dedo), com as
    dimensões principais; usar as variações de arranjo (central / um por unidade / vários por unidade).
-31 [futuro] 3.1.5 e 3.2.4 Seleção e avaliação técnico-econômica: mesma tabela de notas 1–5 da avaliação final da concepção
+31 [feito] 3.1.5 e 3.2.4 Seleção e avaliação técnico-econômica: mesma tabela de notas 1–5 da avaliação final da concepção
    (critérios = especificações com pesos do QFD), mais o valor econômico; gráfico técnico × econômico; ponto fraco em vermelho.
 32 [futuro] Dimensionamento com memória de cálculo: calculadoras prontas (eixo à flexão e torção, parafuso, rolamento L10,
    torque e potência do motor, corrente e bitola de cabo, bateria, corrente/correia), metas do QFD já preenchidas; resultado
@@ -89,30 +89,30 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    controle (Nise): diagrama de blocos → esquema → modelo → projeto e teste, com o levantamento experimental dos parâmetros do
    motor/planta; requisitos conflitantes viram aviso para reespecificar; embarcado (Marwedel): partição hardware × software
    e módulos reaproveitados da biblioteca com versão.
-33 [futuro] Materiais e processos por peça (do cadastro, item 34), com sugestões por exigência (resistência, corrosão, massa,
+33 [parcial] Materiais e processos por peça (do cadastro, item 34), com sugestões por exigência (resistência, corrosão, massa,
    custo). Para peças plásticas: perguntas prontas da injeção (Harada, 2004) — cantos arredondados, paredes finas e uniformes,
    nervuras de 0,2 a 0,7 da espessura da parede, ângulo de saída, contração e tolerâncias; impressão 3D (PLA) como protótipo.
-34 [futuro] Cadastros da equipe na nuvem (MEGA, só com senha): materiais padronizados e componentes comerciais (aços e
+34 [parcial] Cadastros da equipe na nuvem (MEGA, só com senha): materiais padronizados e componentes comerciais (aços e
    perfis, chapas, parafusos e porcas ISO, rolamentos, correntes e correias, motores, sensores, controladores) com
    especificação, unidade, preço de referência e data da cotação; fornecedores (nome, contato, cidade, o que fornece, prazo,
    condições, avaliação, cotações com data). Pastas: SistemaProjetoConceitual/Cadastros/materiais.json e fornecedores.json;
    juntar sem duplicar, como a biblioteca; usados na lista de peças e no custo. Simples: escolher da lista; o que não existe
    é cadastrado ali mesmo e passa a valer para todos os projetos da equipe. Começa com uma lista básica pré-preenchida.
    Atende à dificuldade de Reis (falta de dados de projetos anteriores).
-35 [futuro] 3.2.2 Regras básicas e DfX: perguntas sim/não pré-escritas por componente — claro, simples, seguro; e a lista
+35 [feito] 3.2.2 Regras básicas e DfX: perguntas sim/não pré-escritas por componente — claro, simples, seguro; e a lista
    de Reis: dilatação, alongamento, fadiga, ruptura, corrosão, ergonomia, estética, manufatura, montagem, normas,
    manutenção, reciclagem, mínimo risco, padronização; e os da Figura 21 da tese (Pahl): custo, qualidade, cadeia de
    suprimentos, segurança, serviço, confiabilidade, teste. Para eletrônica: grau de proteção IP da carcaça. "Não" vira
    pendência com campo de ação.
-36 [futuro] 3.3.2 Erros e fatores de perturbação: lista do Quadro 4.4 de Reis (função, princípio, leiaute, segurança,
+36 [feito] 3.3.2 Erros e fatores de perturbação: lista do Quadro 4.4 de Reis (função, princípio, leiaute, segurança,
    ergonomia, produção, controle de qualidade, montagem, transporte, operação, reciclagem, manutenção, custos, cronograma)
    com perguntas prontas, mais a FMEA de projeto por componente continuando a FMEA da concepção. Quadro de falhas da tese
    (Figura 22, Pahl): geometria → modelagem 3D, tolerâncias e revisão; função → FMEA, árvore de falhas, QFD; leiaute
    (cinemática, esforços) → experimento, teste de campo, simulação (FEM, multicorpos); processo → controle de versões e
    documentos. Cada falha escolhe a medida da lista.
-37 [futuro] 3.3.3 Lista de partes preliminar: montada dos portadores e dos padronizados (quantidade, material,
+37 [feito] 3.3.3 Lista de partes preliminar: montada dos portadores e dos padronizados (quantidade, material,
    fabricado/comprado, fornecedor, custo); soma comparada à especificação de custo do QFD → leiaute definitivo.
-38 [futuro] Planejamento do protótipo (Reis 4.6, Ulrich & Eppinger), em 4 perguntas simples: 1) para quê (aprender,
+38 [feito] Planejamento do protótipo (Reis 4.6, Ulrich & Eppinger), em 4 perguntas simples: 1) para quê (aprender,
    comunicar, integrar, marco); 2) que tipo (físico/analítico, completo/focado; ex.: impressão 3D em PLA); 3) plano de
    experimento (variáveis, norma do ensaio — ex.: ISO 7256-1 para dosadores —, variáveis de resposta, como analisar);
    4) cronograma com 3 datas (início, teste, decisão). Pré-preenchido pelas funções críticas (maturidade adaptar/desenvolver,
@@ -121,13 +121,13 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    para dosador (tese, Tabela 9, Coelho 1996): repetições ≥ 4 (≥ 5 recomendado), ≥ 250 amostras, ≥ 3 densidades, 3 níveis
    do reservatório, inclinações de −11° a 11°, ≥ 3 velocidades; análise: ANOVA e Tukey (média móvel exponencial quando a
    distribuição não é normal). Coleta pela rede de sensores da bancada (MQTT) quando houver.
-39 [futuro] Ciclo do protótipo (Spagnolo, etapas 06–09): construção → teste preliminar → ajuste e adequação → teste
+39 [feito] Ciclo do protótipo (Spagnolo, etapas 06–09): construção → teste preliminar → ajuste e adequação → teste
    definitivo, cada um com data, resultado e fotos; reprovação mostra o botão "voltar ao passo" (execução recursiva, como na
    dissertação e na tese). Custo do protótipo: energia (potência × horas × tarifa) + material (kg × R$/kg, ou a estimativa
    do fatiador da impressora 3D) + peças compradas no varejo — com o aviso de que não é o custo de produção.
    Diagnóstico de falha guiado (tese, Tabelas 10–12): tabela liga/desliga de cada vedação ou componente suspeito com a medida
    obtida, para achar a causa; registro de cada correção e novo teste.
-40 [futuro] Adequação aos requisitos (dissertação, tabela 9; qualidade integrada de Spagnolo): para cada especificação,
+40 [feito] Adequação aos requisitos (dissertação, tabela 9; qualidade integrada de Spagnolo): para cada especificação,
    valor estimado ou medido × meta → Atendido (ok) / Não atendido (x) / Ainda não avaliado (?) — com o motivo: depende do
    leiaute definitivo, do material definitivo (fadiga, intervalo de manutenção, vida útil não se verificam em peça impressa)
    ou de ensaio que faltou (ex.: germinação, inclinações) —, terços de importância à vista, com a regra de tolerância do
@@ -213,3 +213,23 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    ensaio ISO 7256-1). Plano do preliminar (26–42) completado com teste × ensaio, quadro de falhas, diagnóstico liga/desliga,
    modelo de ensaio de dosador, ok/x/? e comparação com produto comercial.
    QA: 35 testes automáticos ok; telas em 360/768/1024/1920 px sem estouro.
+
+--- Versão 5 (27/10/2026) — Projeto preliminar, primeira versão
+46 [resolvido] Grupo "Projeto preliminar" no menu e no Início (P1–P6), no mesmo projeto, ZIP, nuvem e relatório. Ao abrir
+   a primeira vez, preenche sozinho a partir do conceitual e mostra o que fez: requisitos determinantes (pelas palavras da
+   especificação), espaço disponível (das dimensões estimadas), interfaces usuais do tipo de projeto, um portador por função
+   da concepção (princípio, foto, custo; determinante quando atende a especificação marcada), dois leiautes (A com
+   estimativas e notas da avaliação final; B para outro arranjo), funções auxiliares com peças padronizadas do banco da
+   equipe, FMEA crítica na verificação, plano do protótipo (propósito pela maturidade, funções de risco, normas do QFD,
+   respostas = terço superior), ciclo de Spagnolo e adequação (massa e custo comparados à meta; motivo provável do "?").
+   Cada página mostra "o que falta" só dela; "Não" sem ação vira pendência; teste reprovado manda voltar à 3.3.
+47 [resolvido] Pedido para IA do preliminar (formato "projeto-preliminar-ia"): 4 agentes (projeto, compras/padronização,
+   qualidade/ensaios, integrador), contexto completo e JSON fixo; a importação só completa o vazio, recusa chave fora da
+   lista e preço sem fonte; peças e materiais sugeridos entram no banco da equipe.
+48 [resolvido] Banco da equipe de componentes, materiais e fornecedores (item 34): lista básica sem preço inventado,
+   juntar sem repetir (fica a cotação mais recente), autocompletar nos campos, guardar os do projeto, arquivo para quem não
+   usa nuvem e SistemaProjetoConceitual/Cadastros/componentes.json no MEGA (também a cada "Salvar na nuvem").
+   No celular, as tabelas de verificação, lista de partes e adequação viram cartões.
+   QA: 39 testes automáticos ok; páginas P1–P6 em 360 e 1280 px sem estouro e sem erros; demais suítes ok.
+   Falta: 32 calculadoras, 33 sugestões de processo por exigência, 41 viabilidade econômica e envio da adequação ao Gestão
+   (Qualidade/TRL), 42 fechamento e patente; teste real do MEGA (25) inclui agora o banco de componentes.

@@ -223,6 +223,20 @@ async function criarExemplo() {
     // FMEA da concepção: modos de falha sugeridos e ação nos críticos
     sugerirFMEA(p);
     p.fmea.forEach(l => { if (fmeaCritico(l)) l.acao = /Fratura|frenagem/i.test(l.modo) ? 'Ensaio no protótipo (ISO 4210-7) e revisão do dimensionamento' : 'Torque de aperto no manual e inspeção na revisão'; });
+    // ---------- Projeto preliminar (início): pré-preenchido a partir da concepção, com algumas respostas ----------
+    if (typeof preencherPreliminar === 'function') {
+        preencherPreliminar(p);
+        const pl = p.preliminar;
+        pl.envelope = { c: '640', l: '120', a: '640', obs: 'Roda 700c dentro do garfo de 100 mm e da folga do quadro' };
+        const param = { 'cubo': 'Cubo 32 furos, eixo passante 12 × 100 mm', 'raio': '32 raios de aço inox 2,0 mm, cruzamento 3', 'disco': 'Rotor de 160 mm, 6 parafusos', 'aro': 'Aro 622 × 25 mm, parede dupla' };
+        pl.portadores.filter(x => x.papel !== 'auxiliar').forEach(x => { const k = Object.keys(param).find(k => semAcento(x.nome).includes(k)); if (k) x.parametro = param[k]; });
+        pl.leiauteEscolhido = pl.leiautes[0].id;
+        pl.leiautes[1].nome = 'Leiaute B — cubo com freio integrado'; pl.leiautes[1].dimensoes = 'Ø 622 × 25 mm'; pl.leiautes[1].massa = '1,95 kg'; pl.leiautes[1].custo = 210;
+        ['clareza', 'simplicidade', 'seguranca', 'montagem', 'padronizacao', 'manutencao'].forEach(k => { pl.diretrizes[k] = { r: 'sim', acao: '' }; });
+        pl.diretrizes.corrosao = { r: 'nao', acao: 'Raios em inox e aro anodizado' };
+        pl.verificacao.funcao = { r: 'sim', acao: '' };
+        pl.prototipo.ciclo[0].situacao = 'feito'; pl.prototipo.ciclo[0].notas = 'Roda montada com peças de mercado';
+    }
     return normalizarProjeto(p);
 }
 

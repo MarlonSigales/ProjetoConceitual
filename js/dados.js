@@ -122,7 +122,8 @@ function criarProjetoVazio() {
         funcoesQFD: [],                  // requisitos "formadores de função" do QFD
         ultimoPreenchimento: null,
         baseAnterior: null,              // { nome, em } quando o projeto partiu de outro (revisão das especificações)
-        fmea: [],                        // FMEA da concepção { id, funcId, modo, efeito, causa, s, o, d, acao }       // { em, itens: [{ etapa, texto }] } do preenchimento automático
+        preliminar: preliminarVazio(),   // fase 3 de Reis (2003): leiautes, verificações, protótipo, adequação
+        fmea: [],                        // FMEA da concepção { id, funcId, modo, efeito, causa, s, o, d, acao }
         // 1 Escopo
         especificacoes: [],              // { id, codigo, descricao, sentido, meta, unidade, avaliacao, aspectos, peso, dificuldade, origem, ehCusto, funcao, funcoesIds }
         necessidades: [],                // requisitos dos clientes { id, descricao, peso }
@@ -159,6 +160,49 @@ function criarProjetoVazio() {
 function criarEstrutura(nome = 'Estrutura 1') {
     const global = { id: uid('fn'), tipo: 'funcao', nome: 'Função global', pai: null, x: 330, y: 150, w: 190, h: 80, descricao: '', global: true };
     return { id: uid('est'), nome, descricao: '', nos: [global], ligacoes: [], fronteira: {} };
+}
+
+/** Projeto preliminar (Reis, 2003, fase 3; Spagnolo, 2011, etapas 05–11; Sigales, 2021 e 2025). */
+function preliminarVazio() {
+    return {
+        iniciado: false,
+        determinantes: {},                       // { [especId]: true } requisitos que definem tamanho, arranjo, material (3.1.1)
+        envelope: { c: '', l: '', a: '', obs: '' },
+        interfaces: [],                          // { id, texto, medida } (3.1.2)
+        esbocoRestricoes: null,
+        portadores: [],                          // { id, funcId, principioId, nome, papel, parametro, material, processo, origem, fornecedor, qtd, custo, imagem } (3.1.3, 3.1.6, 3.2.1, 3.3.3)
+        leiautes: [],                            // { id, nome, arranjo, dimensoes, massa, imagem, obs, notas: { [especId]: 1..5 }, custo } (3.1.4, 3.1.5, 3.2.4)
+        leiauteEscolhido: null,
+        diretrizes: {},                          // { [chave]: { r: 'sim'|'nao'|'na', acao } } (3.2.2)
+        verificacao: {},                         // { [chave]: { r, acao } } (3.3.2, Quadro 4.4)
+        prototipo: {
+            proposito: [], aproximacao: '', abrangencia: '', variaveis: '', norma: '', respostas: '', analise: '',
+            datas: { inicio: '', teste: '', decisao: '' },
+            ciclo: [],                           // { id, etapa, data, situacao: ''|'feito'|'reprovou', notas, imagem }
+            custo: { potenciaW: null, horas: null, tarifa: null, kg: null, precoKg: null, outros: null }
+        },
+        adequacao: {}                            // { [especId]: { valor, estado: 'ok'|'x'|'?', motivo } }
+    };
+}
+function normalizarPreliminar(x) {
+    const b = preliminarVazio();
+    x = x && typeof x === 'object' ? x : {};
+    const o = Object.assign(b, x);
+    o.determinantes = Object.assign({}, x.determinantes || {});
+    o.envelope = Object.assign(preliminarVazio().envelope, x.envelope || {});
+    o.interfaces = lista(x.interfaces).map(i => Object.assign({ id: uid('if'), texto: '', medida: '' }, i));
+    o.portadores = lista(x.portadores).map(i => Object.assign({ id: uid('pt'), funcId: '', principioId: '', nome: '', papel: 'demais', parametro: '', material: '', processo: '', origem: 'fabricado', fornecedor: '', qtd: 1, custo: null, imagem: null }, i));
+    o.leiautes = lista(x.leiautes).map(i => Object.assign({ id: uid('lt'), nome: '', arranjo: '', dimensoes: '', massa: '', imagem: null, obs: '', custo: null }, i, { notas: Object.assign({}, i.notas || {}) }));
+    o.diretrizes = Object.assign({}, x.diretrizes || {});
+    o.verificacao = Object.assign({}, x.verificacao || {});
+    const pr = x.prototipo || {};
+    o.prototipo = Object.assign(preliminarVazio().prototipo, pr, {
+        proposito: lista(pr.proposito), datas: Object.assign({ inicio: '', teste: '', decisao: '' }, pr.datas || {}),
+        ciclo: lista(pr.ciclo).map(c => Object.assign({ id: uid('cy'), etapa: '', data: '', situacao: '', notas: '', imagem: null }, c)),
+        custo: Object.assign(preliminarVazio().prototipo.custo, pr.custo || {})
+    });
+    o.adequacao = Object.assign({}, x.adequacao || {});
+    return o;
 }
 
 const REVISOES_ESPEC = { mantida: 'Mantida', alterada: 'Alterada', nova: 'Nova', removida: 'Retirada' };
@@ -258,6 +302,7 @@ function normalizarProjeto(p) {
     out.fmea = lista(p.fmea).map(l => Object.assign({ id: uid('fm'), funcId: '', modo: '', efeito: '', causa: '', s: 5, o: 5, d: 5, acao: '' }, l));
     out.ultimoPreenchimento = p.ultimoPreenchimento && Array.isArray(p.ultimoPreenchimento.itens) ? p.ultimoPreenchimento : null;
     out.qfdBackup = p.qfdBackup && typeof p.qfdBackup === 'object' ? p.qfdBackup : null;
+    out.preliminar = normalizarPreliminar(p.preliminar);
     out.baseAnterior = p.baseAnterior && typeof p.baseAnterior === 'object' ? { nome: txt(p.baseAnterior.nome, 160), em: txt(p.baseAnterior.em, 40) } : null;
     out.metadata = Object.assign(base.metadata, p.metadata || {});
     out.schemaVersion = PC_VERSAO;
@@ -361,6 +406,8 @@ function imagensUsadas(p) {
     Object.values(p.principios).forEach(l => l.forEach(x => x.imagem && ids.add(x.imagem)));
     p.concepcao.imagens.forEach(x => x && x.id && ids.add(x.id));
     Object.values(p.selecao.evolucao || {}).forEach(e => e && e.imagem && ids.add(e.imagem));
+    const pl = p.preliminar || {};
+    [pl.esbocoRestricoes].concat(lista(pl.portadores).map(x => x.imagem), lista(pl.leiautes).map(x => x.imagem), lista((pl.prototipo || {}).ciclo).map(x => x.imagem)).forEach(id => id && ids.add(id));
     return [...ids];
 }
 
@@ -750,9 +797,13 @@ function statusEtapas(p) {
         out.analises = s(est && !altas && !medias && out.concepcao.estado === 'feito', est && folhas.length > 0, altas + medias ? `${altas} importante(s), ${medias} a melhorar` : 'nada pendente');
     }
     out.relatorio = s(out.concepcao.estado === 'feito', out.estrutura.estado !== 'vazio', out.concepcao.estado === 'feito' ? 'pronto para gerar' : 'pode gerar a qualquer momento');
+    if (typeof statusPreliminar === 'function') Object.assign(out, statusPreliminar(p));
     p.etapasConcluidas.forEach(id => { if (out[id] && out[id].estado !== 'feito') out[id] = { estado: 'feito', resumo: out[id].resumo + ' · marcada como concluída', marcada: true }; });
     return out;
 }
+
+/** Etapas do conceitual seguidas das do preliminar (quando o módulo está carregado). */
+function todasEtapas() { return typeof ETAPAS_PRELIM !== 'undefined' ? ETAPAS.concat(ETAPAS_PRELIM) : ETAPAS; }
 
 function proximaEtapa(p, st) {
     st = st || statusEtapas(p);
