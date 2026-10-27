@@ -601,3 +601,4 @@ body.esb-aberto { overflow: hidden; }
   .tabela-partes td.col-acao { text-align: right; }
 }
 @media (max-width: 680px) { .tabela-partes td, .tabela-adeq td, .tabela-check td { width: auto !important; } }
+.indicacao { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin-top: 0.3rem; } .ind-ok small { color: #1f5f45; } .ind-x small { color: #a12a1e; }

@@ -135,7 +135,8 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    Inclui eficiência energética quando houver energia elétrica ou mecânica envolvida, e a comparação com um produto
    comercial medido no mesmo teste (concorrentes já vêm do QFD). Especificação que contradiz a física (ex.: velocidade de
    partes móveis ≤ 0,3 m/s num disco pequeno em alta velocidade) é marcada para revisão no projeto informacional.
-41 [futuro] Viabilidade econômica preliminar: custo da lista de partes + processos + protótipo; ligação com a análise
+41 [adiado — decisão de 27/10/2026: por enquanto os sistemas ficam separados; depois QFD, conceitual e
+   preliminar serão unidos ao Gestão num só sistema, e esta ligação entra nessa união] Viabilidade econômica preliminar: custo da lista de partes + processos + protótipo; ligação com a análise
    econômica do Gestão (custo pleno, CAPEX/OPEX).
 42 [futuro] Fechamento (Spagnolo, etapas 10–11): análise e discussão dos resultados, trabalhos futuros, e checklist de
    patente (busca de anterioridade com os links já gerados por princípio) antes de publicar — inclusive para instrumentos
@@ -233,3 +234,7 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    QA: 39 testes automáticos ok; páginas P1–P6 em 360 e 1280 px sem estouro e sem erros; demais suítes ok.
    Falta: 32 calculadoras, 33 sugestões de processo por exigência, 41 viabilidade econômica e envio da adequação ao Gestão
    (Qualidade/TRL), 42 fechamento e patente; teste real do MEGA (25) inclui agora o banco de componentes.
+49 [resolvido] Decisões de 27/10/2026, como na tese: ponto fraco = nota 1 ou 2 numa especificação do TERÇO SUPERIOR
+   (seleção, relatório e exportação); na adequação o resultado fica "?" até a equipe confirmar — estimativa, valor
+   digitado e sugestão da IA só mostram a indicação "pela meta: atende / não atende" com o botão "Confirmar".
+   QA: 39 testes automáticos ok; confirmação testada no navegador.

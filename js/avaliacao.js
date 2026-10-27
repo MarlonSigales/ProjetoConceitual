@@ -26,18 +26,19 @@ function concepcoesEmEvolucao(p) {
 
 /**
  * Avaliação final: nota média ponderada (1 a 5) pelas especificações, pontos fracos (nota ≤ 2 numa especificação de
- * peso acima da média) e a recomendada (maior nota sem ponto fraco, se estiver a menos de 10% da maior).
+ * terço superior de importância) e a recomendada (maior nota sem ponto fraco, se estiver a menos de 10% da maior).
  */
 function avaliacaoFinal(p) {
     const vs = concepcoesEmEvolucao(p), esp = especsAtivas(p), notas = p.selecao.final.notas;
     const pesoMedio = esp.length ? esp.reduce((t, e) => t + (+e.peso || 0), 0) / esp.length : 0;
+    const tercos = tercosEspec(p); // ponto fraco = nota 1 ou 2 numa especificação do terço superior (como em Reis, 2003, e Sigales, 2025)
     const linhas = vs.map(v => {
         const n = notas[v.id] || {};
         const avaliadas = esp.filter(e => +n[e.id] >= 1);
         const somaP = avaliadas.reduce((t, e) => t + (+e.peso || 0), 0);
         const nota = somaP ? avaliadas.reduce((t, e) => t + (+e.peso || 0) * (+n[e.id]), 0) / somaP
             : (avaliadas.length ? avaliadas.reduce((t, e) => t + (+n[e.id]), 0) / avaliadas.length : null);
-        const fracos = esp.filter(e => +n[e.id] >= 1 && +n[e.id] <= 2 && (+e.peso || 0) >= pesoMedio);
+        const fracos = esp.filter(e => +n[e.id] >= 1 && +n[e.id] <= 2 && tercos[e.id] === 'superior');
         return { id: v.id, nome: v.nome, cor: v.cor, nota, completo: esp.length > 0 && avaliadas.length === esp.length, fracos, avaliadas: avaliadas.length };
     });
     const com = linhas.filter(x => x.nota !== null).sort((a, b) => b.nota - a.nota);
@@ -46,7 +47,7 @@ function avaliacaoFinal(p) {
         const eq = com.find(x => !x.fracos.length && x.nota >= recomendada.nota * 0.9);
         if (eq) recomendada = Object.assign({}, eq, { motivo: `"${com[0].nome}" tem nota maior, mas tem ponto fraco em ${com[0].fracos.map(e => e.descricao).join(', ')}; "${eq.nome}" é mais equilibrada.` });
     }
-    return { linhas, recomendada, pesoMedio };
+    return { linhas, recomendada, pesoMedio, tercos };
 }
 
 function htmlEvolucao(p) {
@@ -78,7 +79,7 @@ function htmlAvaliacaoFinal(p) {
     return `<section class="card">
         <div class="card-topo"><h2>6. Avaliação final pelas especificações</h2>
             <button type="button" class="btn btn-secondary btn-sm" data-acao="final-sugerir" title="Preenche as notas vazias a partir da matriz de avaliação e da maturidade (revise)">Sugerir notas</button></div>
-        <p class="nota">Agora os critérios são as <b>especificações de projeto</b>, com os pesos do QFD (Reis, 2003, etapa 2.7). Nota de 1 (muito ruim) a 5 (muito bom). Não escolha só pelo número: <b>ponto fraco</b> (nota 1 ou 2 numa especificação importante) pesa contra.</p>
+        <p class="nota">Agora os critérios são as <b>especificações de projeto</b>, com os pesos do QFD (Reis, 2003, etapa 2.7). Nota de 1 (muito ruim) a 5 (muito bom). Não escolha só pelo número: <b>ponto fraco</b> (nota 1 ou 2 numa especificação do terço superior) pesa contra.</p>
         <label class="campo-participantes">Quem avaliou (Reis ampliou a equipe nesta etapa) <input type="text" data-campo="selecao.final.participantes" value="${escAttr(p.selecao.final.participantes || '')}" placeholder="projeto, produção, campo, manutenção…" maxlength="300"></label>
         <div class="tabela-rolagem"><table class="tabela tabela-final"><thead><tr><th>Especificação</th><th>Peso</th>${vs.map(v => `<th><span class="ponto" style="background:${escAttr(v.cor)}"></span>${esc(v.nome)}</th>`).join('')}</tr></thead>
         <tbody>${especsAtivas(p).map(e => `<tr><td>${esc(e.descricao)}${e.meta ? ` <small>(${esc(e.meta)})</small>` : ''}</td><td class="col-num">${pct(e.peso)}%${seloTerco(p, e)}</td>

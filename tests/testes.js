@@ -456,6 +456,7 @@ teste('Evolução e avaliação final pelas especificações (Reis 2.6/2.7): not
         const A = af.linhas.find(l => l.id === 'A'), B = af.linhas.find(l => l.id === 'B');
         igual(Math.round(A.nota * 100), 320); igual(Math.round(B.nota * 100), 360);
         igual(A.fracos.length, 1); igual(B.fracos.length, 0);
+        igual(tercosEspec(q).e1, 'superior');
         igual(af.recomendada.id, 'B');
         // B com nota um pouco menor que A, mas dentro de 10%: ainda recomenda a equilibrada
         q.selecao.final.notas = { A: { e1: 2, e2: 5, e3: 5 }, B: { e1: 3, e2: 3, e3: 3 } };
@@ -519,7 +520,9 @@ teste('Preliminar: pré-preenche a partir da concepção (determinantes, interfa
     igual(pl.leiautes.length, 2); ok(Object.keys(pl.leiautes[0].notas).length > 0, 'leiaute A herda as notas da avaliação final');
     igual(pl.prototipo.ciclo.length, 5); ok(pl.prototipo.respostas, 'respostas = terço superior');
     const massa = p.especificacoes.find(e => /Massa/.test(e.descricao));
-    igual(pl.adequacao[massa.id].valor, '1750'); igual(pl.adequacao[massa.id].estado, 'ok', '1750 g ≤ 1800 g');
+    igual(pl.adequacao[massa.id].valor, '1750'); igual(pl.adequacao[massa.id].estado, '?', 'estimativa fica ? até confirmar');
+    igual(pl.adequacao[massa.id].motivo, MOTIVO_CONFIRMAR);
+    ok(/Confirmar ok/.test(indicacaoAdequacao(massa, pl.adequacao[massa.id])), 'indica que a meta seria atendida');
     ok(Object.values(pl.adequacao).every(a => a.estado), 'todas com resultado');
     // não apaga nada numa segunda vez
     pl.portadores[0].parametro = 'meu'; preencherPreliminar(p); igual(pl.portadores[0].parametro, 'meu');

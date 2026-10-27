@@ -127,8 +127,9 @@ function importarRespostaIAPreliminar(p, d) {
         const a = pl.adequacao[e.id] || (pl.adequacao[e.id] = { valor: '', estado: '', motivo: '' });
         let mudou = false;
         if (vazio(a.valor) && !vazio(x.valorEstimado)) { a.valor = txt(x.valorEstimado, 60); mudou = true; }
-        if ((!a.estado || a.estado === '?') && ['ok', 'x'].includes(x.estado)) { a.estado = x.estado; mudou = true; }
-        if (vazio(a.motivo) && MOTIVOS_ADEQ.includes(x.motivo)) { a.motivo = x.motivo; mudou = true; }
+        // a IA só estima: o resultado continua "?" até a equipe confirmar
+        if (!a.estado) a.estado = '?';
+        if (vazio(a.motivo) && a.estado === '?') { a.motivo = !vazio(a.valor) ? MOTIVO_CONFIRMAR : MOTIVOS_ADEQ.includes(x.motivo) ? x.motivo : ''; if (a.motivo) mudou = true; }
         if (mudou) r.adequacao++;
     });
     pl.ia = { importadoEm: new Date().toISOString(), observacoes: txt(d.observacoes, 2000) };

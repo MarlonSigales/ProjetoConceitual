@@ -24,7 +24,8 @@ const ORIGENS_PECA = { fabricado: 'Fabricada', comprado: 'Comprada (padronizada)
 const ARRANJOS = ['Compacto (tudo num só conjunto)', 'Modular (subconjuntos separáveis)', 'Um elemento central para várias unidades', 'Um por unidade', 'Vários por unidade'];
 const RESPOSTAS_CHECK = { sim: 'Sim', nao: 'Não', na: 'Não se aplica' };
 const ESTADOS_ADEQ = { ok: 'ok atendido', x: 'x não atendido', '?': '? a avaliar' };
-const MOTIVOS_ADEQ = ['Depende do leiaute definitivo', 'Depende do material definitivo (fadiga, vida útil, intervalo de manutenção)', 'Falta teste ou ensaio', 'Contradiz a física: rever a especificação no projeto informacional'];
+const MOTIVOS_ADEQ = ['Depende do leiaute definitivo', 'Depende do material definitivo (fadiga, vida útil, intervalo de manutenção)', 'Falta teste ou ensaio', 'Contradiz a física: rever a especificação no projeto informacional', 'Falta confirmar o valor (teste ou medição)'];
+const MOTIVO_CONFIRMAR = MOTIVOS_ADEQ[4];
 
 /** Funções auxiliares usuais (Reis, 3.2.1) com a solução padronizada típica. */
 const AUXILIARES = [
@@ -152,6 +153,14 @@ function envelopeDe(t) {
     if (n.length >= 3) return { c: n[0], l: n[1], a: n[2] };
     return null;
 }
+/** Indicação pela meta enquanto o resultado não foi confirmado, com o botão para confirmar. */
+function indicacaoAdequacao(e, a) {
+    if ((a.estado || '?') !== '?' || !a.valor) return '';
+    const r = atendeMeta(e, a.valor);
+    if (r === null) return '<small class="indicacao">sem meta numérica: confirme olhando o resultado</small>';
+    return `<div class="indicacao ${r ? 'ind-ok' : 'ind-x'}"><small>pela meta: ${r ? 'atende' : 'não atende'}</small>
+        <button type="button" class="btn btn-secondary btn-sm" data-acao="pl-adeq-confirmar" data-id="${e.id}" data-r="${r ? 'ok' : 'x'}">Confirmar ${r ? 'ok' : 'x'}</button></div>`;
+}
 const reais = v => 'R$ ' + (+v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /** Nota técnica (0–1, notas 1–5 ponderadas pelas especificações) e econômica (0–1, menor custo = 1) de cada leiaute. */
@@ -259,10 +268,9 @@ function preencherPreliminar(p) {
             if (e.ehCusto) { const c = custoLista(p) || (custoConcepcao(p, est, v) || {}).valor; if (c) a.valor = String(Math.round(c * 100) / 100); }
             else if (/massa|peso/i.test(e.descricao) && evo.massa) { const kg = kgDe(evo.massa); a.valor = kg === null ? '' : /\(g\)|\bg\b/.test(`${e.descricao} ${e.unidade}`) && !/kg/i.test(`${e.descricao} ${e.unidade}`) ? String(Math.round(kg * 1000)) : String(kg); }
         }
-        if (!a.estado) {
-            const r = a.valor ? atendeMeta(e, a.valor) : null;
-            a.estado = r === true ? 'ok' : r === false ? 'x' : '?';
-        }
+        // fica "?" até a equipe confirmar (Sigales, 2025, Tabela 21): estimativa não é verificação
+        if (!a.estado) a.estado = '?';
+        if (a.estado === '?' && !a.motivo && a.valor) a.motivo = MOTIVO_CONFIRMAR;
         if (a.estado === '?' && !a.motivo) {
             const t = `${e.descricao} ${e.avaliacao}`;
             a.motivo = /vida|fadiga|confiab|durab|intervalo/i.test(t) ? MOTIVOS_ADEQ[1] : /ensaio|bancada|laborat|campo|simula|medi|contagem|cronomet/i.test(t) ? MOTIVOS_ADEQ[2] : MOTIVOS_ADEQ[0];
@@ -634,11 +642,11 @@ PAGINAS['p-adequacao'] = {
         return `${htmlTopoPreliminar(p, 'p-adequacao')}
         <section class="card">
             <div class="resumo-adeq"><span class="adeq-ok">ok ${cont.ok}</span><span class="adeq-x">x ${cont.x}</span><span class="adeq-q">? ${cont['?']}</span></div>
-            <p class="nota">Ao digitar o valor, o resultado é calculado pela meta (tolerância de 5% em "="). Prefira atender primeiro o <b>terço superior</b>.</p>
+            <p class="nota">O resultado fica <b>?</b> até a equipe <b>confirmar</b> com teste ou medição, como na tese (estimativa não é verificação). Ao digitar o valor, o sistema indica se a meta seria atendida (tolerância de 5% em "="); confirme com o botão. Prefira atender primeiro o <b>terço superior</b>.</p>
             <div class="tabela-rolagem"><table class="tabela tabela-adeq"><thead><tr><th>Especificação</th><th>Meta</th><th>Como avaliar</th><th>Valor obtido</th><th>Resultado</th><th>Motivo (se ? ou x)</th></tr></thead><tbody>
             ${esp.map(e => { const a = pl.adequacao[e.id] || {}; return `<tr class="adeq-${a.estado === 'ok' ? 'ok' : a.estado === 'x' ? 'x' : 'q'}"><td data-rotulo="Especificação">${esc(e.descricao)}${seloTerco(p, e)}</td><td data-rotulo="Meta" class="col-meta">${esc(e.meta || '')}</td><td data-rotulo="Como avaliar" class="pequeno">${esc(e.avaliacao || '')}</td>
                 <td data-rotulo="Valor obtido"><input type="text" data-campo="preliminar.adequacao.${e.id}.valor" data-acao-mudar="pl-adeq-valor" data-id="${e.id}" value="${escAttr(a.valor || '')}" maxlength="60" aria-label="Valor obtido" style="width:7rem"></td>
-                <td data-rotulo="Resultado"><select data-campo="preliminar.adequacao.${e.id}.estado" data-rerender aria-label="Resultado">${Object.entries(ESTADOS_ADEQ).map(([k, tx]) => `<option value="${k}" ${(a.estado || '?') === k ? 'selected' : ''}>${tx}</option>`).join('')}</select></td>
+                <td data-rotulo="Resultado"><select data-campo="preliminar.adequacao.${e.id}.estado" data-rerender aria-label="Resultado">${Object.entries(ESTADOS_ADEQ).map(([k, tx]) => `<option value="${k}" ${(a.estado || '?') === k ? 'selected' : ''}>${tx}</option>`).join('')}</select>${indicacaoAdequacao(e, a)}</td>
                 <td data-rotulo="Motivo">${a.estado === 'ok' ? '' : `<select data-campo="preliminar.adequacao.${e.id}.motivo" data-rerender aria-label="Motivo"><option value="">—</option>${MOTIVOS_ADEQ.map(m => `<option ${a.motivo === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>`}</td></tr>`; }).join('')}</tbody></table></div>
             ${dica('<p>Compare também com um produto comercial medido no <b>mesmo</b> teste (os concorrentes do QFD estão em Princípios). Especificação herdada de outro tipo de produto pode não fazer sentido: marque "Contradiz a física" e reveja no QFD.</p>', 'Dicas')}
         </section>`;
@@ -724,6 +732,12 @@ Object.assign(ACOES, {
     },
     'pl-aux-add': () => { PC.p.preliminar.portadores.push({ id: uid('pt'), funcId: '', principioId: '', nome: '', papel: 'auxiliar', funcaoAux: '', parametro: '', material: '', processo: '', origem: 'comprado', fornecedor: '', qtd: 1, custo: null, imagem: null }); salvar(); renderPagina(true); },
     'pl-peca-add': () => { PC.p.preliminar.portadores.push({ id: uid('pt'), funcId: '', principioId: '', nome: '', papel: 'demais', parametro: '', material: '', processo: '', origem: 'fabricado', fornecedor: '', qtd: 1, custo: null, imagem: null }); salvar(); renderPagina(true); },
+    'pl-adeq-confirmar': b => {
+        const a = PC.p.preliminar.adequacao[b.dataset.id];
+        if (!a) return;
+        a.estado = b.dataset.r; if (a.estado === 'ok') a.motivo = ''; else if (a.motivo === MOTIVO_CONFIRMAR) a.motivo = '';
+        salvar(); renderPagina(true);
+    },
     'pl-proposito': b => { const pr = PC.p.preliminar.prototipo, k = b.dataset.k; pr.proposito = pr.proposito.includes(k) ? pr.proposito.filter(x => x !== k) : pr.proposito.concat(k); salvar(); renderPagina(true); },
     'pl-ensaio-dosador': () => {
         const pr = PC.p.preliminar.prototipo, campos = ['norma', 'variaveis', 'respostas', 'analise'];
@@ -748,8 +762,8 @@ document.addEventListener('change', e => {
     } else if (el.dataset.acaoMudar === 'pl-adeq-valor') {
         const e2 = p.especificacoes.find(s => s.id === el.dataset.id), a = p.preliminar.adequacao[el.dataset.id] || (p.preliminar.adequacao[el.dataset.id] = {});
         a.valor = el.value;
-        const r = atendeMeta(e2, el.value);
-        if (r !== null) { a.estado = r ? 'ok' : 'x'; if (r) a.motivo = ''; }
+        // valor novo precisa de confirmação: volta para "?" até a equipe confirmar
+        if (a.estado !== '?' || !a.motivo) { a.estado = '?'; a.motivo = MOTIVO_CONFIRMAR; }
         salvar(); renderPagina(true);
     }
 });

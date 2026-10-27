@@ -202,9 +202,9 @@ function corpoRelatorio(p, opcoes = {}) {
             const af = avaliacaoFinal(p);
             if (af.linhas.some(l => l.nota !== null)) {
                 selecao += `<h3>Avaliação final pelas especificações (Reis, 2003, etapa 2.7)</h3>${s.final.participantes ? `<p>Avaliadores: ${esc(s.final.participantes)}</p>` : ''}<table><thead><tr><th>Especificação</th><th>Peso</th>${evo.map(v => `<th>${esc(v.nome)}</th>`).join('')}</tr></thead><tbody>
-                ${p.especificacoes.map(e => `<tr><td>${esc(e.descricao)}</td><td class="num">${pct(e.peso)}%</td>${evo.map(v => { const n = (s.final.notas[v.id] || {})[e.id]; return `<td class="centro">${n ? (n <= 2 && (+e.peso || 0) >= af.pesoMedio ? `<b class="nok">${n}</b>` : n) : '—'}</td>`; }).join('')}</tr>`).join('')}
+                ${p.especificacoes.map(e => `<tr><td>${esc(e.descricao)}</td><td class="num">${pct(e.peso)}%</td>${evo.map(v => { const n = (s.final.notas[v.id] || {})[e.id]; return `<td class="centro">${n ? (n <= 2 && af.tercos[e.id] === 'superior' ? `<b class="nok">${n}</b>` : n) : '—'}</td>`; }).join('')}</tr>`).join('')}
                 <tr><td colspan="2"><b>Nota ponderada (1 a 5)</b></td>${evo.map(v => { const l = af.linhas.find(x => x.id === v.id); return `<td class="centro"><b>${l.nota === null ? '—' : l.nota.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</b></td>`; }).join('')}</tr></tbody></table>
-                ${af.recomendada ? `<p>Recomendada: <b>${esc(af.recomendada.nome)}</b>${af.recomendada.motivo ? ' — ' + esc(af.recomendada.motivo) : ''}. Em vermelho, pontos fracos (nota 1 ou 2 em especificação de peso acima da média).</p>` : ''}`;
+                ${af.recomendada ? `<p>Recomendada: <b>${esc(af.recomendada.nome)}</b>${af.recomendada.motivo ? ' — ' + esc(af.recomendada.motivo) : ''}. Em vermelho, pontos fracos (nota 1 ou 2 em especificação do terço superior).</p>` : ''}`;
             }
         }
         selecao += `<h3>Resultado</h3><table><thead><tr><th>Concepção</th><th>Viabilidade</th><th>Tecnologia</th><th>Passa/não passa</th><th>Promissora</th></tr></thead><tbody>
