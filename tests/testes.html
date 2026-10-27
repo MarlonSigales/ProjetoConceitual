@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!-- © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas. -->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Testes — Projeto Conceitual</title>
+<style>
+ body { font-family: 'Segoe UI', Arial, sans-serif; margin: 1.5rem; color: #1d2b2b; }
+ h1 { color: #085357; font-size: 1.3rem; }
+ #resultado { font-weight: 700; margin: 0.6rem 0 1rem; }
+ li.ok { color: #1f5f45; } li.falha { color: #b3261e; font-weight: 600; }
+ li small { display: block; color: #6b7a78; font-weight: 400; }
+</style>
+</head>
+<body>
+<h1>Testes automáticos — Projeto Conceitual</h1>
+<p>Abra esta página pelo servidor (GitHub Pages ou <code>python3 -m http.server</code>). Os testes usam uma cópia do projeto e não mexem no projeto salvo.</p>
+<div id="resultado">Rodando…</div>
+<ol id="lista"></ol>
+<script src="../lib/jszip.min.js"></script>
+<script src="../js/dados.js"></script>
+<script src="../js/catalogo.js"></script>
+<script src="../js/diagrama.js"></script>
+<script src="../js/relatorio.js"></script>
+<script src="../js/exemplo.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/etapas.js"></script>
+<script src="testes.js"></script>
+</body>
+</html>

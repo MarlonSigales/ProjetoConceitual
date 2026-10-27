@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!-- © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas. -->
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projeto Conceitual</title>
+    <meta name="description" content="Ferramenta para o projeto conceitual: escopo, função global, estrutura de funções, princípios de solução, matriz morfológica, seleção e concepção (Pahl et al.; Reis; Spagnolo).">
+    <link rel="icon" href="img/logo-nimeq.png">
+    <link rel="stylesheet" href="css/style.css?v=20261027a">
+</head>
+<body>
+    <header class="topbar">
+        <button type="button" class="sidebar-toggle" aria-label="Abrir o menu de etapas" aria-expanded="false"></button>
+        <a href="#/inicio" class="topbar-marca" title="Início">
+            <img src="img/logo-nimeq.png" alt="" height="36">
+            <span>Projeto Conceitual</span>
+        </a>
+        <span class="topbar-projeto" title="Nome do projeto (editar no Início)"><span id="topbar-projeto-nome">Sem projeto</span></span>
+        <span class="topbar-selo" id="topbar-selo" title="Os dados ficam guardados neste navegador; baixe o ZIP para levar a outro computador">guardado no navegador</span>
+        <button type="button" class="btn btn-primary topbar-zip" data-acao="baixar-zip" title="Baixar o projeto completo (dados, fotos, diagramas e relatório)">Baixar ZIP</button>
+    </header>
+
+    <div class="app-corpo">
+        <aside class="sidebar" id="sidebar">
+            <nav id="sidebar-nav" aria-label="Etapas do projeto conceitual"></nav>
+            <div class="sidebar-arquivo">
+                <span class="sidebar-arquivo-rotulo">Arquivo do projeto</span>
+                <span class="sidebar-arquivo-estado" id="sidebar-estado"></span>
+                <button type="button" class="sidebar-arquivo-btn" data-acao="baixar-zip">⬇ Baixar ZIP completo</button>
+                <details class="sidebar-arquivo-mais">
+                    <summary>Mais opções</summary>
+                    <div>
+                        <button type="button" class="sidebar-arquivo-link" data-acao="abrir">📂 Abrir projeto (.zip)</button>
+                        <button type="button" class="sidebar-arquivo-link" data-acao="importar-qfd">⇪ Importar do QFD (.json)</button>
+                        <button type="button" class="sidebar-arquivo-link" data-acao="exemplo">🚲 Carregar exemplo</button>
+                        <button type="button" class="sidebar-arquivo-link" data-acao="novo">✚ Novo projeto</button>
+                    </div>
+                </details>
+            </div>
+        </aside>
+        <div class="sidebar-fundo" data-acao="fechar-menu"></div>
+
+        <div class="app-conteudo">
+            <main class="main-content" id="app" tabindex="-1"></main>
+            <nav class="etapa-nav" id="etapa-nav" aria-label="Navegação entre etapas"></nav>
+
+            <footer class="footer">
+                <div class="container">
+                    <div class="footer-logos">
+                        <img src="img/logo-inovaagro.png" alt="EMBRAPII - Inova Agro - UFPel" height="64">
+                        <img src="img/logo-nimeq.png" alt="NIMEq" height="64">
+                        <img src="img/logo-instagri.png" alt="Laboratório de Instrumentação Agrícola - UFPel" height="64">
+                    </div>
+                    <p>&copy; 2026 Sistema de Projeto Conceitual - Desenvolvido para Engenheiros de Produto</p>
+                    <p class="footer-credits">
+                        <strong>Desenvolvedor:</strong> Marlon Soares Sigales<br>
+                        <strong>Equipe de projeto:</strong> Roger Toscan Spagnolo, Ângelo Vieira dos Reis, Ádamo de Sousa Araújo, Gizele Ingrid Gadotti, Eduardo Walker, Giusepe Stefanello, Fabrício Ardais<br>
+                        <strong>Equipe Inova Agro - UFPel - EMBRAPII</strong>
+                    </p>
+                    <p class="footer-credits">
+                        Os códigos estão abertos para quem quiser utilizar e ajustar no GitHub: <a href="https://github.com/MarlonSigales/ProjetoConceitual" target="_blank" rel="noopener">https://github.com/MarlonSigales/ProjetoConceitual</a>.
+                        Cópias são permitidas desde que devidamente citadas.
+                    </p>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <div class="aviso-flutuante" id="aviso" role="status" aria-live="polite"></div>
+    <input type="file" id="arq-abrir" accept=".zip,.json,application/zip,application/json" hidden>
+    <input type="file" id="arq-qfd" accept=".json,application/json" hidden>
+    <input type="file" id="arq-imagem" accept="image/*" hidden>
+    <datalist id="dl-verbos"></datalist>
+
+    <script src="lib/jszip.min.js"></script>
+    <script src="js/dados.js?v=20261027a"></script>
+    <script src="js/catalogo.js?v=20261027a"></script>
+    <script src="js/diagrama.js?v=20261027a"></script>
+    <script src="js/relatorio.js?v=20261027a"></script>
+    <script src="js/exemplo.js?v=20261027a"></script>
+    <script src="js/app.js?v=20261027a"></script>
+    <script src="js/etapas.js?v=20261027a"></script>
+</body>
+</html>

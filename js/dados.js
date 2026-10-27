@@ -1,0 +1,638 @@
+/**
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ *
+ * ============================================================================
+ * PROJETO CONCEITUAL — MODELO DE DADOS, ARMAZENAMENTO E CÁLCULOS
+ * ============================================================================
+ *
+ * Roteiro do projeto conceitual de Spagnolo (2011, Fig. 11), com base em Pahl et al. (2005)
+ * e Reis (2003):
+ *   1 Verificar o escopo do problema (especificações, restrições, abstração orientada)
+ *   2 Estabelecer a estrutura funcional (função global, estruturas alternativas, seleção — Ferreira, 1997)
+ *   3 Pesquisar princípios de solução (métodos convencionais, intuitivos e discursivos — Quadro 1)
+ *   4 Combinar princípios de solução (matriz morfológica)
+ *   5 Selecionar e avaliar concepções (viabilidade, tecnologia, passa/não passa, matriz de avaliação)
+ *   6 Evoluir a concepção selecionada
+ *
+ * O projeto fica no navegador (localStorage); as fotos e esboços ficam no IndexedDB e vão no ZIP.
+ */
+
+'use strict';
+
+const PC_VERSAO = 1;
+const PC_CHAVE = 'pc_projeto';
+
+const TIPOS_FLUXO = { energia: 'Energia', material: 'Material', sinal: 'Sinal' };
+const TIPOS_NO = { funcao: 'Função', externo: 'Bloco lateral (externo)' };
+
+/** Quadro 1 — métodos de busca por princípios de solução (Reis, 2003, apud Spagnolo, 2011) */
+const METODOS_BUSCA = {
+    convencionais: { rotulo: 'Convencionais', itens: ['Pesquisa bibliográfica', 'Análise de sistemas naturais', 'Análise de sistemas técnicos existentes', 'Analogias', 'Medições e testes em modelos'] },
+    intuitivos: { rotulo: 'Intuitivos', itens: ['Brainstorming', 'Método 635', 'Método Delphi', 'Sinergia', 'Analogia direta', 'Analogia simbólica', 'Combinação de métodos'] },
+    discursivos: { rotulo: 'Discursivos', itens: ['Estudo sistemático de sistemas técnicos', 'Esquemas de classificação', 'Catálogo de projeto', 'TRIZ', 'Matriz morfológica'] }
+};
+
+/** Passos da abstração orientada (Pahl et al., 2005, como em Spagnolo, 2011, 5.2.1) */
+const PASSOS_ABSTRACAO = [
+    'Omitir preferências pessoais',
+    'Omitir requisitos sem relação direta com a função e com as restrições essenciais',
+    'Transformar informações quantitativas em qualitativas e reduzi-las ao essencial',
+    'Generalizar os requisitos do passo anterior',
+    'Formular o problema sem inclusão de solução'
+];
+
+/** Diretrizes para a estrutura funcional (Back et al., 2008) e para variá-la (Pahl et al., 2005) */
+const DIRETRIZES_ESTRUTURA = [
+    'Decompor a função global em funções parciais identificadas nas especificações ou nas interfaces; cada declaração com um verbo e um substantivo.',
+    'Se uma função parcial não permitir identificar um princípio de solução, decompô-la até o nível de funções elementares.',
+    'Identificar as entradas e saídas de cada bloco, indicando em cada seta se é energia, material ou sinal.',
+    'Começar pelo fluxo principal e depois completar com os fluxos auxiliares.',
+    'Verificar em cada nível se há princípios de solução ou módulos de outros sistemas que possam ser adaptados.',
+    'Havendo estruturas alternativas, comparar cada uma com as especificações e selecionar e otimizar a melhor.'
+];
+const VARIACOES_ESTRUTURA = ['Dividir ou combinar as subfunções', 'Mudar a disposição de subfunções individuais', 'Variar o tipo de ligação (série ou paralelo)', 'Alterar as fronteiras do sistema'];
+
+/** Disponibilidade de tecnologia (Reis, 2003): perguntas padrão */
+const PERGUNTAS_TECNOLOGIA = [
+    'A tecnologia pode ser produzida por processos conhecidos?',
+    'Os parâmetros funcionais críticos são conhecidos?',
+    'A sensibilidade dos parâmetros operacionais é conhecida?',
+    'Os modos de falha são conhecidos?'
+];
+
+/** Cores das concepções (variantes) na matriz morfológica */
+const CORES_VARIANTES = ['#409580', '#d4a017', '#c0392b', '#2f6fb3', '#8e44ad', '#e67e22', '#16a085', '#7f8c8d'];
+
+// ============================================================================
+// UTILITÁRIOS
+// ============================================================================
+
+function uid(pref = 'id') {
+    return pref + '_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-3);
+}
+function esc(t) {
+    return String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+const escAttr = esc;
+function semAcento(t) {
+    return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+function clonar(o) { return JSON.parse(JSON.stringify(o)); }
+function txt(x, max = 2000) { return String(x ?? '').slice(0, max); }
+function lista(x) { return Array.isArray(x) ? x : []; }
+
+// ============================================================================
+// MODELO
+// ============================================================================
+
+function criarFluxos() { return { energia: [], material: [], sinal: [] }; }
+
+function criarProjetoVazio() {
+    return {
+        schemaVersion: PC_VERSAO,
+        projeto: { nome: '', cliente: '', instituicao: '', responsavel: '', equipe: [] },
+        origemQFD: null,                 // { arquivo, importadoEm }
+        // 1 Escopo
+        especificacoes: [],              // { id, codigo, descricao, sentido, meta, unidade, avaliacao, aspectos, peso, dificuldade, origem, ehCusto, funcao }
+        necessidades: [],                // requisitos dos clientes { id, descricao, peso }
+        restricoes: [],                  // { id, texto }
+        abstracao: ['', '', '', '', ''],
+        formulacao: '',
+        // 2 Estrutura funcional
+        funcaoGlobal: { nome: '', entradas: criarFluxos(), saidas: criarFluxos() },
+        estruturas: [],                  // ver criarEstrutura()
+        estruturaEscolhida: null,
+        diretrizes: {},                  // { indice: true } diretrizes de Back et al. aplicadas
+        selecaoEstrutura: { tecnicos: {}, custos: [], notasCusto: {} }, // Ferreira (1997)
+        // 3 e 4 Princípios e matriz morfológica (por estrutura escolhida, chave = id da função)
+        principios: {},                  // { [funcId]: [ { id, nome, descricao, imagem, metodo, sugerido } ] }
+        incompatibilidades: [],          // { id, a, b, nota }  (ids de princípios)
+        variantes: [],                   // { id, nome, cor, escolhas: { [funcId]: princId }, descricao }
+        // 5 Seleção (Reis, 2003)
+        selecao: {
+            viabilidade: {},             // { [varId]: { estado: 'viavel'|'condicional'|'nao', razao } }
+            tecnologia: { perguntas: PERGUNTAS_TECNOLOGIA.map(t => ({ id: uid('pt'), texto: t })), respostas: {} },
+            passa: { perguntas: [], respostas: {} },
+            avaliacao: { referencia: null, criterios: [], notas: {} }
+        },
+        // 6 Concepção
+        concepcao: { varianteId: null, descricao: '', imagens: [], complementos: [], proximosPassos: '' },
+        etapasConcluidas: [],
+        metadata: { criado: new Date().toISOString(), modificado: new Date().toISOString() }
+    };
+}
+
+/** Estrutura de funções: nós (funções e blocos laterais) e ligações (energia, material, sinal), em níveis. */
+function criarEstrutura(nome = 'Estrutura 1') {
+    const global = { id: uid('fn'), tipo: 'funcao', nome: 'Função global', pai: null, x: 330, y: 150, w: 190, h: 80, descricao: '', global: true };
+    return { id: uid('est'), nome, descricao: '', nos: [global], ligacoes: [], fronteira: {} };
+}
+
+/** Completa campos ausentes sem apagar nada (projetos antigos, importados ou corrompidos). */
+function normalizarProjeto(p) {
+    const base = criarProjetoVazio();
+    p = p && typeof p === 'object' ? p : {};
+    const out = Object.assign(base, p);
+    out.projeto = Object.assign(base.projeto, p.projeto || {});
+    out.projeto.equipe = lista(out.projeto.equipe).map(x => txt(x, 120));
+    out.especificacoes = lista(p.especificacoes).map(e => Object.assign({ id: uid('es'), codigo: '', descricao: '', sentido: 'none', meta: '', unidade: '', avaliacao: '', aspectos: '', peso: 0, dificuldade: null, origem: 'manual', ehCusto: false, funcao: '' }, e));
+    out.necessidades = lista(p.necessidades).map(n => Object.assign({ id: uid('nc'), descricao: '', peso: 0 }, n));
+    out.restricoes = lista(p.restricoes).map(r => Object.assign({ id: uid('rs'), texto: '' }, r));
+    out.abstracao = [0, 1, 2, 3, 4].map(i => txt(lista(p.abstracao)[i] || ''));
+    out.funcaoGlobal = Object.assign({ nome: '' }, p.funcaoGlobal || {});
+    ['entradas', 'saidas'].forEach(l => {
+        const f = (p.funcaoGlobal || {})[l] || {};
+        out.funcaoGlobal[l] = { energia: lista(f.energia).map(String), material: lista(f.material).map(String), sinal: lista(f.sinal).map(String) };
+    });
+    out.estruturas = lista(p.estruturas).map(e => ({
+        id: e.id || uid('est'), nome: txt(e.nome || 'Estrutura', 80), descricao: txt(e.descricao),
+        nos: lista(e.nos).map(n => Object.assign({ id: uid('fn'), tipo: 'funcao', nome: '', pai: null, x: 40, y: 40, w: 170, h: 70, descricao: '' }, n)),
+        ligacoes: lista(e.ligacoes).filter(l => l && l.de && l.para).map(l => Object.assign({ id: uid('lg'), tipo: 'material', rotulo: '', pai: null }, l)),
+        fronteira: Object.assign({}, e.fronteira || {})
+    }));
+    if (out.estruturaEscolhida && !out.estruturas.some(e => e.id === out.estruturaEscolhida)) out.estruturaEscolhida = null;
+    if (!out.estruturaEscolhida && out.estruturas.length) out.estruturaEscolhida = out.estruturas[0].id;
+    out.diretrizes = Object.assign({}, p.diretrizes || {});
+    out.selecaoEstrutura = Object.assign({ tecnicos: {}, custos: [], notasCusto: {} }, p.selecaoEstrutura || {});
+    out.selecaoEstrutura.custos = lista(out.selecaoEstrutura.custos).map(c => Object.assign({ id: uid('ec'), descricao: '', peso: 0 }, c));
+    out.principios = {};
+    Object.entries(p.principios || {}).forEach(([k, l]) => {
+        out.principios[k] = lista(l).map(x => Object.assign({ id: uid('pr'), nome: '', descricao: '', imagem: null, metodo: '', sugerido: false }, x));
+    });
+    out.incompatibilidades = lista(p.incompatibilidades).filter(x => x && x.a && x.b).map(x => Object.assign({ id: uid('ic'), nota: '' }, x));
+    out.variantes = lista(p.variantes).map((v, i) => Object.assign({ id: uid('vr'), nome: `Concepção ${i + 1}`, cor: CORES_VARIANTES[i % CORES_VARIANTES.length], escolhas: {}, descricao: '' }, v));
+    const s = p.selecao || {};
+    out.selecao = {
+        viabilidade: Object.assign({}, s.viabilidade || {}),
+        tecnologia: { perguntas: lista((s.tecnologia || {}).perguntas).length ? s.tecnologia.perguntas : base.selecao.tecnologia.perguntas, respostas: Object.assign({}, (s.tecnologia || {}).respostas || {}) },
+        passa: { perguntas: lista((s.passa || {}).perguntas), respostas: Object.assign({}, (s.passa || {}).respostas || {}) },
+        avaliacao: Object.assign({ referencia: null, criterios: [], notas: {} }, s.avaliacao || {})
+    };
+    out.selecao.avaliacao.criterios = lista(out.selecao.avaliacao.criterios).map(c => Object.assign({ id: uid('cr'), texto: '', peso: 1 }, c));
+    out.concepcao = Object.assign(base.concepcao, p.concepcao || {});
+    out.concepcao.imagens = lista(out.concepcao.imagens);
+    out.concepcao.complementos = lista(out.concepcao.complementos);
+    out.etapasConcluidas = lista(p.etapasConcluidas).filter(x => typeof x === 'string');
+    out.metadata = Object.assign(base.metadata, p.metadata || {});
+    out.schemaVersion = PC_VERSAO;
+    return out;
+}
+
+// ============================================================================
+// ARMAZENAMENTO (localStorage) — uma instância global: PC
+// ============================================================================
+
+const PC = {
+    p: null,
+    ouvintes: [],
+    carregar() {
+        let dados = null;
+        try { dados = JSON.parse(localStorage.getItem(PC_CHAVE) || 'null'); } catch (e) { dados = null; }
+        this.p = normalizarProjeto(dados);
+        return this.p;
+    },
+    salvar(motivo = '') {
+        this.p.metadata.modificado = new Date().toISOString();
+        try {
+            localStorage.setItem(PC_CHAVE, JSON.stringify(this.p));
+        } catch (e) {
+            throw new Error('Não foi possível guardar no navegador (armazenamento cheio?). Baixe o ZIP do projeto.');
+        }
+        this.ouvintes.forEach(f => { try { f(motivo); } catch (e) { console.error(e); } });
+    },
+    substituir(novo) { this.p = normalizarProjeto(novo); this.salvar('substituir'); },
+    aoMudar(f) { this.ouvintes.push(f); },
+    estrutura(id) {
+        const p = this.p;
+        return p.estruturas.find(e => e.id === (id || p.estruturaEscolhida)) || p.estruturas[0] || null;
+    }
+};
+
+// ============================================================================
+// IMAGENS (IndexedDB): fotos de princípios de solução e esboços da concepção
+// ============================================================================
+
+const Imagens = {
+    db: null, cacheUrl: new Map(),
+    abrir() {
+        if (this.db) return Promise.resolve(this.db);
+        return new Promise((ok, falha) => {
+            if (!window.indexedDB) { falha(new Error('Este navegador não guarda imagens (IndexedDB indisponível).')); return; }
+            const r = indexedDB.open('pc_imagens', 1);
+            r.onupgradeneeded = () => r.result.createObjectStore('imagens', { keyPath: 'id' });
+            r.onsuccess = () => { this.db = r.result; ok(this.db); };
+            r.onerror = () => falha(r.error);
+        });
+    },
+    async _tx(modo, fn) {
+        const db = await this.abrir();
+        return new Promise((ok, falha) => {
+            const t = db.transaction('imagens', modo), st = t.objectStore('imagens');
+            const r = fn(st);
+            t.oncomplete = () => ok(r && 'result' in r ? r.result : undefined);
+            t.onerror = () => falha(t.error);
+        });
+    },
+    /** Reduz a imagem (lado maior ≤ 1200 px, JPEG) para não pesar no ZIP; SVG e GIF ficam como estão. */
+    async preparar(arquivo) {
+        if (!arquivo || !/^image\//.test(arquivo.type)) throw new Error('Escolha um arquivo de imagem (foto, desenho, print).');
+        if (/svg|gif/.test(arquivo.type)) return { blob: arquivo, tipo: arquivo.type };
+        const url = URL.createObjectURL(arquivo);
+        try {
+            const img = await new Promise((ok, falha) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => falha(new Error('Imagem inválida.')); i.src = url; });
+            const k = Math.min(1, 1200 / Math.max(img.naturalWidth, img.naturalHeight));
+            const c = document.createElement('canvas');
+            c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+            const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+            const blob = await new Promise(ok => c.toBlob(ok, 'image/jpeg', 0.85));
+            return { blob: blob || arquivo, tipo: blob ? 'image/jpeg' : arquivo.type };
+        } finally { URL.revokeObjectURL(url); }
+    },
+    async salvar(arquivo, nome = '') {
+        const { blob, tipo } = await this.preparar(arquivo);
+        const id = uid('img');
+        await this._tx('readwrite', st => st.put({ id, blob, tipo, nome: txt(nome || arquivo.name || '', 120) }));
+        return id;
+    },
+    async gravarBruto(id, blob, tipo, nome = '') { await this._tx('readwrite', st => st.put({ id, blob, tipo, nome })); this.cacheUrl.delete(id); },
+    async ler(id) { if (!id) return null; try { return await this._tx('readonly', st => st.get(id)); } catch (e) { return null; } },
+    async url(id) {
+        if (!id) return '';
+        if (this.cacheUrl.has(id)) return this.cacheUrl.get(id);
+        const r = await this.ler(id);
+        const u = r && r.blob ? URL.createObjectURL(r.blob) : '';
+        this.cacheUrl.set(id, u);
+        return u;
+    },
+    async apagar(id) { if (!id) return; await this._tx('readwrite', st => st.delete(id)); const u = this.cacheUrl.get(id); if (u) URL.revokeObjectURL(u); this.cacheUrl.delete(id); },
+    async todas() { try { return await this._tx('readonly', st => st.getAll()); } catch (e) { return []; } },
+    async limpar() { await this._tx('readwrite', st => st.clear()); this.cacheUrl.forEach(u => u && URL.revokeObjectURL(u)); this.cacheUrl.clear(); }
+};
+
+/** Ids de imagens que o projeto usa (para o ZIP e para limpar sobras). */
+function imagensUsadas(p) {
+    const ids = new Set();
+    Object.values(p.principios).forEach(l => l.forEach(x => x.imagem && ids.add(x.imagem)));
+    p.concepcao.imagens.forEach(x => x && x.id && ids.add(x.id));
+    return [...ids];
+}
+
+// ============================================================================
+// ESTRUTURA DE FUNÇÕES: navegação na árvore
+// ============================================================================
+
+function noGlobal(est) { return est ? est.nos.find(n => n.global) || est.nos.find(n => n.tipo === 'funcao' && !n.pai) : null; }
+function nosDoNivel(est, pai) { return est.nos.filter(n => (n.pai || null) === (pai || null)); }
+function ligacoesDoNivel(est, pai) { return est.ligacoes.filter(l => (l.pai || null) === (pai || null)); }
+function funcoesFilhas(est, id) { return est.nos.filter(n => n.pai === id && n.tipo === 'funcao'); }
+function ancestrais(est, id) {
+    const out = []; let n = est.nos.find(x => x.id === id);
+    while (n) { out.unshift(n); n = n.pai ? est.nos.find(x => x.id === n.pai) : null; }
+    return out;
+}
+/** Nível da função: 0 global, 1 parcial, 2+ elementar (conforme Spagnolo, 2011, Fig. 13) */
+function nivelFuncao(est, id) { return ancestrais(est, id).filter(n => n.tipo === 'funcao').length - 1; }
+function rotuloNivel(est, n) {
+    if (n.tipo !== 'funcao') return 'bloco lateral';
+    const k = nivelFuncao(est, n.id);
+    return k === 0 ? 'função global' : funcoesFilhas(est, n.id).length ? (k === 1 ? 'função parcial' : 'função parcial (desdobrada)') : (k === 1 ? 'função parcial' : 'função elementar');
+}
+/** Funções sem desdobramento (folhas): são as linhas da matriz morfológica. */
+function funcoesFolha(est) {
+    if (!est) return [];
+    const out = [];
+    const visita = (id) => funcoesFilhas(est, id).forEach(f => { if (funcoesFilhas(est, f.id).length) visita(f.id); else out.push(f); });
+    const g = noGlobal(est);
+    if (!g) return out;
+    if (!funcoesFilhas(est, g.id).length) return [g];
+    visita(g.id);
+    return out;
+}
+/** Rótulo hierárquico "1.2" de uma função dentro da estrutura. */
+function numeroFuncao(est, id) {
+    const cad = ancestrais(est, id).filter(n => n.tipo === 'funcao');
+    if (cad.length <= 1) return '0';
+    return cad.slice(1).map((n, i) => funcoesFilhas(est, cad[i].id).findIndex(x => x.id === n.id) + 1).join('.');
+}
+
+// ============================================================================
+// IMPORTAÇÃO DO QFD (backup JSON do Sistema QFD)
+// ============================================================================
+
+function ehBackupQFD(d) {
+    return !!(d && typeof d === 'object' && Array.isArray(d.requisitosCliente) && Array.isArray(d.requisitosProjeto) && Array.isArray(d.especificacoesProjeto));
+}
+
+const SIMBOLO_META = { '>=': '≥', '<=': '≤', '=': '=', 'entre': 'entre', 'intervalo': 'entre' };
+function textoMetaQFD(e) {
+    if (!e) return '';
+    if (e.metaTexto) return String(e.metaTexto);
+    if (e.valorMeta === null || e.valorMeta === undefined || e.valorMeta === '') return '';
+    const un = e.unidadeMedida ? ' ' + e.unidadeMedida : '';
+    if (e.valorMax !== null && e.valorMax !== undefined && e.valorMax !== '') return `${e.valorMeta} a ${e.valorMax}${un}`;
+    const s = SIMBOLO_META[e.tipoMeta] || '';
+    return `${s ? s + ' ' : ''}${e.valorMeta}${un}${e.tolerancia ? ' ± ' + e.tolerancia : ''}`.trim();
+}
+
+/**
+ * Traz do QFD: dados do projeto, especificações (na ordem de importância), requisitos dos clientes,
+ * abstração e formulação do Fechamento e a função global com os fluxos. Requisitos marcados no QFD como
+ * "formadores de função" viram funções parciais da estrutura (se ela ainda não tiver funções).
+ * O que já foi preenchido aqui e não vem do QFD é mantido. Devolve um resumo.
+ */
+function importarQFD(p, d, arquivo = '') {
+    if (!ehBackupQFD(d)) throw new Error('O arquivo não é um backup do Sistema QFD.');
+    const pj = d.projeto || {};
+    ['nome', 'cliente', 'instituicao'].forEach(k => { if (pj[k] && !p.projeto[k]) p.projeto[k] = txt(pj[k], 160); });
+    if (Array.isArray(pj.equipe) && pj.equipe.length && !p.projeto.equipe.length) p.projeto.equipe = pj.equipe.map(x => txt(x, 120));
+
+    const noQFD = r => !r.classificacao;
+    const rps = d.requisitosProjeto.filter(noQFD).slice().sort((a, b) => (b.pesoRelativo || 0) - (a.pesoRelativo || 0));
+    const manuais = p.especificacoes.filter(e => e.origem !== 'qfd');
+    const antigas = new Map(p.especificacoes.filter(e => e.origem === 'qfd').map(e => [e.idQFD, e]));
+    const novas = rps.map((r, i) => {
+        const esp = d.especificacoesProjeto.find(e => e.requisitoProjetoId === r.id) || {};
+        const ant = antigas.get(r.id) || {};
+        const desc = String(r.descricao || '');
+        return Object.assign({}, ant, {
+            id: ant.id || uid('es'), idQFD: r.id, codigo: `RP${d.requisitosProjeto.findIndex(x => x.id === r.id) + 1}`, descricao: desc,
+            sentido: ['up', 'down', 'none'].includes(r.sentidoMelhoria) ? r.sentidoMelhoria : 'none',
+            meta: textoMetaQFD(esp), unidade: esp.unidadeMedida || '', avaliacao: esp.formaAvaliacao || '', aspectos: esp.aspectosIndesejaveis || '',
+            peso: +r.pesoRelativo || 0, dificuldade: r.dificuldadeTecnica ?? null, origem: 'qfd', ordem: i + 1,
+            ehCusto: ant.ehCusto !== undefined ? ant.ehCusto : /custo|preço|preco|r\$/i.test(desc)
+        });
+    });
+    p.especificacoes = novas.concat(manuais);
+
+    const ncAnt = new Map(p.necessidades.map(n => [n.idQFD, n]));
+    p.necessidades = d.requisitosCliente.filter(noQFD).slice().sort((a, b) => (b.peso || 0) - (a.peso || 0))
+        .map(r => Object.assign({}, ncAnt.get(r.id) || {}, { id: (ncAnt.get(r.id) || {}).id || uid('nc'), idQFD: r.id, descricao: String(r.descricao || ''), peso: +r.peso || 0 }));
+
+    const f = d.fechamento || {};
+    if (Array.isArray(f.abstracao)) f.abstracao.forEach((t, i) => { if (i < 5 && t && !p.abstracao[i]) p.abstracao[i] = String(t); });
+    const escolhida = lista(f.formulacoes).find(x => x.id === f.formulacaoEscolhida);
+    if (!p.formulacao) p.formulacao = String((escolhida && escolhida.texto) || p.abstracao[4] || '');
+    const fg = f.funcaoGlobal || {};
+    if (fg.nome && !p.funcaoGlobal.nome) p.funcaoGlobal.nome = String(fg.nome);
+    ['entradas', 'saidas'].forEach(l => Object.keys(TIPOS_FLUXO).forEach(t => {
+        const vindos = lista((fg[l] || {})[t]).map(String);
+        if (vindos.length && !p.funcaoGlobal[l][t].length) p.funcaoGlobal[l][t] = vindos;
+    }));
+
+    const formadores = d.requisitosCliente.concat(d.requisitosProjeto).filter(r => r.classificacao === 'funcao').map(r => String(r.descricao || ''));
+    let criouEstrutura = false;
+    if (!p.estruturas.length) { p.estruturas.push(montarEstruturaInicial(p, formadores)); p.estruturaEscolhida = p.estruturas[0].id; criouEstrutura = true; }
+    else {
+        const est = p.estruturas[0], g = noGlobal(est);
+        if (g && !funcoesFilhas(est, g.id).length && formadores.length) acrescentarFuncoes(est, g.id, formadores);
+    }
+    if (!p.selecao.passa.perguntas.length) p.selecao.passa.perguntas = p.necessidades.map(n => ({ id: uid('pp'), texto: perguntaDaNecessidade(n.descricao) }));
+    if (!p.selecao.avaliacao.criterios.length) p.selecao.avaliacao.criterios = p.necessidades.map(n => ({ id: uid('cr'), texto: n.descricao, peso: Math.round((n.peso || 0) * 1000) / 10 || 1 }));
+    p.origemQFD = { arquivo: txt(arquivo, 160), importadoEm: new Date().toISOString() };
+    return { especificacoes: novas.length, necessidades: p.necessidades.length, formadores: formadores.length, criouEstrutura };
+}
+
+function perguntaDaNecessidade(t) {
+    const s = String(t || '').trim().replace(/[.?!]+$/, '');
+    if (!s) return '';
+    return `A concepção atende "${s.charAt(0).toLowerCase() + s.slice(1)}"?`;
+}
+
+/**
+ * Estrutura inicial a partir da função global do QFD: o bloco da função global, blocos laterais à esquerda
+ * (de onde vêm as entradas) e à direita (para onde vão as saídas), com uma ligação por fluxo (energia,
+ * material, sinal). Dentro da função global, as funções parciais vindas dos requisitos formadores de função.
+ */
+function montarEstruturaInicial(p, funcoesIniciais = []) {
+    const est = criarEstrutura('Estrutura 1');
+    const g = noGlobal(est);
+    g.nome = p.funcaoGlobal.nome || p.formulacao || 'Função global';
+    const fg = p.funcaoGlobal;
+    const nFluxos = Math.max(...['entradas', 'saidas'].map(l => Object.values(fg[l]).reduce((t, v) => t + v.length, 0)), 1);
+    g.h = Math.max(80, nFluxos * 34 + 16); g.y = 170 - g.h / 2 + 40; g.x = 420; g.w = 200;
+    const lados = [['entradas', 20, 'Origem'], ['saidas', 850, 'Destino']];
+    const nomesLado = { energia: { entradas: 'Fonte de energia', saidas: 'Ambiente (energia)' }, material: { entradas: 'Origem do material', saidas: 'Destino do material' }, sinal: { entradas: 'Usuário (comandos)', saidas: 'Usuário (informações)' } };
+    lados.forEach(([lado, x]) => {
+        const tipos = Object.keys(TIPOS_FLUXO).filter(t => fg[lado][t].length);
+        tipos.forEach((t, k) => {
+            const ext = { id: uid('ex'), tipo: 'externo', nome: nomesLado[t][lado], pai: null, x, y: 40 + k * 120 + (3 - tipos.length) * 40, w: 170, h: 60, descricao: '' };
+            est.nos.push(ext);
+            fg[lado][t].forEach(rot => est.ligacoes.push({ id: uid('lg'), tipo: t, rotulo: rot, pai: null, de: lado === 'entradas' ? ext.id : g.id, para: lado === 'entradas' ? g.id : ext.id }));
+        });
+    });
+    if (funcoesIniciais.length) acrescentarFuncoes(est, g.id, funcoesIniciais);
+    return est;
+}
+
+function acrescentarFuncoes(est, paiId, nomes) {
+    const existentes = funcoesFilhas(est, paiId);
+    nomes.forEach((nome, i) => {
+        const k = existentes.length + i;
+        est.nos.push({ id: uid('fn'), tipo: 'funcao', nome: txt(nome, 120), pai: paiId, x: 60 + (k % 4) * 210, y: 60 + Math.floor(k / 4) * 130, w: 170, h: 70, descricao: '' });
+    });
+}
+
+// ============================================================================
+// MATRIZ MORFOLÓGICA E COMBINAÇÕES
+// ============================================================================
+
+function principiosDe(p, funcId) { return p.principios[funcId] || (p.principios[funcId] = []); }
+function incompativeis(p, a, b) { return p.incompatibilidades.some(x => (x.a === a && x.b === b) || (x.a === b && x.b === a)); }
+
+/** Número total de combinações (produto do número de princípios de cada função com pelo menos um). */
+function totalCombinacoes(p, est) {
+    const linhas = funcoesFolha(est).map(f => principiosDe(p, f.id).length).filter(n => n > 0);
+    return linhas.length ? linhas.reduce((a, b) => a * b, 1) : 0;
+}
+
+/**
+ * Combinações compatíveis, das mais promissoras para as menos: os princípios são postos em ordem de
+ * adequação em cada linha (Roozenburg & Eekels, 1995), então somar as posições dá a preferência.
+ * Respeita as incompatibilidades marcadas (Pahl et al., 2005, critério a).
+ */
+function gerarCombinacoes(p, est, limite = 20) {
+    const fs = funcoesFolha(est).filter(f => principiosDe(p, f.id).length);
+    if (!fs.length) return [];
+    const out = [];
+    let visitados = 0;
+    const MAX_VISITAS = 200000;
+    const busca = (k, escolha, custo) => {
+        if (visitados++ > MAX_VISITAS) return;
+        if (k === fs.length) { out.push({ escolhas: Object.assign({}, escolha), custo }); return; }
+        const f = fs[k];
+        principiosDe(p, f.id).forEach((pr, pos) => {
+            if (Object.values(escolha).some(outro => incompativeis(p, outro, pr.id))) return;
+            escolha[f.id] = pr.id;
+            busca(k + 1, escolha, custo + pos);
+            delete escolha[f.id];
+        });
+    };
+    busca(0, {}, 0);
+    out.sort((a, b) => a.custo - b.custo);
+    return out.slice(0, limite);
+}
+
+/** A variante usa algum par incompatível? Lista os pares. */
+function conflitosVariante(p, v) {
+    const ids = Object.values(v.escolhas || {}), out = [];
+    for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) if (incompativeis(p, ids[i], ids[j])) out.push([ids[i], ids[j]]);
+    return out;
+}
+
+function acharPrincipio(p, id) {
+    for (const [f, l] of Object.entries(p.principios)) { const x = l.find(y => y.id === id); if (x) return Object.assign({ funcId: f }, x); }
+    return null;
+}
+
+// ============================================================================
+// SELEÇÃO DA ESTRUTURA FUNCIONAL (Ferreira, 1997, apud Spagnolo, 2011, Fig. 12)
+// ============================================================================
+
+const ESCALA_DT = { 1: 'Fraco', 5: 'Satisfatório', 10: 'Excelente' };
+const ESCALA_CUSTO = { 1: 'Baixo', 5: 'Médio', 10: 'Alto' };
+
+/**
+ * IDT = Σ (peso relativo do requisito técnico × desempenho técnico 1/5/10);
+ * IDC = Σ (valor relativo da especificação de custo × custo 1/5/10). Maior IDT/IDC é melhor.
+ */
+function indicesFerreira(p) {
+    const tec = p.especificacoes.filter(e => !e.ehCusto);
+    const sel = p.selecaoEstrutura;
+    return p.estruturas.map(est => {
+        const dt = sel.tecnicos[est.id] || {}, ct = sel.notasCusto[est.id] || {};
+        const avalT = tec.filter(e => dt[e.id]);
+        const idt = avalT.reduce((s, e) => s + (+e.peso || 0) * 100 * (+dt[e.id] || 0), 0);
+        const avalC = sel.custos.filter(c => ct[c.id]);
+        const idc = avalC.reduce((s, c) => s + (+c.peso || 0) * (+ct[c.id] || 0), 0);
+        return { id: est.id, nome: est.nome, idt, idc, razao: idc > 0 ? idt / idc : null, completoT: tec.length > 0 && avalT.length === tec.length, completoC: sel.custos.length > 0 && avalC.length === sel.custos.length };
+    });
+}
+
+// ============================================================================
+// SELEÇÃO DA CONCEPÇÃO (Reis, 2003, apud Spagnolo, 2011, 4.2.5)
+// ============================================================================
+
+/** Situação de cada variante nas quatro técnicas, em sequência (só segue quem passou na anterior). */
+function resultadoSelecao(p) {
+    const s = p.selecao;
+    const nPerg = s.tecnologia.perguntas.length, nPassa = s.passa.perguntas.length;
+    const av = s.avaliacao, ref = av.referencia;
+    return p.variantes.map(v => {
+        const via = (s.viabilidade[v.id] || {}).estado || '';
+        const rt = s.tecnologia.respostas[v.id] || {};
+        const naoTec = s.tecnologia.perguntas.filter(q => rt[q.id] === 'nao').length, respTec = s.tecnologia.perguntas.filter(q => rt[q.id]).length;
+        const rp = s.passa.respostas[v.id] || {};
+        const naoPassa = s.passa.perguntas.filter(q => rp[q.id] === 'nao').length, respPassa = s.passa.perguntas.filter(q => rp[q.id]).length;
+        const notas = av.notas[v.id] || {};
+        const soma = av.criterios.reduce((t, c) => t + (+notas[c.id] || 0), 0);
+        const pesoTot = av.criterios.reduce((t, c) => t + (+c.peso || 0), 0);
+        const ponderada = pesoTot ? av.criterios.reduce((t, c) => t + (+c.peso || 0) * (+notas[c.id] || 0), 0) / pesoTot : 0;
+        const ehRef = v.id === ref;
+        const etapa1 = via === 'viavel' || via === 'condicional';
+        const etapa2 = etapa1 && respTec === nPerg && nPerg > 0 && naoTec <= Math.floor(nPerg / 2);
+        const etapa3 = etapa2 && respPassa === nPassa && (nPassa === 0 || naoPassa <= Math.floor(nPassa / 3));
+        return { id: v.id, nome: v.nome, cor: v.cor, viabilidade: via, naoTec, respTec, nPerg, naoPassa, respPassa, nPassa, soma, ponderada, ehRef,
+            etapa1, etapa2, etapa3, promissora: etapa3 && (ehRef || soma > 0) };
+    });
+}
+
+// ============================================================================
+// SITUAÇÃO DAS ETAPAS
+// ============================================================================
+
+const ETAPAS = [
+    ['escopo', '1', 'Escopo do problema'],
+    ['funcao-global', '2', 'Função global'],
+    ['estrutura', '3', 'Estrutura funcional'],
+    ['principios', '4', 'Princípios de solução'],
+    ['matriz', '5', 'Matriz morfológica'],
+    ['selecao', '6', 'Seleção da concepção'],
+    ['concepcao', '7', 'Concepção selecionada'],
+    ['relatorio', '8', 'Relatório']
+];
+
+function statusEtapas(p) {
+    const est = PC.estrutura ? (p.estruturas.find(e => e.id === p.estruturaEscolhida) || p.estruturas[0]) : null;
+    const folhas = funcoesFolha(est);
+    const comPrinc = folhas.filter(f => (p.principios[f.id] || []).length > 0).length;
+    const comDois = folhas.filter(f => (p.principios[f.id] || []).length >= 2).length;
+    const nAbs = p.abstracao.filter(t => t.trim()).length;
+    const s = (feito, andamento, resumo) => ({ estado: feito ? 'feito' : andamento ? 'andamento' : 'vazio', resumo });
+    const r = resultadoSelecao(p);
+    const out = {
+        'escopo': s(p.especificacoes.length > 0 && nAbs === 5 && p.formulacao.trim(), p.especificacoes.length || nAbs || p.formulacao.trim(), `${p.especificacoes.length} especificação(ões) · abstração ${nAbs}/5`),
+        'funcao-global': s(p.funcaoGlobal.nome.trim() && ['entradas', 'saidas'].every(l => Object.values(p.funcaoGlobal[l]).some(x => x.length)), p.funcaoGlobal.nome.trim(), p.funcaoGlobal.nome.trim() ? 'função global definida' : 'sem função global'),
+        'estrutura': s(est && folhas.length >= 2 && est.ligacoes.some(l => l.pai), est && folhas.length > 1, `${p.estruturas.length} estrutura(s) · ${folhas.length} função(ões) elementar(es)`),
+        'principios': s(folhas.length > 0 && comDois === folhas.length, comPrinc > 0, `${comPrinc}/${folhas.length} função(ões) com princípios`),
+        'matriz': s(p.variantes.length >= 2 && p.variantes.every(v => folhas.every(f => v.escolhas[f.id])), p.variantes.length > 0, `${p.variantes.length} concepção(ões)`),
+        'selecao': s(r.length > 0 && !!p.selecao.avaliacao.referencia && r.some(x => x.promissora), r.some(x => x.viabilidade), r.length ? `${r.filter(x => x.promissora).length} promissora(s)` : 'sem concepções'),
+        'concepcao': s(p.concepcao.varianteId && p.concepcao.descricao.trim(), p.concepcao.varianteId || p.concepcao.descricao.trim(), p.concepcao.varianteId ? 'concepção escolhida' : 'não escolhida'),
+        'relatorio': s(false, false, 'gerar ao final')
+    };
+    out.relatorio = s(out.concepcao.estado === 'feito', out.estrutura.estado !== 'vazio', out.concepcao.estado === 'feito' ? 'pronto para gerar' : 'pode gerar a qualquer momento');
+    p.etapasConcluidas.forEach(id => { if (out[id] && out[id].estado !== 'feito') out[id] = { estado: 'feito', resumo: out[id].resumo + ' · marcada como concluída', marcada: true }; });
+    return out;
+}
+
+function proximaEtapa(p, st) {
+    st = st || statusEtapas(p);
+    const e = ETAPAS.find(([id]) => id !== 'relatorio' && st[id].estado !== 'feito');
+    return e ? { id: e[0], numero: e[1], nome: e[2] } : { id: 'relatorio', numero: '8', nome: 'Relatório' };
+}
+
+// ============================================================================
+// ZIP COMPLETO: projeto.json + imagens/ + diagramas/ + relatório (HTML) + backup QFD de origem
+// ============================================================================
+
+function nomeSeguro(t) {
+    return semAcento(t || 'projeto-conceitual').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'projeto-conceitual';
+}
+function extensao(tipo) { return { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/svg+xml': 'svg', 'image/gif': 'gif', 'image/webp': 'webp' }[tipo] || 'bin'; }
+
+/**
+ * Monta o ZIP do projeto. extras: { diagramas: [{ nome, svg }], relatorioHtml } (gerados pela interface).
+ */
+async function montarZip(p, extras = {}) {
+    if (typeof JSZip === 'undefined') throw new Error('Biblioteca de ZIP não carregada.');
+    const zip = new JSZip();
+    const usadas = new Set(imagensUsadas(p));
+    const imgs = (await Imagens.todas()).filter(x => usadas.has(x.id));
+    const mapa = {};
+    imgs.forEach(x => { const arq = `imagens/${x.id}.${extensao(x.tipo)}`; mapa[x.id] = arq; zip.file(arq, x.blob); });
+    zip.file('projeto-conceitual.json', JSON.stringify(Object.assign({}, p, { arquivosImagens: mapa }), null, 2));
+    lista(extras.diagramas).forEach(d => zip.file(`diagramas/${nomeSeguro(d.nome)}.svg`, d.svg));
+    lista(extras.arquivos).forEach(a => zip.file(a.caminho, a.blob));
+    if (extras.relatorioHtml) zip.file('relatorio.html', typeof extras.relatorioHtml === 'function' ? extras.relatorioHtml(mapa) : extras.relatorioHtml);
+    zip.file('LEIA-ME.txt', [
+        'Projeto conceitual exportado pelo Sistema de Projeto Conceitual.',
+        '', '- projeto-conceitual.json: todos os dados (abra em "Abrir projeto" para continuar de onde parou).',
+        '- imagens/: fotos e esboços dos princípios de solução e da concepção.',
+        '- diagramas/: estruturas de funções em SVG (abrem no navegador, Inkscape, Word, PowerPoint).',
+        '- relatorio.html: relatório completo (abra no navegador; para PDF, use Imprimir → Salvar como PDF).'
+    ].join('\n'));
+    return zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+}
+
+/** Lê um ZIP exportado (ou o JSON sozinho). Devolve o projeto normalizado; grava as imagens. */
+async function lerZipOuJson(arquivo) {
+    if (/\.json$/i.test(arquivo.name) || arquivo.type === 'application/json') {
+        const d = JSON.parse((await arquivo.text()).replace(/^﻿/, ''));
+        return { dados: d, qfd: ehBackupQFD(d) };
+    }
+    if (typeof JSZip === 'undefined') throw new Error('Biblioteca de ZIP não carregada.');
+    const zip = await JSZip.loadAsync(arquivo);
+    const entrada = zip.file('projeto-conceitual.json') || zip.file(/\.json$/i).find(f => !/^__MACOSX/.test(f.name));
+    if (!entrada) throw new Error('O ZIP não tem o arquivo projeto-conceitual.json.');
+    const d = JSON.parse((await entrada.async('string')).replace(/^﻿/, ''));
+    if (ehBackupQFD(d)) return { dados: d, qfd: true };
+    const mapa = d.arquivosImagens || {};
+    for (const [id, caminho] of Object.entries(mapa)) {
+        const f = zip.file(caminho);
+        if (!f) continue;
+        const blob = await f.async('blob');
+        const tipo = { jpg: 'image/jpeg', png: 'image/png', svg: 'image/svg+xml', gif: 'image/gif', webp: 'image/webp' }[caminho.split('.').pop()] || 'application/octet-stream';
+        await Imagens.gravarBruto(id, new Blob([blob], { type: tipo }), tipo, caminho.split('/').pop());
+    }
+    delete d.arquivosImagens;
+    return { dados: d, qfd: false };
+}

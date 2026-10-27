@@ -1,0 +1,16 @@
+© 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII.
+
+REGRAS DO PROJETO
+- Dados só pelo objeto PC (js/dados.js); mudanças de estrutura de dados: subir PC_VERSAO e completar normalizarProjeto (projetos antigos abrem sem perder nada).
+- Texto do usuário sempre por esc()/escAttr() (interface, SVG e relatório).
+- Todo dado novo entra no ZIP (projeto-conceitual.json) e no relatório.
+- Toda função nova entra no exemplo (js/exemplo.js) e ganha teste em tests/testes.js.
+- Todo arquivo novo começa com a linha de copyright.
+- Sem CDN: bibliotecas em lib/ (o app funciona offline).
+- Ao publicar, trocar o ?v= dos arquivos em index.html.
+
+2026-10-27 — versão 1
+- Etapas: escopo, função global, estrutura funcional (editor de blocos com energia/material/sinal, blocos laterais, níveis, fronteira, Ferreira), princípios (catálogo, fotos, Quadro 1), matriz morfológica (concepções, linhas, incompatibilidades, combinações), seleção (4 técnicas de Reis), concepção, relatório.
+- Importação do backup do QFD; ZIP completo (dados, fotos, SVG, relatório); exemplo da roda de bicicleta.
+- Verificado: 20 testes automáticos ok; fluxo completo pela interface (importar QFD, editar diagrama, ligar blocos, foto, matriz, seleção, ZIP, reabrir ZIP com fotos); sem estouro horizontal em 360, 768, 1024 e 1920 px.
+- Pendente de conferência manual: PDF pela impressão do navegador (Chrome/Edge: Imprimir → Salvar como PDF, com "Gráficos de fundo" ligado).
