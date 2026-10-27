@@ -95,7 +95,8 @@ function formularioEntrada() {
                 <button type="button" class="btn btn-secondary" data-n="cancelar">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Entrar</button>
             </div>
-            <p class="nota">Não tem conta? Crie uma conta grátis em mega.io com um e-mail da equipe e passe a senha só para quem é da equipe. Quando alguém sair, troque a senha.</p>
+            <p class="nota">Não tem conta? Crie uma conta grátis em mega.io com um e-mail da equipe, baixe a chave de recuperação e passe a senha só para quem é da equipe. Quando alguém sair, troque a senha.</p>
+            ${htmlPorQueMega()}
         </form>`;
         document.body.appendChild(fundo);
         const form = fundo.querySelector('form'), erro = fundo.querySelector('.nuvem-erro');
@@ -201,11 +202,28 @@ async function gerarZipDoProjeto(p) {
 
 // ---------------------------------------------------------------- interface
 
+/** Balão "Por que o MEGA?": motivo da escolha e cuidados (termos de uso conforme o conhecimento de out/2026; podem mudar). */
+function htmlPorQueMega() {
+    return `<details class="balao-info"><summary title="Por que usamos o MEGA?">ⓘ Por que o MEGA?</summary><div class="balao-info-corpo">
+        <p><b>Os arquivos continuam seus.</b> Nos termos de uso do Google Drive, OneDrive, Dropbox e MEGA você mantém a propriedade e só dá uma licença para o serviço guardar e processar os arquivos.</p>
+        <p><b>A diferença é quem consegue ler.</b> Google Drive, OneDrive e Dropbox criptografam, mas guardam a chave: tecnicamente podem ler o conteúdo (para procurar vírus e material ilegal, aplicar as regras de uso ou atender ordem judicial). No MEGA a criptografia é de ponta a ponta: a chave vem da senha da equipe e o MEGA não consegue ler os arquivos nem os nomes deles — é uma limitação técnica, não só uma promessa.</p>
+        <p><b>O que o MEGA ainda vê:</b> o e-mail da conta, o endereço de acesso (IP), o espaço usado e quando os arquivos foram enviados; isso pode ser entregue por ordem judicial.</p>
+        <p><b>Cuidados:</b></p>
+        <ul>
+            <li>Perdeu a senha sem a chave de recuperação, perdeu os dados (o MEGA não consegue recuperar). Ao criar a conta, baixe a <b>chave de recuperação</b> e guarde em lugar seguro.</li>
+            <li>Link público do MEGA leva a chave junto: este sistema nunca cria link; não crie links para estas pastas.</li>
+            <li>Contas grátis muito tempo sem uso podem ser apagadas pelo MEGA: entre de vez em quando.</li>
+            <li>Uma conta por equipe; quando alguém sair, troque a senha.</li>
+        </ul>
+        <p class="balao-info-fonte">Baseado nos termos de uso e na forma como cada serviço funciona (out/2026). Os termos mudam: confira os atuais antes de guardar dados sigilosos.</p>
+    </div></details>`;
+}
+
 function htmlCartaoNuvem() {
     const on = nuvemConectada(), em = NUVEM.email || emailLembrado();
     return `<section class="card cartao-nuvem">
         <div class="card-topo"><h2>☁ Nuvem da equipe</h2><span class="contador">${on ? `conectado: ${esc(NUVEM.email)}` : em ? `conta: ${esc(em)}` : 'MEGA — só a equipe acessa'}</span></div>
-        <p class="nota">Guarda os projetos e a biblioteca da equipe numa conta MEGA <b>da equipe</b>, protegida por senha; nada fica público. Cada salvamento vira uma versão; a biblioteca junta os princípios de todos os projetos.</p>
+        <p class="nota">Guarda os projetos e a biblioteca da equipe numa conta MEGA <b>da equipe</b>, protegida por senha; nada fica público. Cada salvamento vira uma versão; a biblioteca junta os princípios de todos os projetos. ${htmlPorQueMega()}</p>
         <div class="botoes">
             <button type="button" class="btn btn-primary btn-sm" data-acao="nuvem-salvar">☁⬆ Salvar este projeto na nuvem</button>
             <button type="button" class="btn btn-secondary btn-sm" data-acao="nuvem-abrir">☁⬇ Abrir projeto da nuvem</button>
@@ -260,4 +278,9 @@ Object.assign(ACOES, {
         avisar(`Biblioteca da equipe atualizada: ${r.projetos} projeto(s) lidos, ${r.novos} princípio(s) novo(s).`, 'ok', 7000);
     },
     'nuvem-sair': () => { nuvemSair(); renderPagina(true); avisar('Saiu da nuvem neste navegador.'); }
+});
+
+// balões de informação fecham ao clicar fora deles
+document.addEventListener('click', e => {
+    document.querySelectorAll('details.balao-info[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; });
 });

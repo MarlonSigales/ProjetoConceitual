@@ -513,3 +513,14 @@ body.esb-aberto { overflow: hidden; }
 .nuvem-form { width: min(100%, 440px); gap: 0.6rem; }
 .nuvem-form h2 { margin: 0; }
 .nuvem-erro { color: var(--perigo); font-size: 0.86rem; min-height: 1.2em; margin: 0; }
+/* balão de informação (ex.: "Por que o MEGA?") */
+.balao-info { display: inline-block; position: relative; font-size: 0.86rem; }
+.balao-info > summary { display: inline; cursor: pointer; color: #2f6fb3; font-weight: 600; list-style: none; }
+.balao-info > summary::-webkit-details-marker { display: none; }
+.balao-info-corpo { position: absolute; z-index: 60; left: 0; top: calc(100% + 6px); width: min(460px, calc(100vw - 40px)); background: #fff; color: var(--texto);
+  border: 1px solid var(--borda); border-left: 4px solid #2f6fb3; border-radius: 8px; box-shadow: 0 8px 26px rgba(0,0,0,.18); padding: 0.7rem 0.9rem; font-weight: 400; }
+.balao-info-corpo p, .balao-info-corpo li { margin: 0.25rem 0; line-height: 1.45; }
+.balao-info-corpo ul { padding-left: 1.1rem; }
+.balao-info-fonte { font-size: 0.78rem; color: var(--suave); }
+.nuvem-form .balao-info-corpo { position: static; width: auto; box-shadow: none; margin-top: 0.4rem; }
+@media (max-width: 600px) { .balao-info { display: block; } .balao-info-corpo { position: static; width: auto; margin-top: 0.4rem; } }

@@ -30,6 +30,9 @@ Atualizado em 27/10/2026 (versão 3). Os números são fixos (servem de referên
    (cada salvamento é uma versão, ZIP completo), listar e abrir versões, biblioteca única da equipe juntando todos os projetos.
    Não testado de verdade daqui: este ambiente não acessa o MEGA nem baixa a biblioteca megajs. Se der erro, anotar a
    mensagem que aparece. Regras: só com senha, nenhum link público; uma conta por equipe; trocar a senha quando alguém sair.
+   Balão "ⓘ Por que o MEGA?" no cartão da nuvem e na tela de entrada: propriedade dos arquivos (todos os serviços), quem
+   consegue ler (Google/Microsoft/Dropbox guardam a chave; MEGA é de ponta a ponta), o que o MEGA ainda vê e os cuidados
+   (chave de recuperação, nunca criar link, contas grátis paradas, trocar a senha). Conferir os termos atuais (podem mudar).
 
 === REJEITADO
 (nenhum)
