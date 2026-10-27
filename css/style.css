@@ -524,3 +524,18 @@ body.esb-aberto { overflow: hidden; }
 .balao-info-fonte { font-size: 0.78rem; color: var(--suave); }
 .nuvem-form .balao-info-corpo { position: static; width: auto; box-shadow: none; margin-top: 0.4rem; }
 @media (max-width: 600px) { .balao-info { display: block; } .balao-info-corpo { position: static; width: auto; margin-top: 0.4rem; } }
+
+/* ---------------- evoluir e avaliar concepções (Reis 2.6 e 2.7) ---------------- */
+.grade-evolucao { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 0.8rem; }
+.evolucao { border: 1px solid var(--borda); border-top: 4px solid var(--cor); border-radius: 8px; padding: 0.7rem; background: #fbfdfc; min-width: 0; }
+.evolucao h3 { margin: 0 0 0.3rem; color: var(--teal); }
+.evolucao-esboco { position: relative; margin-top: 0.6rem; height: 130px; background: #f0f4f3; border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.evolucao-esboco img { max-height: 130px; width: 100%; object-fit: contain; background: #fff; }
+.evolucao-esboco .btn-icone { position: absolute; top: 6px; right: 6px; background: #fff; }
+.tabela-final .ponto-fraco { background: #fdeceb !important; }
+.resp-n1, .resp-n2 { background: #fdeceb; } .resp-n4, .resp-n5 { background: #e9f6ee; }
+.recomendacao { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.aviso-base { background: #eef6f8; border-left: 4px solid var(--teal); padding: 0.5rem 0.7rem; border-radius: 4px; }
+.revisao-alterada { background: #fff6dd; } .revisao-nova { background: #e9f6ee; } .revisao-removida { background: #fdeceb; text-decoration: line-through; }
+.campo-participantes { display: block; margin: 0.4rem 0 0.6rem; } .campo-participantes input { display: block; width: 100%; max-width: 560px; box-sizing: border-box; }
+.tabela-final select { min-width: 7.6rem; }

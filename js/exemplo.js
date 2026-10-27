@@ -202,6 +202,18 @@ async function criarExemplo() {
         [c1.id]: { [cr['Ser leve']]: 0, [cr['Ser resistente a buracos e meio-fio']]: 1, [cr['Ter baixo custo']]: -1, [cr['Ter manutenção fácil']]: 1, [cr['Ter rodagem suave e silenciosa']]: 1 }
     };
 
+    // Evolução das promissoras e avaliação final pelas especificações (Reis, 2003, etapas 2.6 e 2.7)
+    const estimativas = { [c1.id]: ['1,75 kg', 'Ø 622 × 25 mm (aro 700c)', 'Massa somada por componente (aro 520 g, raios 32 × 6 g, cubos 480 g, disco 120 g, pneu/câmara 440 g). Disco e blocagem compatíveis com o quadro.'],
+        [c2.id]: ['2,30 kg', 'Ø 622 × 25 mm', 'Aro de aço pesa mais; peças comuns no mercado.'] };
+    concepcoesEmEvolucao(p).forEach(v => { const e = estimativas[v.id]; if (e) s.evolucao[v.id] = { massa: e[0], dimensoes: e[1], observacoes: e[2], imagem: null }; });
+    s.final.participantes = 'Projetista, mecânico de oficina, ciclista usuário e responsável por compras';
+    // notas 1–5 por especificação (Urbana robusta equilibrada; Baixo custo pesada demais: ponto fraco em massa)
+    const notasFinais = { [c1.id]: [5, 4, 5, 3, 4, 3], [c2.id]: [4, 2, 4, 5, 3, 3] };
+    const ordemEsp = [/Carga/, /Massa/, /raios/, /Custo/, /Desvio/, /troca/];
+    concepcoesEmEvolucao(p).forEach(v => { const nn = notasFinais[v.id]; if (!nn) return; s.final.notas[v.id] = {};
+        p.especificacoes.forEach(e => { const k = ordemEsp.findIndex(r => r.test(e.descricao)); if (k >= 0) s.final.notas[v.id][e.id] = nn[k]; }); });
+    sugerirNotasFinais(p); // completa o que faltar
+
     // ---------- Concepção ----------
     p.concepcao.varianteId = c1.id;
     p.concepcao.descricao = rascunhoDescricaoExemplo(p, est, c1) + '\n\nO freio a disco mantém a eficiência na chuva e não desgasta o aro; os raios de aço tensionados dão resistência a buracos e meio-fio com massa baixa e conserto fácil.';

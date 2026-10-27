@@ -110,8 +110,8 @@ function corpoRelatorio(p, opcoes = {}) {
 
     // 1 Escopo
     const sentido = { up: '↑', down: '↓', none: '=' };
-    const escopo = (p.especificacoes.length ? `<h3>Especificações de projeto</h3><table><thead><tr><th>Cód.</th><th>Especificação</th><th>Meta</th><th>Sentido</th><th>Peso</th><th>Função relacionada</th></tr></thead><tbody>
-        ${p.especificacoes.map(e => `<tr><td>${esc(e.codigo)}</td><td>${esc(e.descricao)}${e.ehCusto ? ' <i>(custo)</i>' : ''}</td><td>${esc(e.meta)}</td><td class="centro">${sentido[e.sentido] || ''}</td><td class="num">${pct(e.peso)}%</td><td>${esc(e.funcao || '')}</td></tr>`).join('')}</tbody></table>` : vazio('Sem especificações.'))
+    const escopo = (p.especificacoes.length ? `<h3>Especificações de projeto</h3><table><thead><tr><th>Cód.</th><th>Especificação</th><th>Meta</th><th>Sentido</th><th>Peso</th><th>Função relacionada</th>${p.baseAnterior ? '<th>Revisão</th>' : ''}</tr></thead><tbody>
+        ${p.especificacoes.map(e => `<tr><td>${esc(e.codigo)}</td><td>${esc(e.descricao)}${e.ehCusto ? ' <i>(custo)</i>' : ''}</td><td>${esc(e.meta)}</td><td class="centro">${sentido[e.sentido] || ''}</td><td class="num">${pct(e.peso)}%</td><td>${esc(e.funcao || '')}</td>${p.baseAnterior ? `<td>${esc(REVISOES_ESPEC[e.revisao || 'nova'])}</td>` : ''}</tr>`).join('')}</tbody></table>${p.baseAnterior ? `<p>Projeto desenvolvido a partir de <b>${esc(p.baseAnterior.nome)}</b>; especificações revisadas pela equipe.</p>` : ''}` : vazio('Sem especificações.'))
         + (p.necessidades.length ? `<h3>Necessidades dos clientes</h3><table><thead><tr><th>Necessidade</th><th>Peso</th></tr></thead><tbody>${p.necessidades.map(x => `<tr><td>${esc(x.descricao)}</td><td class="num">${pct(x.peso)}%</td></tr>`).join('')}</tbody></table>` : '')
         + (p.restricoes.length ? `<h3>Restrições</h3><ul>${p.restricoes.map(r => `<li>${esc(r.texto)}</li>`).join('')}</ul>` : '')
         + (p.abstracao.some(t => t.trim()) ? `<h3>Abstração orientada</h3><table><tbody>${PASSOS_ABSTRACAO.map((t, i) => `<tr><td style="width:32%"><b>${i + 1}.</b> ${esc(t)}</td><td class="pre">${esc(p.abstracao[i])}</td></tr>`).join('')}</tbody></table>` : '')
@@ -193,6 +193,19 @@ function corpoRelatorio(p, opcoes = {}) {
             selecao += `<h3>Matriz de avaliação (referência: ${esc((p.variantes.find(v => v.id === ref) || {}).nome || '')})</h3><table><thead><tr><th>Critério</th><th>Peso</th>${cab}</tr></thead><tbody>
                 ${s.avaliacao.criterios.map(c => `<tr><td>${esc(c.texto)}</td><td class="num">${+c.peso || 0}</td>${p.variantes.map(v => `<td class="centro">${v.id === ref ? 'S' : R(v.id).etapa3 ? esc(sinal[String((s.avaliacao.notas[v.id] || {})[c.id])] || '—') : '<i>descartada</i>'}</td>`).join('')}</tr>`).join('')}
                 <tr><td colspan="2"><b>Soma</b></td>${p.variantes.map(v => `<td class="centro"><b>${v.id === ref ? 0 : R(v.id).etapa3 ? R(v.id).soma : ''}</b></td>`).join('')}</tr></tbody></table>`;
+        }
+        const evo = typeof concepcoesEmEvolucao === 'function' ? concepcoesEmEvolucao(p) : [];
+        if (evo.length) {
+            const est = p.estruturas.find(e => e.id === p.estruturaEscolhida) || p.estruturas[0];
+            selecao += `<h3>Evolução das concepções promissoras (Reis, 2003, etapa 2.6)</h3><table><thead><tr><th>Concepção</th><th>Massa</th><th>Dimensões</th><th>Custo</th><th>Observações</th></tr></thead><tbody>
+                ${evo.map(v => { const e = s.evolucao[v.id] || {}; return `<tr><td>${esc(v.nome)}</td><td>${esc(e.massa || '—')}</td><td>${esc(e.dimensoes || '—')}</td><td>${esc(est ? textoCusto(custoConcepcao(p, est, v)) : '')}</td><td>${esc(e.observacoes || '')}</td></tr>`; }).join('')}</tbody></table>`;
+            const af = avaliacaoFinal(p);
+            if (af.linhas.some(l => l.nota !== null)) {
+                selecao += `<h3>Avaliação final pelas especificações (Reis, 2003, etapa 2.7)</h3>${s.final.participantes ? `<p>Avaliadores: ${esc(s.final.participantes)}</p>` : ''}<table><thead><tr><th>Especificação</th><th>Peso</th>${evo.map(v => `<th>${esc(v.nome)}</th>`).join('')}</tr></thead><tbody>
+                ${p.especificacoes.map(e => `<tr><td>${esc(e.descricao)}</td><td class="num">${pct(e.peso)}%</td>${evo.map(v => { const n = (s.final.notas[v.id] || {})[e.id]; return `<td class="centro">${n ? (n <= 2 && (+e.peso || 0) >= af.pesoMedio ? `<b class="nok">${n}</b>` : n) : '—'}</td>`; }).join('')}</tr>`).join('')}
+                <tr><td colspan="2"><b>Nota ponderada (1 a 5)</b></td>${evo.map(v => { const l = af.linhas.find(x => x.id === v.id); return `<td class="centro"><b>${l.nota === null ? '—' : l.nota.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</b></td>`; }).join('')}</tr></tbody></table>
+                ${af.recomendada ? `<p>Recomendada: <b>${esc(af.recomendada.nome)}</b>${af.recomendada.motivo ? ' — ' + esc(af.recomendada.motivo) : ''}. Em vermelho, pontos fracos (nota 1 ou 2 em especificação de peso acima da média).</p>` : ''}`;
+            }
         }
         selecao += `<h3>Resultado</h3><table><thead><tr><th>Concepção</th><th>Viabilidade</th><th>Tecnologia</th><th>Passa/não passa</th><th>Promissora</th></tr></thead><tbody>
             ${r.map(x => `<tr class="${p.concepcao.varianteId === x.id ? 'melhor' : ''}"><td>${esc(x.nome)}${p.concepcao.varianteId === x.id ? ' ★' : ''}</td><td>${x.etapa1 ? '<span class="ok">passa</span>' : x.viabilidade ? '<span class="nok">não passa</span>' : '—'}</td><td>${x.etapa2 ? '<span class="ok">passa</span>' : x.etapa1 ? '<span class="nok">não passa</span>' : ''}</td><td>${x.etapa3 ? '<span class="ok">passa</span>' : x.etapa2 ? '<span class="nok">não passa</span>' : ''}</td><td>${x.promissora ? '<span class="ok">sim</span>' : ''}</td></tr>`).join('')}</tbody></table>`;

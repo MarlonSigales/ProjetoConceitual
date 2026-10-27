@@ -438,6 +438,62 @@ teste('Abrir o backup do QFD pelo "Abrir projeto" é reconhecido', async () => {
     ok(qfd);
 });
 
+teste('Evolução e avaliação final pelas especificações (Reis 2.6/2.7): nota ponderada, ponto fraco e perfil equilibrado', () => {
+    const p = normalizarProjeto(JSON.parse(JSON.stringify(EX)));
+    const evo = concepcoesEmEvolucao(p);
+    ok(evo.length >= 1, 'há concepções promissoras');
+    ok(p.selecao.evolucao[evo[0].id] && p.selecao.evolucao[evo[0].id].massa, 'exemplo traz massa estimada');
+    ok(avaliacaoFinal(p).linhas.every(l => l.nota !== null), 'exemplo traz notas finais');
+    // cenário controlado: A tem nota maior mas ponto fraco na especificação mais pesada; B é equilibrada
+    const q = normalizarProjeto({});
+    q.especificacoes = [{ id: 'e1', descricao: 'Carga', peso: 0.6 }, { id: 'e2', descricao: 'Massa', peso: 0.2 }, { id: 'e3', descricao: 'Custo', peso: 0.2 }];
+    q.variantes = [{ id: 'A', nome: 'A', cor: '#000', escolhas: {} }, { id: 'B', nome: 'B', cor: '#111', escolhas: {} }];
+    q.selecao.final.notas = { A: { e1: 2, e2: 5, e3: 5 }, B: { e1: 4, e2: 3, e3: 3 } };
+    const orig = window.concepcoesEmEvolucao;
+    window.concepcoesEmEvolucao = pp => pp.variantes;
+    try {
+        const af = avaliacaoFinal(q);
+        const A = af.linhas.find(l => l.id === 'A'), B = af.linhas.find(l => l.id === 'B');
+        igual(Math.round(A.nota * 100), 320); igual(Math.round(B.nota * 100), 360);
+        igual(A.fracos.length, 1); igual(B.fracos.length, 0);
+        igual(af.recomendada.id, 'B');
+        // B com nota um pouco menor que A, mas dentro de 10%: ainda recomenda a equilibrada
+        q.selecao.final.notas = { A: { e1: 2, e2: 5, e3: 5 }, B: { e1: 3, e2: 3, e3: 3 } };
+        q.selecao.final.notas.A = { e1: 2, e2: 5, e3: 5 }; q.especificacoes[0].peso = 0.4; q.especificacoes[1].peso = 0.3; q.especificacoes[2].peso = 0.3;
+        const af2 = avaliacaoFinal(q);
+        igual(af2.linhas.find(l => l.id === 'A').fracos.length, 1);
+        igual(af2.recomendada.id, 'A', 'B (3,0) fica a mais de 10% de A (3,8): segue A, com aviso do ponto fraco');
+        // especificação retirada na revisão não entra
+        q.especificacoes[0].revisao = 'removida';
+        igual(avaliacaoFinal(q).linhas.find(l => l.id === 'A').fracos.length, 0);
+    } finally { window.concepcoesEmEvolucao = orig; }
+});
+
+teste('Pendência e exportação da avaliação final; relatório mostra a etapa 2.7', () => {
+    const p = normalizarProjeto(JSON.parse(JSON.stringify(EX)));
+    ok(!pendencias(p).some(x => /avaliação final/.test(x.texto)), 'exemplo completo não pede avaliação final');
+    p.selecao.final.notas = {};
+    ok(pendencias(p).some(x => /avaliação final/.test(x.texto)), 'sem notas vira pendência');
+    const ex = exportarParaGestao(normalizarProjeto(JSON.parse(JSON.stringify(EX))));
+    ok(ex.conceitual.concepcoes.some(c => /Avaliação pelas especificações/.test(c.avaliacao)), 'nota vai para a Gestão');
+    ok(/etapa 2\.7/.test(corpoRelatorio(normalizarProjeto(JSON.parse(JSON.stringify(EX))))), 'relatório');
+});
+
+teste('Partir de projeto anterior: mantém especificações e princípios, marca revisão e zera a escolha', () => {
+    const n = projetoAPartirDe(JSON.parse(JSON.stringify(EX)));
+    igual(n.baseAnterior.nome, EX.projeto.nome);
+    ok(n.especificacoes.length === EX.especificacoes.length && n.especificacoes.every(e => e.revisao === 'mantida'));
+    igual(Object.keys(n.principios).length, Object.keys(EX.principios).length);
+    igual(n.concepcao.varianteId, null); igual(n.fmea.length, 0);
+    ok(pendencias(n).some(x => /nenhuma especificação foi revisada/.test(x.texto)));
+    n.especificacoes[0].revisao = 'alterada';
+    ok(!pendencias(n).some(x => /nenhuma especificação foi revisada/.test(x.texto)));
+    const volta = normalizarProjeto(JSON.parse(JSON.stringify(n)));
+    igual(volta.baseAnterior.nome, EX.projeto.nome); igual(volta.especificacoes[0].revisao, 'alterada');
+    ok(/Revisão/.test(corpoRelatorio(volta)));
+    ok(VARIACOES_ESTRUTURA.some(v => /arranjo/.test(v)), 'variação de arranjo (Reis)');
+});
+
 // ---------------------------------------------------------------- execução
 (async () => {
     const lista = document.getElementById('lista');

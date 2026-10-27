@@ -69,7 +69,8 @@ const DIRETRIZES_ESTRUTURA = [
     'Verificar em cada nível se há princípios de solução ou módulos de outros sistemas que possam ser adaptados.',
     'Havendo estruturas alternativas, comparar cada uma com as especificações e selecionar e otimizar a melhor.'
 ];
-const VARIACOES_ESTRUTURA = ['Dividir ou combinar as subfunções', 'Mudar a disposição de subfunções individuais', 'Variar o tipo de ligação (série ou paralelo)', 'Alterar as fronteiras do sistema'];
+const VARIACOES_ESTRUTURA = ['Dividir ou combinar as subfunções', 'Mudar a disposição de subfunções individuais', 'Variar o tipo de ligação (série ou paralelo)', 'Alterar as fronteiras do sistema',
+    'Variar o arranjo do sistema: um elemento central para várias unidades, um por unidade ou vários por unidade (ex.: um dosador para várias linhas, um por linha, vários por linha — Reis, 2003)'];
 
 /** Disponibilidade de tecnologia (Reis, 2003): perguntas padrão */
 const PERGUNTAS_TECNOLOGIA = [
@@ -120,6 +121,7 @@ function criarProjetoVazio() {
         ia: { importadoEm: '', resumo: '' },
         funcoesQFD: [],                  // requisitos "formadores de função" do QFD
         ultimoPreenchimento: null,
+        baseAnterior: null,              // { nome, em } quando o projeto partiu de outro (revisão das especificações)
         fmea: [],                        // FMEA da concepção { id, funcId, modo, efeito, causa, s, o, d, acao }       // { em, itens: [{ etapa, texto }] } do preenchimento automático
         // 1 Escopo
         especificacoes: [],              // { id, codigo, descricao, sentido, meta, unidade, avaliacao, aspectos, peso, dificuldade, origem, ehCusto, funcao, funcoesIds }
@@ -142,7 +144,9 @@ function criarProjetoVazio() {
             viabilidade: {},             // { [varId]: { estado: 'viavel'|'condicional'|'nao', razao } }
             tecnologia: { perguntas: PERGUNTAS_TECNOLOGIA.map(t => ({ id: uid('pt'), texto: t })), respostas: {} },
             passa: { perguntas: [], respostas: {} },
-            avaliacao: { referencia: null, criterios: [], notas: {} }
+            avaliacao: { referencia: null, criterios: [], notas: {} },
+            evolucao: {},                // Reis 2.6 { [varId]: { massa, dimensoes, observacoes, imagem } }
+            final: { notas: {}, participantes: '' } // Reis 2.7 { notas: { [varId]: { [especId]: 1..5 } } }
         },
         // 6 Concepção
         concepcao: { varianteId: null, descricao: '', imagens: [], complementos: [], proximosPassos: '' },
@@ -155,6 +159,25 @@ function criarProjetoVazio() {
 function criarEstrutura(nome = 'Estrutura 1') {
     const global = { id: uid('fn'), tipo: 'funcao', nome: 'Função global', pai: null, x: 330, y: 150, w: 190, h: 80, descricao: '', global: true };
     return { id: uid('est'), nome, descricao: '', nos: [global], ligacoes: [], fronteira: {} };
+}
+
+const REVISOES_ESPEC = { mantida: 'Mantida', alterada: 'Alterada', nova: 'Nova', removida: 'Retirada' };
+
+/**
+ * Parte de um projeto anterior (como na dissertação, que partiu das especificações e da matriz morfológica de Reis, 2003):
+ * mantém especificações, funções, princípios e concepções; zera a escolha final, a evolução e o FMEA; marca cada
+ * especificação como "mantida" para a equipe de especialistas revisar.
+ */
+function projetoAPartirDe(anterior) {
+    const n = normalizarProjeto(JSON.parse(JSON.stringify(anterior)));
+    n.baseAnterior = { nome: anterior.projeto && anterior.projeto.nome || 'projeto anterior', em: new Date().toISOString().slice(0, 10) };
+    n.projeto.nome = `${n.baseAnterior.nome} — nova versão`;
+    n.especificacoes.forEach(e => { e.revisao = 'mantida'; });
+    n.selecao.evolucao = {}; n.selecao.final = { notas: {}, participantes: '' };
+    n.concepcao.varianteId = null;
+    n.fmea = [];
+    n.metadata.created = new Date().toISOString();
+    return n;
 }
 
 /** Completa campos ausentes sem apagar nada (projetos antigos, importados ou corrompidos). */
@@ -203,8 +226,11 @@ function normalizarProjeto(p) {
         viabilidade: Object.assign({}, s.viabilidade || {}),
         tecnologia: { perguntas: lista((s.tecnologia || {}).perguntas).length ? s.tecnologia.perguntas : base.selecao.tecnologia.perguntas, respostas: Object.assign({}, (s.tecnologia || {}).respostas || {}) },
         passa: { perguntas: lista((s.passa || {}).perguntas), respostas: Object.assign({}, (s.passa || {}).respostas || {}) },
-        avaliacao: Object.assign({ referencia: null, criterios: [], notas: {} }, s.avaliacao || {})
+        avaliacao: Object.assign({ referencia: null, criterios: [], notas: {} }, s.avaliacao || {}),
+        evolucao: Object.assign({}, s.evolucao || {}),
+        final: Object.assign({ notas: {}, participantes: '' }, s.final || {})
     };
+    out.selecao.final.notas = Object.assign({}, out.selecao.final.notas);
     out.selecao.avaliacao.criterios = lista(out.selecao.avaliacao.criterios).map(c => Object.assign({ id: uid('cr'), texto: '', peso: 1 }, c));
     out.concepcao = Object.assign(base.concepcao, p.concepcao || {});
     out.concepcao.imagens = lista(out.concepcao.imagens);
@@ -220,6 +246,7 @@ function normalizarProjeto(p) {
     out.fmea = lista(p.fmea).map(l => Object.assign({ id: uid('fm'), funcId: '', modo: '', efeito: '', causa: '', s: 5, o: 5, d: 5, acao: '' }, l));
     out.ultimoPreenchimento = p.ultimoPreenchimento && Array.isArray(p.ultimoPreenchimento.itens) ? p.ultimoPreenchimento : null;
     out.qfdBackup = p.qfdBackup && typeof p.qfdBackup === 'object' ? p.qfdBackup : null;
+    out.baseAnterior = p.baseAnterior && typeof p.baseAnterior === 'object' ? { nome: txt(p.baseAnterior.nome, 160), em: txt(p.baseAnterior.em, 40) } : null;
     out.metadata = Object.assign(base.metadata, p.metadata || {});
     out.schemaVersion = PC_VERSAO;
     return out;
@@ -321,6 +348,7 @@ function imagensUsadas(p) {
     const ids = new Set();
     Object.values(p.principios).forEach(l => l.forEach(x => x.imagem && ids.add(x.imagem)));
     p.concepcao.imagens.forEach(x => x && x.id && ids.add(x.id));
+    Object.values(p.selecao.evolucao || {}).forEach(e => e && e.imagem && ids.add(e.imagem));
     return [...ids];
 }
 

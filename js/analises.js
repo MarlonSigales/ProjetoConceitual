@@ -41,6 +41,15 @@ function pendencias(p) {
         if (falta) add('media', `"${v.nome}" sem princípio em ${falta} função(ões).`, 'matriz');
         if (conflitosVariante(p, v).length) add('alta', `"${v.nome}" usa princípios incompatíveis.`, 'matriz');
     });
+    if (p.baseAnterior && p.especificacoes.length && p.especificacoes.every(e => e.revisao === 'mantida'))
+        add('info', `Projeto partiu de "${p.baseAnterior.nome}": nenhuma especificação foi revisada ainda (todas "mantida"). Confirme com a equipe.`, 'escopo');
+    if (typeof concepcoesEmEvolucao === 'function') {
+        const evo = concepcoesEmEvolucao(p);
+        if (evo.length && p.especificacoes.length && !evo.some(v => Object.keys(p.selecao.final.notas[v.id] || {}).length))
+            add('media', 'Falta a avaliação final das concepções promissoras pelas especificações (Reis, etapa 2.7).', 'selecao');
+        const semEvo = evo.filter(v => { const e = p.selecao.evolucao[v.id] || {}; return !(e.massa || e.dimensoes || e.imagem); });
+        if (semEvo.length) add('info', `Concepções promissoras sem estimativa de massa/dimensões ou esboço: ${semEvo.map(v => v.nome).join(', ')}.`, 'selecao');
+    }
     const semJulg = p.variantes.filter(v => !(p.selecao.viabilidade[v.id] || {}).estado);
     if (p.variantes.length && semJulg.length) add('media', `Seleção: falta julgar a viabilidade de ${semJulg.map(v => v.nome).join(', ')}.`, 'selecao');
     const v = p.variantes.find(x => x.id === p.concepcao.varianteId);
@@ -75,6 +84,15 @@ function linhasMaturidade(p) {
  * e o escolhido; desdobramento das especificações; concepções. Leva junto o backup do QFD, para o Gestão importar tudo
  * de uma vez.
  */
+function notaFinalTexto(p, id) {
+    if (typeof avaliacaoFinal !== 'function') return '';
+    const l = avaliacaoFinal(p).linhas.find(x => x.id === id);
+    if (!l || l.nota === null) return '';
+    const e = p.selecao.evolucao[id] || {};
+    return `Avaliação pelas especificações: ${l.nota.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} de 5` + (l.fracos.length ? ` (ponto fraco: ${l.fracos.map(f => f.descricao).join(', ')})` : '') +
+        (e.massa ? `; massa estimada ${e.massa}` : '') + (e.dimensoes ? `; dimensões ${e.dimensoes}` : '');
+}
+
 function exportarParaGestao(p) {
     const est = estDoProjeto(p);
     const v = p.variantes.find(x => x.id === p.concepcao.varianteId);
@@ -117,7 +135,7 @@ function exportarParaGestao(p) {
                 folhasTodas.filter(f => x.escolhas[f.id]).map(f => `${f.nome}: ${(acharPrincipio(p, x.escolhas[f.id]) || {}).nome}`).join('\n'),
             custoEstimado: textoCusto(custoConcepcao(p, est, x)),
             avaliacao: ['Custo estimado: ' + textoCusto(custoConcepcao(p, est, x)), rr.viabilidade ? 'Viabilidade: ' + ({ viavel: 'viável', condicional: 'condicionalmente viável', nao: 'não viável' }[rr.viabilidade]) : '',
-                rr.etapa2 ? 'Tecnologia disponível' : '', rr.etapa3 ? 'Passou no passa/não passa' : '', rr.promissora ? 'Promissora na matriz de avaliação' : ''].filter(Boolean).join('; ')
+                rr.etapa2 ? 'Tecnologia disponível' : '', rr.etapa3 ? 'Passou no passa/não passa' : '', rr.promissora ? 'Promissora na matriz de avaliação' : '', notaFinalTexto(p, x.id)].filter(Boolean).join('; ')
         };
     });
     return {

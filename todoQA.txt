@@ -35,60 +35,84 @@ Atualizado em 27/10/2026 (versão 3). Os números são fixos (servem de referên
    (chave de recuperação, nunca criar link, contas grátis paradas, trocar a senha). Conferir os termos atuais (podem mudar).
 
 === PROJETO PRELIMINAR (planejado — continua no mesmo sistema, depois do conceitual)
-Base: Pahl et al. (2005), passos do projeto preliminar (configuração): requisitos determinantes, restrições de espaço,
-portadores de função principais e auxiliares, leiautes preliminares, seleção, verificação de erros e fatores de perturbação,
-lista de peças e leiaute definitivo; regras básicas (clareza, simplicidade, segurança), princípios de configuração e diretrizes
-(DfX). Back et al. (2008) para as tarefas da fase no NeDIP (leiaute, dimensionamento, materiais e processos, componentes
-padronizados, protótipos, custos, FMEA). Spagnolo (2011) e Reis (2003): a qualidade continua integrada — as especificações do
-QFD são verificadas em cada passo, e o contexto de máquinas agrícolas define os padrões (engate de três pontos ISO 730,
-tomada de potência ISO 500). Cada item segue a diretriz SIMPLES PARA QUALQUER UM: vem pré-preenchido do conceitual, do QFD e
-dos cadastros da equipe; a pessoa só confere e completa.
+Base, na ordem em que foram aplicadas nos trabalhos do grupo:
+- Reis (2003), cap. 4, fase 3 (projeto preliminar), em três etapas: 3.1 leiautes preliminares e desenhos de forma
+  (3.1.1 requisitos determinantes; 3.1.2 desenhos em escala das restrições; 3.1.3 portadores de efeito físico determinantes,
+  com parâmetros característicos; 3.1.4 leiautes preliminares; 3.1.5 selecionar; 3.1.6 demais portadores); 3.2 leiautes
+  detalhados (3.2.1 funções auxiliares, preferindo peças padronizadas e de catálogo; 3.2.2 regras básicas + DfX; 3.2.3 completar;
+  3.2.4 avaliação técnico-econômica); 3.3 finalizar verificações (3.3.1 otimizar; 3.3.2 erros e fatores de perturbação com a
+  lista do Quadro 4.4; 3.3.3 lista de partes preliminar → leiaute definitivo). Planejamento do protótipo (item 4.6, Ulrich &
+  Eppinger): propósito, aproximação, plano de experimento, cronograma. Cap. 6: a bancada de testes foi projetada em paralelo,
+  com a mesma metodologia e especificações próprias. Cap. 8: dificuldades — falta de dados de projetos anteriores e de
+  detalhamento no preliminar (motivo da biblioteca e dos cadastros da equipe).
+- Spagnolo (2011): cronograma após a concepção — Etapa 05 leiautes e desenhos de forma; 06 construção do protótipo;
+  07 teste preliminar; 08 ajuste e adequação de componentes; 09 teste definitivo; 10 análise e discussão; 11 relatórios,
+  artigos e patentes. A qualidade continua integrada: as especificações do QFD são conferidas em cada passo.
+- Sigales (dissertação, PPG-SPAF/UFPel): partiu das especificações (revisadas por especialistas) e da matriz de Reis
+  (feito: item 43); executou as tarefas de Reis de forma recursiva (volta ao 3.1 quando um teste reprova); protótipo impresso
+  em PLA visando injeção plástica (diretrizes de Harada, 2004); projeto elétrico pelo ciclo especificação → concepção →
+  modelo do circuito → simulação → protótipo físico → medição (Nilsson & Riedel; Sigales et al., 2020); custo do protótipo
+  (energia = potência × horas × tarifa; material = kg × R$/kg); tabela de adequação aos requisitos (Atendido / Não atendido /
+  * depende do leiaute definitivo); ensaios ISO 7256-1, estanqueidade e rotação; ISOBUS (ISO 11783); eficiência energética.
+- Pahl et al. (2005) e Back et al. (2008) completam o que os trabalhos acima citam deles (regras básicas, princípios de
+  configuração, tarefas da fase no NeDIP). Contexto agrícola: engate de três pontos (ISO 730), TDP (ISO 500).
+- A TESE de doutorado do Marlon NÃO veio entre os anexos (só a dissertação): quando vier, conferir estes itens com ela.
+Diretriz SIMPLES PARA QUALQUER UM: cada passo vem pré-preenchido do conceitual, do QFD e dos cadastros da equipe; a pessoa só
+confere e completa; o sistema avisa o que falta (pendências) e para onde voltar quando algo reprova.
 
 26 [futuro] Módulo "Projeto preliminar" no mesmo projeto (mesmo ZIP, mesma nuvem): menu com o grupo "Conceitual" (etapas 1–9)
-   e o grupo "Preliminar"; só abre depois da concepção escolhida; o que vier do conceitual aparece pronto.
-27 [futuro] Requisitos que definem a configuração (Pahl, passo 1): das especificações do QFD, marcar as que definem dimensões,
-   arranjo e material — pré-marcadas por palavra (massa, dimensão, carga, potência, volume). Simples: caixas de seleção.
-28 [futuro] Restrições de espaço e interfaces (Pahl, passo 2): envelope (comprimento × largura × altura), pontos de fixação e
-   ligação com outros sistemas; para máquina agrícola, sugestões prontas (engate de três pontos categoria I/II, TDP 540/1000 rpm,
-   bitola, altura livre). Simples: lista de escolha + campo de medida.
-29 [futuro] Portadores de função (Pahl, passos 3 e 7): cada função elementar da concepção vira um componente/subconjunto,
-   já com o princípio escolhido e a foto; marcar principal ou auxiliar; as funções auxiliares (fixar, vedar, lubrificar,
-   proteger) ganham sugestões do catálogo.
-30 [futuro] Leiautes preliminares (Pahl, passos 4–6 e 8–9): esboço do arranjo geral (desenho com o dedo, foto do CAD ou de
-   modelo físico), dimensões principais de cada portador e pelo menos duas alternativas de leiaute.
-31 [futuro] Seleção do leiaute (Pahl, passo 10): avaliação pelo valor técnico × valor econômico (critérios das especificações,
-   pesos do QFD), com o gráfico de pontos que mostra a melhor; mesma escala simples da seleção da concepção.
-32 [futuro] Dimensionamento com memória de cálculo: calculadoras prontas por portador (eixo à flexão e torção, parafuso,
-   vida de rolamento L10, potência e torque do motor, corrente e bitola de cabo, autonomia de bateria, transmissão por
-   corrente/correia), com os valores das metas do QFD já preenchidos; o resultado diz se atende à especificação.
-33 [futuro] Materiais e processos de cada peça, escolhidos do cadastro de materiais da equipe (item 34), com sugestões por
-   exigência (resistência, corrosão, massa, custo) e processo de fabricação disponível.
+   e o grupo "Preliminar" nas etapas de Reis (3.1, 3.2, 3.3) + protótipo + testes; só abre depois da concepção escolhida;
+   a evolução da concepção (massa, dimensões, esboço — já feita na seleção) aparece como ponto de partida.
+27 [futuro] 3.1.1 Requisitos determinantes: das especificações, marcar as que definem tamanho, arranjo e material —
+   pré-marcadas por palavra (massa, dimensão, carga, potência, volume, vazão). Simples: caixas de seleção.
+28 [futuro] 3.1.2 Restrições de espaço em escala: envelope (C × L × A), pontos de fixação e interfaces; sugestões prontas por
+   tipo (agrícola: engate de três pontos cat. I/II, TDP 540/1000 rpm, espaçamento entre linhas, altura livre; elétrico:
+   tensão do trator 12 V, conector ISOBUS ISO 11783). Esboço em escala com a ferramenta de desenho que já existe.
+29 [futuro] 3.1.3 e 3.1.6 Portadores de efeito físico: cada função da concepção vira um componente, com o princípio, a foto e
+   o parâmetro característico (ex.: diâmetro do disco, nº de furos, rotação); marcar determinante ou demais; as funções
+   auxiliares (3.2.1: fixar, vedar, lubrificar, proteger, conectar) sugerem peças padronizadas do cadastro (item 34).
+30 [futuro] 3.1.4 Leiautes preliminares: pelo menos dois arranjos (foto do CAD, do modelo ou desenho com o dedo), com as
+   dimensões principais; usar as variações de arranjo (central / um por unidade / vários por unidade).
+31 [futuro] 3.1.5 e 3.2.4 Seleção e avaliação técnico-econômica: mesma tabela de notas 1–5 da avaliação final da concepção
+   (critérios = especificações com pesos do QFD), mais o valor econômico; gráfico técnico × econômico; ponto fraco em vermelho.
+32 [futuro] Dimensionamento com memória de cálculo: calculadoras prontas (eixo à flexão e torção, parafuso, rolamento L10,
+   torque e potência do motor, corrente e bitola de cabo, bateria, corrente/correia), metas do QFD já preenchidas; resultado
+   diz se atende. Para elétrico/automação: o ciclo modelo → simulação → protótipo → medição, com campo para cada um.
+33 [futuro] Materiais e processos por peça (do cadastro, item 34), com sugestões por exigência (resistência, corrosão, massa,
+   custo). Para peças plásticas: perguntas prontas da injeção (Harada, 2004) — cantos arredondados, paredes finas e uniformes,
+   nervuras de 0,2 a 0,7 da espessura da parede, ângulo de saída, contração e tolerâncias; impressão 3D (PLA) como protótipo.
 34 [futuro] Cadastros da equipe na nuvem (MEGA, só com senha): materiais padronizados e componentes comerciais (aços e
    perfis, chapas, parafusos e porcas ISO, rolamentos, correntes e correias, motores, sensores, controladores) com
    especificação, unidade, preço de referência e data da cotação; fornecedores (nome, contato, cidade, o que fornece, prazo,
    condições, avaliação, cotações com data). Pastas: SistemaProjetoConceitual/Cadastros/materiais.json e fornecedores.json;
    juntar sem duplicar, como a biblioteca; usados na lista de peças e no custo. Simples: escolher da lista; o que não existe
    é cadastrado ali mesmo e passa a valer para todos os projetos da equipe. Começa com uma lista básica pré-preenchida.
-35 [futuro] Lista de peças preliminar (Pahl, passo 14): montada a partir dos portadores e dos componentes padronizados
-   (quantidade, material, fabricado/comprado, fornecedor, custo); soma do custo comparada à especificação de custo do QFD.
-36 [futuro] Regras básicas e diretrizes (Pahl): perguntas sim/não pré-escritas por portador — clareza, simplicidade,
-   segurança; transmissão de forças, divisão de tarefas, autoajuda, estabilidade; fabricação, montagem, manutenção,
-   reciclagem, ergonomia, normas.
-37 [futuro] Verificação de erros e fatores de perturbação (Pahl, passo 13): FMEA de projeto continuando a FMEA da concepção
-   (modos por componente) e a lista de verificação de Pahl (função, princípio, leiaute, segurança, ergonomia, produção,
-   controle de qualidade, montagem, transporte, operação, manutenção, reciclagem, custos, prazos).
-38 [futuro] Qualidade integrada (Spagnolo, 2011): para cada especificação do QFD, valor estimado no preliminar (cálculo ou
-   protótipo) × meta, com a mesma regra do QFD (tolerância de 5% na meta nominal) → atingida / não atingida / sem medição;
-   vai para a Qualidade do Gestão como valor medido.
-39 [futuro] Modelos e protótipos: plano de testes ligado às funções críticas (maturidade "adaptar"/"desenvolver" e FMEA
-   críticos) — o que testar, critério, resultado; resultado positivo sobe a maturidade (TRL 4–6) e vai para o TRL do Gestão.
-40 [futuro] Viabilidade econômica preliminar: custo da lista de peças + processos; ligação com a análise econômica do Gestão
-   (custo pleno, CAPEX/OPEX).
-41 [futuro] Leiaute definitivo e relatório do preliminar (Pahl, passo 15), no ZIP, na nuvem e no Gestão (preliminar:
-   leiaute, viabilidade, protótipos, FMEA; detalhado: lista de peças).
-42 [futuro] Exemplo da roda continuado no preliminar, testes automáticos e tour das novas etapas.
-   Pendência: conferir estes itens com a tese do Roger (Spagnolo, 2011) e com Reis (2003) — o PDF não está mais anexado nesta
-   sessão; o que é próprio do preliminar veio de Pahl et al. e Back et al.
+   Atende à dificuldade de Reis (falta de dados de projetos anteriores).
+35 [futuro] 3.2.2 Regras básicas e DfX: perguntas sim/não pré-escritas por componente — claro, simples, seguro; e a lista
+   de Reis: dilatação, alongamento, fadiga, ruptura, corrosão, ergonomia, estética, manufatura, montagem, normas,
+   manutenção, reciclagem, mínimo risco, padronização. "Não" vira pendência com campo de ação.
+36 [futuro] 3.3.2 Erros e fatores de perturbação: lista do Quadro 4.4 de Reis (função, princípio, leiaute, segurança,
+   ergonomia, produção, controle de qualidade, montagem, transporte, operação, reciclagem, manutenção, custos, cronograma)
+   com perguntas prontas, mais a FMEA de projeto por componente continuando a FMEA da concepção.
+37 [futuro] 3.3.3 Lista de partes preliminar: montada dos portadores e dos padronizados (quantidade, material,
+   fabricado/comprado, fornecedor, custo); soma comparada à especificação de custo do QFD → leiaute definitivo.
+38 [futuro] Planejamento do protótipo (Reis 4.6, Ulrich & Eppinger), em 4 perguntas simples: 1) para quê (aprender,
+   comunicar, integrar, marco); 2) que tipo (físico/analítico, completo/focado; ex.: impressão 3D em PLA); 3) plano de
+   experimento (variáveis, norma do ensaio — ex.: ISO 7256-1 para dosadores —, variáveis de resposta, como analisar);
+   4) cronograma com 3 datas (início, teste, decisão). Pré-preenchido pelas funções críticas (maturidade adaptar/desenvolver,
+   FMEA críticos). Opção "bancada de testes" como subprojeto com as mesmas etapas (como em Reis, cap. 6).
+39 [futuro] Ciclo do protótipo (Spagnolo, etapas 06–09): construção → teste preliminar → ajuste e adequação → teste
+   definitivo, cada um com data, resultado e fotos; reprovação mostra o botão "voltar ao passo" (execução recursiva, como na
+   dissertação). Custo do protótipo: energia (potência × horas × tarifa) + material (kg × R$/kg) + peças compradas.
+40 [futuro] Adequação aos requisitos (dissertação, tabela 9; qualidade integrada de Spagnolo): para cada especificação,
+   valor estimado ou medido × meta → Atendido / Não atendido / Depende do leiaute definitivo, com a regra de tolerância do
+   QFD; vai para a Qualidade do Gestão como valor medido; resultado positivo sobe a maturidade (TRL 4–6) no Gestão.
+   Inclui eficiência energética quando houver energia elétrica ou mecânica envolvida.
+41 [futuro] Viabilidade econômica preliminar: custo da lista de partes + processos + protótipo; ligação com a análise
+   econômica do Gestão (custo pleno, CAPEX/OPEX).
+42 [futuro] Fechamento (Spagnolo, etapas 10–11): análise e discussão dos resultados, trabalhos futuros, e checklist de
+   patente (busca de anterioridade com os links já gerados por princípio) antes de publicar; relatório do preliminar no ZIP,
+   na nuvem e no Gestão. Exemplo da roda continuado, testes automáticos e tour das novas etapas.
 
 === REJEITADO
 (nenhum)
@@ -145,3 +169,13 @@ dos cadastros da equipe; a pessoa só confere e completa.
 24 [resolvido] Fim do QFD (Fechamento) com o cartão "Próxima fase": abre este sistema em #/inicio?qfd=navegador, que importa o
    QFD sozinho e pré-preenche tudo; o pedido sai do endereço (recarregar não importa de novo); sem QFD no navegador, avisa
    para usar o arquivo de backup.
+
+--- Versão 4 (27/10/2026) — Reis (2003) e dissertação aplicados ao conceitual
+43 [resolvido] Partir de projeto anterior (como a dissertação partiu de Reis): botão no Escopo abre o ZIP, mantém
+   especificações, funções, princípios e concepções, zera a escolha/FMEA e mostra a coluna Revisão (mantida / alterada /
+   nova / retirada); pendência se nada foi revisado; retiradas não entram na avaliação final; relatório mostra a revisão.
+44 [resolvido] Seleção: "5. Evoluir as concepções promissoras" (Reis 2.6: massa, dimensões, custo, cálculos, esboço) e
+   "6. Avaliação final pelas especificações" (Reis 2.7: notas 1–5 com pesos do QFD, nota ponderada, perfil em barras,
+   ponto fraco em vermelho, recomendação da equilibrada — Pahl —, "Quem avaliou" para a equipe ampliada); botão "Sugerir
+   notas"; pendências; no relatório e na exportação para o Gestão. Variação de arranjo (central / por unidade / vários).
+   QA: 34 testes automáticos ok; telas em 360/768/1024/1920 px sem estouro.

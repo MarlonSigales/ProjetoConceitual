@@ -62,6 +62,7 @@ PAGINAS.escopo = {
             <td class="col-num"><input type="number" min="0" max="100" step="0.1" data-campo="especificacoes#${e.id}.peso" data-tipo="pct" value="${pct(e.peso).replace(',', '.')}" aria-label="Peso relativo (%)"></td>
             <td class="col-centro"><input type="checkbox" data-campo="especificacoes#${e.id}.ehCusto" ${e.ehCusto ? 'checked' : ''} aria-label="É especificação de custo"></td>
             <td><input type="text" list="dl-verbos" data-campo="especificacoes#${e.id}.funcao" value="${escAttr(e.funcao || '')}" maxlength="120" placeholder="—" aria-label="Função relacionada"></td>
+            ${p.baseAnterior ? `<td><select data-campo="especificacoes#${e.id}.revisao" data-rerender class="revisao-${escAttr(e.revisao || 'nova')}" aria-label="Revisão">${Object.entries(REVISOES_ESPEC).map(([k, v]) => `<option value="${k}" ${(e.revisao || 'nova') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td>` : ''}
             <td class="col-acao"><button type="button" class="btn-icone" data-acao="esp-del" data-id="${e.id}" title="Excluir" aria-label="Excluir">✕</button></td>
         </tr>`).join('');
         return `
@@ -80,13 +81,15 @@ PAGINAS.escopo = {
             <div class="card-topo"><h2>Especificações de projeto</h2>
                 <div class="botoes">
                     <button type="button" class="btn btn-secondary btn-sm" data-acao="importar-qfd">⇪ Importar/atualizar do QFD</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-acao="base-anterior" title="Começar a partir de um projeto já feito (ZIP): reaproveita especificações, funções, princípios e concepções">↺ Partir de projeto anterior</button>
                     <button type="button" class="btn btn-secondary btn-sm" data-acao="esp-sugerir-funcoes" title="Preenche a coluna Função relacionada onde estiver vazia">Sugerir funções</button>
                     <button type="button" class="btn btn-primary btn-sm" data-acao="esp-add">+ Especificação</button>
                 </div>
             </div>
+            ${p.baseAnterior ? `<p class="aviso-base">Este projeto parte de <b>${esc(p.baseAnterior.nome)}</b> (${esc(p.baseAnterior.em)}). Revise cada especificação com a equipe de especialistas e marque na coluna <b>Revisão</b> se foi mantida, alterada, é nova ou foi retirada. ${(() => { const c = {}; p.especificacoes.forEach(e => { const k = e.revisao || 'nova'; c[k] = (c[k] || 0) + 1; }); return Object.entries(REVISOES_ESPEC).filter(([k]) => c[k]).map(([k, v]) => `${v}: ${c[k]}`).join(' · '); })()}</p>` : ''}
             <p class="nota">Ordenadas pela importância do QFD. Marque as de <b>custo</b> (entram no índice de custo da seleção da estrutura) e, quando houver, a <b>função relacionada</b>: ela aparece como sugestão de bloco no diagrama (desdobramento especificação → função).</p>
             ${esp.length ? `<div class="tabela-rolagem"><table class="tabela tabela-esp">
-                <thead><tr><th>Cód.</th><th>Especificação</th><th>Meta</th><th>Sentido</th><th>Peso %</th><th>Custo</th><th>Função relacionada</th><th></th></tr></thead>
+                <thead><tr><th>Cód.</th><th>Especificação</th><th>Meta</th><th>Sentido</th><th>Peso %</th><th>Custo</th><th>Função relacionada</th>${p.baseAnterior ? '<th>Revisão</th>' : ''}<th></th></tr></thead>
                 <tbody>${linhas}</tbody></table></div>`
                 : vazio('Nenhuma especificação ainda. <b>Importe o backup do QFD</b> (traz as especificações com metas e pesos) ou acrescente à mão.')}
         </section>
@@ -130,7 +133,17 @@ PAGINAS.escopo = {
 };
 
 Object.assign(ACOES, {
-    'esp-add': () => { PC.p.especificacoes.push({ id: uid('es'), codigo: 'E' + (PC.p.especificacoes.filter(e => e.origem !== 'qfd').length + 1), descricao: '', sentido: 'none', meta: '', unidade: '', avaliacao: '', aspectos: '', peso: 0, dificuldade: null, origem: 'manual', ehCusto: false, funcao: '', funcoesIds: [] }); salvar(); renderPagina(true); },
+    'base-anterior': async () => {
+        if (projetoTemConteudo(PC.p) && !confirm('Isto substitui o projeto atual neste navegador por uma nova versão do projeto anterior. Se quiser guardar o atual, baixe o ZIP antes. Continuar?')) return;
+        const arq = await escolherArquivo('#arq-abrir');
+        if (!arq) return;
+        const { dados, qfd } = await lerZipOuJson(arq);
+        if (qfd) { avisar('Esse arquivo é um backup do QFD, não um projeto conceitual. Use "Importar do QFD".'); return; }
+        const novo = projetoAPartirDe(dados);
+        PC.substituir(novo); salvar(); renderPagina();
+        avisar(`Nova versão a partir de "${novo.baseAnterior.nome}". Revise as especificações (coluna Revisão) e depois as funções e princípios.`);
+    },
+    'esp-add': () => { PC.p.especificacoes.push({ id: uid('es'), codigo: 'E' + (PC.p.especificacoes.filter(e => e.origem !== 'qfd').length + 1), descricao: '', sentido: 'none', meta: '', unidade: '', avaliacao: '', aspectos: '', peso: 0, dificuldade: null, origem: 'manual', ehCusto: false, funcao: '', funcoesIds: [], revisao: PC.p.baseAnterior ? 'nova' : undefined }); salvar(); renderPagina(true); },
     'esp-del': b => { const e = PC.p.especificacoes.find(x => x.id === b.dataset.id); if (e && e.descricao && !confirm(`Excluir "${e.descricao}"?`)) return; PC.p.especificacoes = PC.p.especificacoes.filter(x => x.id !== b.dataset.id); salvar(); renderPagina(true); },
     'esp-sugerir-funcoes': () => { let n = 0; PC.p.especificacoes.forEach(e => { if (!e.funcao) { const f = sugerirFuncaoDaEspec(e); if (f) { e.funcao = f; n++; } } }); salvar(); renderPagina(true); avisar(n ? `${n} função(ões) sugerida(s). Revise e ajuste.` : 'Nenhuma sugestão nova (as especificações de massa e custo não geram função).'); },
     'nec-add': () => { PC.p.necessidades.push({ id: uid('nc'), descricao: '', peso: 0 }); salvar(); renderPagina(true); },
@@ -751,7 +764,7 @@ const ESTADOS_VIAB = { viavel: 'Viável', condicional: 'Condicionalmente viável
 
 PAGINAS.selecao = {
     titulo: 'Seleção da concepção',
-    sub: 'Quatro filtros em sequência (Reis, 2003): só segue para o próximo a concepção que passou no anterior.',
+    sub: 'Quatro filtros em sequência (Reis, 2003): só segue para o próximo a concepção que passou no anterior. As promissoras são evoluídas (massa, dimensões, custo, esboço) e avaliadas de novo pelas especificações.',
     render(p) {
         if (!p.variantes.length) return `<section class="card">${vazio('Monte as concepções na <a href="#/matriz">matriz morfológica</a> primeiro.')}</section>`;
         const s = p.selecao, r = resultadoSelecao(p);
@@ -806,6 +819,8 @@ PAGINAS.selecao = {
             <tr><th colspan="2">Média ponderada</th>${p.variantes.map(v => `<td class="col-num">${R(v.id).etapa3 && refOk ? (v.id === s.avaliacao.referencia ? '0' : R(v.id).ponderada.toLocaleString('pt-BR', { maximumFractionDigits: 2 })) : ''}</td>`).join('')}<td></td></tr></tfoot></table></div>
         </section>
 
+        ${htmlEvolucao(p)}
+        ${htmlAvaliacaoFinal(p)}
         <section class="card">
             <h2>Resultado</h2>
             <div class="tabela-rolagem"><table class="tabela tabela-resultado"><thead><tr><th>Concepção</th><th>1 Viabilidade</th><th>2 Tecnologia</th><th>3 Passa/não passa</th><th>4 Avaliação</th><th>Custo estimado</th><th></th></tr></thead>
