@@ -34,6 +34,62 @@ Atualizado em 27/10/2026 (versão 3). Os números são fixos (servem de referên
    consegue ler (Google/Microsoft/Dropbox guardam a chave; MEGA é de ponta a ponta), o que o MEGA ainda vê e os cuidados
    (chave de recuperação, nunca criar link, contas grátis paradas, trocar a senha). Conferir os termos atuais (podem mudar).
 
+=== PROJETO PRELIMINAR (planejado — continua no mesmo sistema, depois do conceitual)
+Base: Pahl et al. (2005), passos do projeto preliminar (configuração): requisitos determinantes, restrições de espaço,
+portadores de função principais e auxiliares, leiautes preliminares, seleção, verificação de erros e fatores de perturbação,
+lista de peças e leiaute definitivo; regras básicas (clareza, simplicidade, segurança), princípios de configuração e diretrizes
+(DfX). Back et al. (2008) para as tarefas da fase no NeDIP (leiaute, dimensionamento, materiais e processos, componentes
+padronizados, protótipos, custos, FMEA). Spagnolo (2011) e Reis (2003): a qualidade continua integrada — as especificações do
+QFD são verificadas em cada passo, e o contexto de máquinas agrícolas define os padrões (engate de três pontos ISO 730,
+tomada de potência ISO 500). Cada item segue a diretriz SIMPLES PARA QUALQUER UM: vem pré-preenchido do conceitual, do QFD e
+dos cadastros da equipe; a pessoa só confere e completa.
+
+26 [futuro] Módulo "Projeto preliminar" no mesmo projeto (mesmo ZIP, mesma nuvem): menu com o grupo "Conceitual" (etapas 1–9)
+   e o grupo "Preliminar"; só abre depois da concepção escolhida; o que vier do conceitual aparece pronto.
+27 [futuro] Requisitos que definem a configuração (Pahl, passo 1): das especificações do QFD, marcar as que definem dimensões,
+   arranjo e material — pré-marcadas por palavra (massa, dimensão, carga, potência, volume). Simples: caixas de seleção.
+28 [futuro] Restrições de espaço e interfaces (Pahl, passo 2): envelope (comprimento × largura × altura), pontos de fixação e
+   ligação com outros sistemas; para máquina agrícola, sugestões prontas (engate de três pontos categoria I/II, TDP 540/1000 rpm,
+   bitola, altura livre). Simples: lista de escolha + campo de medida.
+29 [futuro] Portadores de função (Pahl, passos 3 e 7): cada função elementar da concepção vira um componente/subconjunto,
+   já com o princípio escolhido e a foto; marcar principal ou auxiliar; as funções auxiliares (fixar, vedar, lubrificar,
+   proteger) ganham sugestões do catálogo.
+30 [futuro] Leiautes preliminares (Pahl, passos 4–6 e 8–9): esboço do arranjo geral (desenho com o dedo, foto do CAD ou de
+   modelo físico), dimensões principais de cada portador e pelo menos duas alternativas de leiaute.
+31 [futuro] Seleção do leiaute (Pahl, passo 10): avaliação pelo valor técnico × valor econômico (critérios das especificações,
+   pesos do QFD), com o gráfico de pontos que mostra a melhor; mesma escala simples da seleção da concepção.
+32 [futuro] Dimensionamento com memória de cálculo: calculadoras prontas por portador (eixo à flexão e torção, parafuso,
+   vida de rolamento L10, potência e torque do motor, corrente e bitola de cabo, autonomia de bateria, transmissão por
+   corrente/correia), com os valores das metas do QFD já preenchidos; o resultado diz se atende à especificação.
+33 [futuro] Materiais e processos de cada peça, escolhidos do cadastro de materiais da equipe (item 34), com sugestões por
+   exigência (resistência, corrosão, massa, custo) e processo de fabricação disponível.
+34 [futuro] Cadastros da equipe na nuvem (MEGA, só com senha): materiais padronizados e componentes comerciais (aços e
+   perfis, chapas, parafusos e porcas ISO, rolamentos, correntes e correias, motores, sensores, controladores) com
+   especificação, unidade, preço de referência e data da cotação; fornecedores (nome, contato, cidade, o que fornece, prazo,
+   condições, avaliação, cotações com data). Pastas: SistemaProjetoConceitual/Cadastros/materiais.json e fornecedores.json;
+   juntar sem duplicar, como a biblioteca; usados na lista de peças e no custo. Simples: escolher da lista; o que não existe
+   é cadastrado ali mesmo e passa a valer para todos os projetos da equipe. Começa com uma lista básica pré-preenchida.
+35 [futuro] Lista de peças preliminar (Pahl, passo 14): montada a partir dos portadores e dos componentes padronizados
+   (quantidade, material, fabricado/comprado, fornecedor, custo); soma do custo comparada à especificação de custo do QFD.
+36 [futuro] Regras básicas e diretrizes (Pahl): perguntas sim/não pré-escritas por portador — clareza, simplicidade,
+   segurança; transmissão de forças, divisão de tarefas, autoajuda, estabilidade; fabricação, montagem, manutenção,
+   reciclagem, ergonomia, normas.
+37 [futuro] Verificação de erros e fatores de perturbação (Pahl, passo 13): FMEA de projeto continuando a FMEA da concepção
+   (modos por componente) e a lista de verificação de Pahl (função, princípio, leiaute, segurança, ergonomia, produção,
+   controle de qualidade, montagem, transporte, operação, manutenção, reciclagem, custos, prazos).
+38 [futuro] Qualidade integrada (Spagnolo, 2011): para cada especificação do QFD, valor estimado no preliminar (cálculo ou
+   protótipo) × meta, com a mesma regra do QFD (tolerância de 5% na meta nominal) → atingida / não atingida / sem medição;
+   vai para a Qualidade do Gestão como valor medido.
+39 [futuro] Modelos e protótipos: plano de testes ligado às funções críticas (maturidade "adaptar"/"desenvolver" e FMEA
+   críticos) — o que testar, critério, resultado; resultado positivo sobe a maturidade (TRL 4–6) e vai para o TRL do Gestão.
+40 [futuro] Viabilidade econômica preliminar: custo da lista de peças + processos; ligação com a análise econômica do Gestão
+   (custo pleno, CAPEX/OPEX).
+41 [futuro] Leiaute definitivo e relatório do preliminar (Pahl, passo 15), no ZIP, na nuvem e no Gestão (preliminar:
+   leiaute, viabilidade, protótipos, FMEA; detalhado: lista de peças).
+42 [futuro] Exemplo da roda continuado no preliminar, testes automáticos e tour das novas etapas.
+   Pendência: conferir estes itens com a tese do Roger (Spagnolo, 2011) e com Reis (2003) — o PDF não está mais anexado nesta
+   sessão; o que é próprio do preliminar veio de Pahl et al. e Back et al.
+
 === REJEITADO
 (nenhum)
 
