@@ -26,7 +26,6 @@ Atualizado em 27/10/2026 (versão 3). Os números são fixos (servem de referên
    se a IA errar o formato, a mensagem de erro diz o que copiar.
 23 [futuro] Biblioteca da equipe gravada direto num repositório do GitHub pelo próprio sistema (hoje: exporta o arquivo e alguém
    sobe; a leitura pelo endereço já é automática). Precisa de token por pessoa — avaliar se vale a complexidade.
-24 [futuro] Abrir o QFD já com "Seguir para o projeto conceitual" importando sozinho (hoje: um clique em "Usar este QFD").
 
 === REJEITADO
 (nenhum)
@@ -80,3 +79,6 @@ Atualizado em 27/10/2026 (versão 3). Os números são fixos (servem de referên
 22 [resolvido] Busca de patentes por princípio: Google Patents, Espacenet e INPI com a consulta pronta.
    QA: 30 testes automáticos ok; telas em 360/768/1024/1920 px sem estouro; fluxos QFD → Conceitual → Gestão (com FMEA)
    sem erros; t1/t2/t3 do Gestão sem erros.
+24 [resolvido] Fim do QFD (Fechamento) com o cartão "Próxima fase": abre este sistema em #/inicio?qfd=navegador, que importa o
+   QFD sozinho e pré-preenche tudo; o pedido sai do endereço (recarregar não importa de novo); sem QFD no navegador, avisa
+   para usar o arquivo de backup.

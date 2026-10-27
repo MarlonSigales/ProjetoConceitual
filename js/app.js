@@ -448,9 +448,24 @@ function iniciar() {
         const aberto = document.body.classList.toggle('sidebar-aberta');
         $('.sidebar-toggle').setAttribute('aria-expanded', String(aberto));
     });
-    window.addEventListener('hashchange', () => renderPagina());
+    window.addEventListener('hashchange', () => { if (!pedidoDoQFD()) renderPagina(); });
     window.addEventListener('storage', e => { if (e.key === PC_CHAVE) { PC.carregar(); renderPagina(true); } });
     renderPagina();
+    pedidoDoQFD();
+}
+
+/**
+ * Aberto pelo botão do fim do QFD (#/inicio?qfd=navegador): importa sozinho o QFD deste navegador.
+ * Tira o pedido do endereço, para recarregar a página não importar de novo. Devolve true se tratou o pedido.
+ */
+function pedidoDoQFD() {
+    if (!/[?&]qfd=navegador\b/.test(location.hash)) return false;
+    history.replaceState(null, '', location.pathname + location.search + '#/inicio');
+    renderPagina();
+    const q = lerQFDDoNavegador();
+    if (!q) { avisar('O QFD não está neste navegador (outro computador ou outro navegador?). Use "Importar do QFD" com o arquivo de backup.', 'erro', 9000); return true; }
+    setTimeout(() => ACOES['qfd-navegador'](), 50);
+    return true;
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else setTimeout(iniciar, 0);
