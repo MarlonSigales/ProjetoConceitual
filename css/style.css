@@ -539,3 +539,5 @@ body.esb-aberto { overflow: hidden; }
 .revisao-alterada { background: #fff6dd; } .revisao-nova { background: #e9f6ee; } .revisao-removida { background: #fdeceb; text-decoration: line-through; }
 .campo-participantes { display: block; margin: 0.4rem 0 0.6rem; } .campo-participantes input { display: block; width: 100%; max-width: 560px; box-sizing: border-box; }
 .tabela-final select { min-width: 7.6rem; }
+.selo-terco { display: block; font-size: 0.68rem; font-weight: 600; margin-top: 2px; text-align: right; }
+.terco-superior { color: #1f5f45; } .terco-medio { color: #8a6d0b; } .terco-inferior { color: #6b7775; }

@@ -59,7 +59,7 @@ PAGINAS.escopo = {
             <td><input type="text" data-campo="especificacoes#${e.id}.descricao" value="${escAttr(e.descricao)}" maxlength="200" aria-label="Especificação"></td>
             <td><input type="text" data-campo="especificacoes#${e.id}.meta" value="${escAttr(e.meta)}" maxlength="80" aria-label="Meta" placeholder="Ex.: ≤ 1800 g"></td>
             <td><select data-campo="especificacoes#${e.id}.sentido" aria-label="Sentido de melhoria">${Object.entries(NOMES_SENTIDO).map(([k, v]) => `<option value="${k}" ${e.sentido === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
-            <td class="col-num"><input type="number" min="0" max="100" step="0.1" data-campo="especificacoes#${e.id}.peso" data-tipo="pct" value="${pct(e.peso).replace(',', '.')}" aria-label="Peso relativo (%)"></td>
+            <td class="col-num"><input type="number" min="0" max="100" step="0.1" data-campo="especificacoes#${e.id}.peso" data-tipo="pct" value="${pct(e.peso).replace(',', '.')}" aria-label="Peso relativo (%)">${seloTerco(p, e)}</td>
             <td class="col-centro"><input type="checkbox" data-campo="especificacoes#${e.id}.ehCusto" ${e.ehCusto ? 'checked' : ''} aria-label="É especificação de custo"></td>
             <td><input type="text" list="dl-verbos" data-campo="especificacoes#${e.id}.funcao" value="${escAttr(e.funcao || '')}" maxlength="120" placeholder="—" aria-label="Função relacionada"></td>
             ${p.baseAnterior ? `<td><select data-campo="especificacoes#${e.id}.revisao" data-rerender class="revisao-${escAttr(e.revisao || 'nova')}" aria-label="Revisão">${Object.entries(REVISOES_ESPEC).map(([k, v]) => `<option value="${k}" ${(e.revisao || 'nova') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td>` : ''}
@@ -87,7 +87,7 @@ PAGINAS.escopo = {
                 </div>
             </div>
             ${p.baseAnterior ? `<p class="aviso-base">Este projeto parte de <b>${esc(p.baseAnterior.nome)}</b> (${esc(p.baseAnterior.em)}). Revise cada especificação com a equipe de especialistas e marque na coluna <b>Revisão</b> se foi mantida, alterada, é nova ou foi retirada. ${(() => { const c = {}; p.especificacoes.forEach(e => { const k = e.revisao || 'nova'; c[k] = (c[k] || 0) + 1; }); return Object.entries(REVISOES_ESPEC).filter(([k]) => c[k]).map(([k, v]) => `${v}: ${c[k]}`).join(' · '); })()}</p>` : ''}
-            <p class="nota">Ordenadas pela importância do QFD. Marque as de <b>custo</b> (entram no índice de custo da seleção da estrutura) e, quando houver, a <b>função relacionada</b>: ela aparece como sugestão de bloco no diagrama (desdobramento especificação → função).</p>
+            <p class="nota">Ordenadas pela importância do QFD. O selo abaixo do peso mostra o terço de importância (superior, médio, inferior), como nas tabelas de especificações de Reis (2003) e Sigales (2021). Marque as de <b>custo</b> (entram no índice de custo da seleção da estrutura) e, quando houver, a <b>função relacionada</b>: ela aparece como sugestão de bloco no diagrama (desdobramento especificação → função).</p>
             ${esp.length ? `<div class="tabela-rolagem"><table class="tabela tabela-esp">
                 <thead><tr><th>Cód.</th><th>Especificação</th><th>Meta</th><th>Sentido</th><th>Peso %</th><th>Custo</th><th>Função relacionada</th>${p.baseAnterior ? '<th>Revisão</th>' : ''}<th></th></tr></thead>
                 <tbody>${linhas}</tbody></table></div>`
@@ -860,6 +860,16 @@ function rascunhoDescricao(p, v) {
     return `A concepção "${v.nome}" ${p.funcaoGlobal.nome ? 'cumpre a função global "' + p.funcaoGlobal.nome.toLowerCase() + '" ao ' : 'realiza as funções ao '}${partes.join('; ')}.${v.descricao ? ' ' + v.descricao.charAt(0).toUpperCase() + v.descricao.slice(1) + (/[.!?]$/.test(v.descricao) ? '' : '.') : ''}`;
 }
 const PROXIMOS_PASSOS_PADRAO = '- Definir as dimensões principais e o arranjo dos componentes\n- Fazer os desenhos de conjunto (esboço em escala)\n- Verificar as especificações críticas com cálculos preliminares\n- Incorporar os bons princípios das concepções descartadas\n- Planejar protótipo / modelo de testes para os pontos de maior risco';
+/** Próximos passos conforme o tipo de projeto: os fluxos elétrico, de controle e embarcado reunidos na tese de Sigales (2025, seção 2.1). */
+const PASSOS_POR_TIPO = {
+    eletrico: '- Ciclo do projeto elétrico (Nilsson e Riedel, adaptado por Sigales, 2021): modelo do circuito → simulação (SPICE, Simulink) → protótipo físico → medição em bancada; repetir até atender às especificações\n- Escolher os componentes pelos limites de trabalho, de pico e de falha (tensão, corrente, potência dissipada, frequência), com fator de segurança',
+    automacao: '- Controle (Nise): diagrama de blocos → esquema → modelo matemático (levantar em laboratório os parâmetros do motor ou da planta) → projetar e testar; se os requisitos forem conflitantes, reespecificar\n- Embarcado (Marwedel): separar o que é hardware e o que é software, reaproveitar módulos já validados (com controle de versões) e planejar testes de uso e de mau uso',
+    agricola: '- Interface com a máquina: aproveitar o suporte padrão do fabricante quando existir (ex.: berço do dosador), para trocar sem modificar a máquina\n- Planejar o ensaio normatizado (ex.: ISO 7256-1 para dosadores) separado dos testes pontuais das especificações'
+};
+function proximosPassosPara(p) {
+    const t = p.tipoProjeto, extra = t === 'misto' ? [PASSOS_POR_TIPO.eletrico, PASSOS_POR_TIPO.automacao] : PASSOS_POR_TIPO[t] ? [PASSOS_POR_TIPO[t]] : [];
+    return [PROXIMOS_PASSOS_PADRAO].concat(extra).join('\n');
+}
 
 PAGINAS.concepcao = {
     titulo: 'Concepção selecionada',
@@ -919,7 +929,7 @@ Object.assign(ACOES, {
         if (p.concepcao.descricao.trim() && !confirm('Substituir o texto atual pelo rascunho?')) return;
         p.concepcao.descricao = rascunhoDescricao(p, v); salvar(); renderPagina(true);
     },
-    'conc-passos': () => { PC.p.concepcao.proximosPassos = PROXIMOS_PASSOS_PADRAO; salvar(); renderPagina(true); },
+    'conc-passos': () => { PC.p.concepcao.proximosPassos = proximosPassosPara(PC.p); salvar(); renderPagina(true); },
     'conc-desenho': async () => {
         const arq = await abrirEsboco('Esboço da concepção');
         if (!arq) return;

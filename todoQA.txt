@@ -56,7 +56,13 @@ Base, na ordem em que foram aplicadas nos trabalhos do grupo:
   * depende do leiaute definitivo); ensaios ISO 7256-1, estanqueidade e rotação; ISOBUS (ISO 11783); eficiência energética.
 - Pahl et al. (2005) e Back et al. (2008) completam o que os trabalhos acima citam deles (regras básicas, princípios de
   configuração, tarefas da fase no NeDIP). Contexto agrícola: engate de três pontos (ISO 730), TDP (ISO 500).
-- A TESE de doutorado do Marlon NÃO veio entre os anexos (só a dissertação): quando vier, conferir estes itens com ela.
+- Sigales (tese, 2025, PPG-SPAF/UFPel): resume o roteiro 3.1–3.3 com Reis e Pahl (Figuras 18–22), mostra que os fluxos
+  elétrico (Nilsson e Riedel), de controle (Nise, 6 passos), embarcado (Marwedel: hardware × software, biblioteca de módulos
+  validados com versões, Modelo V de testes) e CDIO seguem o mesmo modelo de consenso (Ogliari, 1999); executa a etapa 3.3
+  de forma recursiva; separa TESTE (verificação pontual de uma especificação) de ENSAIO (operação prolongada e normatizada;
+  Geitner e Eierman, 2022); localiza falhas com combinações liga/desliga (Tabelas 10–12) e teste de fumaça; projeta a
+  interface com a máquina (berço Jumil) como subprojeto; compara com produto comercial no mesmo teste (J. Assy Selenium);
+  classifica cada especificação como ok / x / ? (e o que só se verifica com o material definitivo, como fadiga e vida útil).
 Diretriz SIMPLES PARA QUALQUER UM: cada passo vem pré-preenchido do conceitual, do QFD e dos cadastros da equipe; a pessoa só
 confere e completa; o sistema avisa o que falta (pendências) e para onde voltar quando algo reprova.
 
@@ -66,8 +72,10 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
 27 [futuro] 3.1.1 Requisitos determinantes: das especificações, marcar as que definem tamanho, arranjo e material —
    pré-marcadas por palavra (massa, dimensão, carga, potência, volume, vazão). Simples: caixas de seleção.
 28 [futuro] 3.1.2 Restrições de espaço em escala: envelope (C × L × A), pontos de fixação e interfaces; sugestões prontas por
-   tipo (agrícola: engate de três pontos cat. I/II, TDP 540/1000 rpm, espaçamento entre linhas, altura livre; elétrico:
-   tensão do trator 12 V, conector ISOBUS ISO 11783). Esboço em escala com a ferramenta de desenho que já existe.
+   tipo (agrícola: engate de três pontos cat. I/II, TDP 540/1000 rpm, espaçamento entre linhas, altura livre, suporte padrão
+   do fabricante — ex.: berço do dosador, que permite trocar sem modificar a máquina (tese, 4.1); elétrico: tensão do trator
+   12 V, conector ISOBUS ISO 11783; mangueiras e encaixes nos diâmetros mais comuns do mercado). Limite do equipamento de
+   protótipo (ex.: impressora 3D de 30 × 30 × 30 cm) entra como restrição. Esboço em escala com a ferramenta de desenho.
 29 [futuro] 3.1.3 e 3.1.6 Portadores de efeito físico: cada função da concepção vira um componente, com o princípio, a foto e
    o parâmetro característico (ex.: diâmetro do disco, nº de furos, rotação); marcar determinante ou demais; as funções
    auxiliares (3.2.1: fixar, vedar, lubrificar, proteger, conectar) sugerem peças padronizadas do cadastro (item 34).
@@ -77,7 +85,10 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    (critérios = especificações com pesos do QFD), mais o valor econômico; gráfico técnico × econômico; ponto fraco em vermelho.
 32 [futuro] Dimensionamento com memória de cálculo: calculadoras prontas (eixo à flexão e torção, parafuso, rolamento L10,
    torque e potência do motor, corrente e bitola de cabo, bateria, corrente/correia), metas do QFD já preenchidas; resultado
-   diz se atende. Para elétrico/automação: o ciclo modelo → simulação → protótipo → medição, com campo para cada um.
+   diz se atende. Para elétrico/automação: o ciclo modelo → simulação → protótipo → medição, com campo para cada um;
+   controle (Nise): diagrama de blocos → esquema → modelo → projeto e teste, com o levantamento experimental dos parâmetros do
+   motor/planta; requisitos conflitantes viram aviso para reespecificar; embarcado (Marwedel): partição hardware × software
+   e módulos reaproveitados da biblioteca com versão.
 33 [futuro] Materiais e processos por peça (do cadastro, item 34), com sugestões por exigência (resistência, corrosão, massa,
    custo). Para peças plásticas: perguntas prontas da injeção (Harada, 2004) — cantos arredondados, paredes finas e uniformes,
    nervuras de 0,2 a 0,7 da espessura da parede, ângulo de saída, contração e tolerâncias; impressão 3D (PLA) como protótipo.
@@ -90,10 +101,15 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    Atende à dificuldade de Reis (falta de dados de projetos anteriores).
 35 [futuro] 3.2.2 Regras básicas e DfX: perguntas sim/não pré-escritas por componente — claro, simples, seguro; e a lista
    de Reis: dilatação, alongamento, fadiga, ruptura, corrosão, ergonomia, estética, manufatura, montagem, normas,
-   manutenção, reciclagem, mínimo risco, padronização. "Não" vira pendência com campo de ação.
+   manutenção, reciclagem, mínimo risco, padronização; e os da Figura 21 da tese (Pahl): custo, qualidade, cadeia de
+   suprimentos, segurança, serviço, confiabilidade, teste. Para eletrônica: grau de proteção IP da carcaça. "Não" vira
+   pendência com campo de ação.
 36 [futuro] 3.3.2 Erros e fatores de perturbação: lista do Quadro 4.4 de Reis (função, princípio, leiaute, segurança,
    ergonomia, produção, controle de qualidade, montagem, transporte, operação, reciclagem, manutenção, custos, cronograma)
-   com perguntas prontas, mais a FMEA de projeto por componente continuando a FMEA da concepção.
+   com perguntas prontas, mais a FMEA de projeto por componente continuando a FMEA da concepção. Quadro de falhas da tese
+   (Figura 22, Pahl): geometria → modelagem 3D, tolerâncias e revisão; função → FMEA, árvore de falhas, QFD; leiaute
+   (cinemática, esforços) → experimento, teste de campo, simulação (FEM, multicorpos); processo → controle de versões e
+   documentos. Cada falha escolhe a medida da lista.
 37 [futuro] 3.3.3 Lista de partes preliminar: montada dos portadores e dos padronizados (quantidade, material,
    fabricado/comprado, fornecedor, custo); soma comparada à especificação de custo do QFD → leiaute definitivo.
 38 [futuro] Planejamento do protótipo (Reis 4.6, Ulrich & Eppinger), em 4 perguntas simples: 1) para quê (aprender,
@@ -101,17 +117,29 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    experimento (variáveis, norma do ensaio — ex.: ISO 7256-1 para dosadores —, variáveis de resposta, como analisar);
    4) cronograma com 3 datas (início, teste, decisão). Pré-preenchido pelas funções críticas (maturidade adaptar/desenvolver,
    FMEA críticos). Opção "bancada de testes" como subprojeto com as mesmas etapas (como em Reis, cap. 6).
+   Separar TESTE (confere uma especificação: cronometrar, contar, medir) de ENSAIO (normatizado e repetido). Modelo pronto
+   para dosador (tese, Tabela 9, Coelho 1996): repetições ≥ 4 (≥ 5 recomendado), ≥ 250 amostras, ≥ 3 densidades, 3 níveis
+   do reservatório, inclinações de −11° a 11°, ≥ 3 velocidades; análise: ANOVA e Tukey (média móvel exponencial quando a
+   distribuição não é normal). Coleta pela rede de sensores da bancada (MQTT) quando houver.
 39 [futuro] Ciclo do protótipo (Spagnolo, etapas 06–09): construção → teste preliminar → ajuste e adequação → teste
    definitivo, cada um com data, resultado e fotos; reprovação mostra o botão "voltar ao passo" (execução recursiva, como na
-   dissertação). Custo do protótipo: energia (potência × horas × tarifa) + material (kg × R$/kg) + peças compradas.
+   dissertação e na tese). Custo do protótipo: energia (potência × horas × tarifa) + material (kg × R$/kg, ou a estimativa
+   do fatiador da impressora 3D) + peças compradas no varejo — com o aviso de que não é o custo de produção.
+   Diagnóstico de falha guiado (tese, Tabelas 10–12): tabela liga/desliga de cada vedação ou componente suspeito com a medida
+   obtida, para achar a causa; registro de cada correção e novo teste.
 40 [futuro] Adequação aos requisitos (dissertação, tabela 9; qualidade integrada de Spagnolo): para cada especificação,
-   valor estimado ou medido × meta → Atendido / Não atendido / Depende do leiaute definitivo, com a regra de tolerância do
+   valor estimado ou medido × meta → Atendido (ok) / Não atendido (x) / Ainda não avaliado (?) — com o motivo: depende do
+   leiaute definitivo, do material definitivo (fadiga, intervalo de manutenção, vida útil não se verificam em peça impressa)
+   ou de ensaio que faltou (ex.: germinação, inclinações) —, terços de importância à vista, com a regra de tolerância do
    QFD; vai para a Qualidade do Gestão como valor medido; resultado positivo sobe a maturidade (TRL 4–6) no Gestão.
-   Inclui eficiência energética quando houver energia elétrica ou mecânica envolvida.
+   Inclui eficiência energética quando houver energia elétrica ou mecânica envolvida, e a comparação com um produto
+   comercial medido no mesmo teste (concorrentes já vêm do QFD). Especificação que contradiz a física (ex.: velocidade de
+   partes móveis ≤ 0,3 m/s num disco pequeno em alta velocidade) é marcada para revisão no projeto informacional.
 41 [futuro] Viabilidade econômica preliminar: custo da lista de partes + processos + protótipo; ligação com a análise
    econômica do Gestão (custo pleno, CAPEX/OPEX).
 42 [futuro] Fechamento (Spagnolo, etapas 10–11): análise e discussão dos resultados, trabalhos futuros, e checklist de
-   patente (busca de anterioridade com os links já gerados por princípio) antes de publicar; relatório do preliminar no ZIP,
+   patente (busca de anterioridade com os links já gerados por princípio) antes de publicar — inclusive para instrumentos
+   criados para os testes (como o sensor de pressão da tese, depositado no INPI); relatório do preliminar no ZIP,
    na nuvem e no Gestão. Exemplo da roda continuado, testes automáticos e tour das novas etapas.
 
 === REJEITADO
@@ -179,3 +207,9 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    ponto fraco em vermelho, recomendação da equilibrada — Pahl —, "Quem avaliou" para a equipe ampliada); botão "Sugerir
    notas"; pendências; no relatório e na exportação para o Gestão. Variação de arranjo (central / por unidade / vários).
    QA: 34 testes automáticos ok; telas em 360/768/1024/1920 px sem estouro.
+45 [resolvido] Tese (Sigales, 2025) conferida: a seleção já seguia os critérios 5 e 6 de Reis citados na seção 2.1.6.2.
+   Acrescentados o terço de importância de cada especificação (selo sup./méd./inf. no Escopo e na avaliação final) e os
+   próximos passos por tipo de projeto (elétrico: Nilsson e Riedel; automação: Nise e Marwedel; agrícola: interface padrão e
+   ensaio ISO 7256-1). Plano do preliminar (26–42) completado com teste × ensaio, quadro de falhas, diagnóstico liga/desliga,
+   modelo de ensaio de dosador, ok/x/? e comparação com produto comercial.
+   QA: 35 testes automáticos ok; telas em 360/768/1024/1920 px sem estouro.

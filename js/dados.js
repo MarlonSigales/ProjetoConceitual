@@ -180,6 +180,18 @@ function projetoAPartirDe(anterior) {
     return n;
 }
 
+/** Terço de importância de cada especificação (ordem pelo peso): superior, médio ou inferior — como em Reis (2003) e Sigales (2021). */
+function tercosEspec(p) {
+    const ativas = p.especificacoes.filter(e => e.revisao !== 'removida').slice().sort((a, b) => (+b.peso || 0) - (+a.peso || 0));
+    const n = ativas.length, out = {};
+    ativas.forEach((e, i) => { out[e.id] = i < Math.ceil(n / 3) ? 'superior' : i < Math.ceil(2 * n / 3) ? 'medio' : 'inferior'; });
+    return out;
+}
+function seloTerco(p, e) {
+    const t = tercosEspec(p)[e.id];
+    return t ? `<span class="selo-terco terco-${t}" title="Terço ${t === 'medio' ? 'médio' : t} de importância">${t === 'superior' ? 'sup.' : t === 'medio' ? 'méd.' : 'inf.'}</span>` : '';
+}
+
 /** Completa campos ausentes sem apagar nada (projetos antigos, importados ou corrompidos). */
 function normalizarProjeto(p) {
     const base = criarProjetoVazio();

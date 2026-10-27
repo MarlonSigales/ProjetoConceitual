@@ -494,6 +494,17 @@ teste('Partir de projeto anterior: mantém especificações e princípios, marca
     ok(VARIACOES_ESTRUTURA.some(v => /arranjo/.test(v)), 'variação de arranjo (Reis)');
 });
 
+teste('Tese (Sigales, 2025): terços de importância e próximos passos por tipo de projeto', () => {
+    const p = normalizarProjeto(JSON.parse(JSON.stringify(EX)));
+    const t = tercosEspec(p), maisPesada = p.especificacoes.slice().sort((a, b) => b.peso - a.peso)[0];
+    igual(t[maisPesada.id], 'superior');
+    igual(Object.values(t).filter(x => x === 'superior').length, 2, '6 especificações → 2 por terço');
+    p.tipoProjeto = 'mecanico'; ok(!/Nilsson/.test(proximosPassosPara(p)));
+    p.tipoProjeto = 'eletrico'; ok(/Nilsson/.test(proximosPassosPara(p)));
+    p.tipoProjeto = 'misto'; ok(/Nilsson/.test(proximosPassosPara(p)) && /Marwedel/.test(proximosPassosPara(p)));
+    p.tipoProjeto = 'agricola'; ok(/ISO 7256-1/.test(proximosPassosPara(p)));
+});
+
 // ---------------------------------------------------------------- execução
 (async () => {
     const lista = document.getElementById('lista');
