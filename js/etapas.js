@@ -130,7 +130,7 @@ PAGINAS.escopo = {
 };
 
 Object.assign(ACOES, {
-    'esp-add': () => { PC.p.especificacoes.push({ id: uid('es'), codigo: 'E' + (PC.p.especificacoes.filter(e => e.origem !== 'qfd').length + 1), descricao: '', sentido: 'none', meta: '', unidade: '', avaliacao: '', aspectos: '', peso: 0, dificuldade: null, origem: 'manual', ehCusto: false, funcao: '' }); salvar(); renderPagina(true); },
+    'esp-add': () => { PC.p.especificacoes.push({ id: uid('es'), codigo: 'E' + (PC.p.especificacoes.filter(e => e.origem !== 'qfd').length + 1), descricao: '', sentido: 'none', meta: '', unidade: '', avaliacao: '', aspectos: '', peso: 0, dificuldade: null, origem: 'manual', ehCusto: false, funcao: '', funcoesIds: [] }); salvar(); renderPagina(true); },
     'esp-del': b => { const e = PC.p.especificacoes.find(x => x.id === b.dataset.id); if (e && e.descricao && !confirm(`Excluir "${e.descricao}"?`)) return; PC.p.especificacoes = PC.p.especificacoes.filter(x => x.id !== b.dataset.id); salvar(); renderPagina(true); },
     'esp-sugerir-funcoes': () => { let n = 0; PC.p.especificacoes.forEach(e => { if (!e.funcao) { const f = sugerirFuncaoDaEspec(e); if (f) { e.funcao = f; n++; } } }); salvar(); renderPagina(true); avisar(n ? `${n} função(ões) sugerida(s). Revise e ajuste.` : 'Nenhuma sugestão nova (as especificações de massa e custo não geram função).'); },
     'nec-add': () => { PC.p.necessidades.push({ id: uid('nc'), descricao: '', peso: 0 }); salvar(); renderPagina(true); },
@@ -199,7 +199,8 @@ PAGINAS['funcao-global'] = {
             ${Object.entries(TIPOS_FLUXO).map(([t, r]) => `<div class="fluxo-tipo fluxo-${t}"><h4><svg width="34" height="10">${svgSeta([{ x: 1, y: 5 }, { x: 33, y: 5 }], t)}</svg> ${r}</h4>
                 ${fg[lado][t].map((v, i) => `<div class="fluxo-item"><input type="text" data-campo="funcaoGlobal.${lado}.${t}.${i}" value="${escAttr(v)}" maxlength="80" aria-label="${r} (${lado})">
                     <button type="button" class="btn-icone" data-acao="fg-del" data-lado="${lado}" data-tipo="${t}" data-i="${i}" aria-label="Excluir">✕</button></div>`).join('')}
-                <button type="button" class="btn-link" data-acao="fg-add" data-lado="${lado}" data-tipo="${t}">+ ${r.toLowerCase()}</button></div>`).join('')}</div>`;
+                <button type="button" class="btn-link" data-acao="fg-add" data-lado="${lado}" data-tipo="${t}">+ ${r.toLowerCase()}</button>
+                <div class="chips chips-fluxo">${FLUXOS_SUGERIDOS[t].filter(x => !fg[lado][t].includes(x)).slice(0, 5).map(x => `<button type="button" class="chip" data-acao="fg-sug" data-lado="${lado}" data-tipo="${t}" data-texto="${escAttr(x)}">+ ${esc(x)}</button>`).join('')}</div></div>`).join('')}</div>`;
         const est = estEscolhida();
         return `
         <section class="card">
@@ -231,6 +232,7 @@ PAGINAS['funcao-global'] = {
 
 Object.assign(ACOES, {
     'fg-add': b => { PC.p.funcaoGlobal[b.dataset.lado][b.dataset.tipo].push(''); salvar(); renderPagina(true); const ins = $$(`[data-campo^="funcaoGlobal.${b.dataset.lado}.${b.dataset.tipo}."]`); if (ins.length) ins[ins.length - 1].focus(); },
+    'fg-sug': b => { PC.p.funcaoGlobal[b.dataset.lado][b.dataset.tipo].push(b.dataset.texto); salvar(); renderPagina(true); },
     'fg-del': b => { PC.p.funcaoGlobal[b.dataset.lado][b.dataset.tipo].splice(+b.dataset.i, 1); salvar(); renderPagina(true); },
     'fg-da-formulacao': () => { PC.p.funcaoGlobal.nome = PC.p.formulacao; salvar(); renderPagina(true); },
     'fg-criar-estrutura': () => {
@@ -411,6 +413,8 @@ PAGINAS.principios = {
             <p class="nota">${semNada ? `${semNada} função(ões) ainda sem princípios. ` : ''}O pré-preenchimento acrescenta princípios conhecidos para cada função (marcados como <span class="selo-cat">catálogo</span>); apague os que não servem. A ordem conta: deixe os mais adequados primeiro (Roozenburg e Eekels, 1995).</p>
             ${dica(htmlQuadroMetodos(), 'Métodos de busca (Quadro 1)')}
         </section>
+        ${htmlCartaoIA(p)}
+        ${htmlIdeiasSoltas(p, est)}
         ${folhas.map(f => {
             const prs = principiosDe(p, f.id);
             const cad = ancestrais(est, f.id).slice(1, -1).filter(n => !n.global);
@@ -424,9 +428,14 @@ PAGINAS.principios = {
                     <div class="principio-foto">${x.imagem ? `${imgTag(x.imagem, x.nome)}<div class="foto-acoes"><button type="button" data-acao="pr-foto" data-f="${f.id}" data-id="${x.id}">Trocar</button><button type="button" data-acao="pr-foto-del" data-f="${f.id}" data-id="${x.id}">Remover</button></div>`
                         : `<button type="button" class="foto-vazia" data-acao="pr-foto" data-f="${f.id}" data-id="${x.id}">📷<span>Foto ou esboço</span></button>`}</div>
                     <div class="principio-campos">
-                        <div class="principio-linha"><span class="ordem">${i + 1}</span><input type="text" data-campo="principios.${f.id}#${x.id}.nome" value="${escAttr(x.nome)}" maxlength="120" aria-label="Princípio de solução" placeholder="Nome do princípio">${x.sugerido ? '<span class="selo-cat" title="Sugestão do catálogo">catálogo</span>' : ''}</div>
+                        <div class="principio-linha"><span class="ordem">${i + 1}</span><input type="text" data-campo="principios.${f.id}#${x.id}.nome" value="${escAttr(x.nome)}" maxlength="120" aria-label="Princípio de solução" placeholder="Nome do princípio">${x.origem && x.origem !== 'manual' ? `<span class="selo-cat selo-${x.origem}" title="Origem">${esc(ORIGENS_PRINCIPIO[x.origem] || x.origem)}</span>` : ''}</div>
                         <textarea rows="2" data-campo="principios.${f.id}#${x.id}.descricao" maxlength="600" placeholder="Como funciona, vantagens e limitações" aria-label="Descrição">${esc(x.descricao)}</textarea>
                         ${selectMetodo(`principios.${f.id}#${x.id}.metodo`, x.metodo)}
+                        <select data-campo="principios.${f.id}#${x.id}.maturidade" aria-label="Maturidade" class="resp-mat-${x.maturidade || 'vazia'}" data-rerender>
+                            <option value="">Maturidade (para o TRL)…</option>${Object.entries(MATURIDADES).map(([k, m]) => `<option value="${k}" ${x.maturidade === k ? 'selected' : ''}>${esc(m.nome)} · TRL ${m.trl}</option>`).join('')}</select>
+                        ${x.concorrentes.length || x.fonte || x.imagemUrl || x.vantagens || x.desvantagens ? `<details class="principio-mais"><summary>${x.concorrentes.length ? `Usado por: ${esc(x.concorrentes.join(', '))}` : 'Mais informações'}</summary>
+                            ${x.vantagens ? `<p><b>+</b> ${esc(x.vantagens)}</p>` : ''}${x.desvantagens ? `<p><b>−</b> ${esc(x.desvantagens)}</p>` : ''}
+                            ${x.fonte ? `<p>Fonte: ${linkOuTexto(x.fonte)}</p>` : ''}${x.imagemUrl && !x.imagem ? `<p><a href="${escAttr(x.imagemUrl)}" target="_blank" rel="noopener">🔗 ver imagem indicada pela IA</a></p>` : ''}</details>` : ''}
                         <div class="principio-acoes">
                             <button type="button" class="btn-icone" data-acao="pr-mover" data-f="${f.id}" data-id="${x.id}" data-d="-1" ${i ? '' : 'disabled'} title="Mais adequado (para a esquerda)" aria-label="Mover para antes">◀</button>
                             <button type="button" class="btn-icone" data-acao="pr-mover" data-f="${f.id}" data-id="${x.id}" data-d="1" ${i < prs.length - 1 ? '' : 'disabled'} title="Menos adequado" aria-label="Mover para depois">▶</button>
@@ -441,21 +450,47 @@ PAGINAS.principios = {
     }
 };
 
+function linkOuTexto(t) {
+    const u = String(t || '').trim();
+    return /^https?:\/\/\S+$/i.test(u) ? `<a href="${escAttr(u)}" target="_blank" rel="noopener">${esc(u.length > 70 ? u.slice(0, 67) + '…' : u)}</a>` : esc(u);
+}
+
+/** Ideias do caderno do QFD que não ficaram ligadas a nenhuma função (para o usuário pôr onde quiser). */
+function htmlIdeiasSoltas(p, est) {
+    const usadas = new Set(Object.values(p.principios).flat().map(x => semAcento(x.nome)));
+    const soltas = p.ideiasQFD.filter(i => !usadas.has(semAcento(i.titulo)));
+    if (!soltas.length) return '';
+    const folhas = funcoesFolha(est);
+    return `<section class="card"><h2>💡 Ideias do QFD ainda sem função</h2><p class="nota">Vieram do caderno de ideias do QFD. Escolha a função e clique para virar princípio.</p>
+        <ul class="lista-incomp">${soltas.map(i => `<li><b>${esc(i.titulo)}</b>${i.descricao ? ` — <small>${esc(i.descricao)}</small>` : ''}
+            <select data-ideia="${i.id}" aria-label="Função"><option value="">Pôr na função…</option>${folhas.map(f => `<option value="${f.id}">F${esc(numeroFuncao(est, f.id))} ${esc(f.nome)}</option>`).join('')}</select></li>`).join('')}</ul></section>`;
+}
+
+PAGINAS.principios.depois = raiz => {
+    raiz.addEventListener('change', e => {
+        const s = e.target.closest('[data-ideia]');
+        if (!s || !s.value) return;
+        const p = PC.p, i = p.ideiasQFD.find(x => x.id === s.dataset.ideia);
+        principiosDe(p, s.value).push({ id: uid('pr'), nome: i.titulo, descricao: i.descricao, imagem: null, metodo: 'Brainstorming', sugerido: true, origem: 'qfd', maturidade: '', concorrentes: [], fonte: 'Caderno de ideias do QFD', imagemUrl: '', vantagens: '', desvantagens: '' });
+        salvar(); renderPagina(true);
+    });
+};
+
 function acharPr(fid, id) { return principiosDe(PC.p, fid).find(x => x.id === id); }
 
 Object.assign(ACOES, {
     'pr-add': b => {
         const l = principiosDe(PC.p, b.dataset.f);
-        const x = { id: uid('pr'), nome: '', descricao: '', imagem: null, metodo: '', sugerido: false };
+        const x = { id: uid('pr'), nome: '', descricao: '', imagem: null, metodo: '', sugerido: false, origem: 'manual', maturidade: '', concorrentes: [], fonte: '', imagemUrl: '', vantagens: '', desvantagens: '' };
         l.push(x); salvar(); renderPagina(true);
         const el = $(`[data-campo="principios.${b.dataset.f}#${x.id}.nome"]`); if (el) el.focus();
     },
-    'pr-sug': b => { principiosDe(PC.p, b.dataset.f).push({ id: uid('pr'), nome: b.dataset.nome, descricao: b.dataset.desc || '', imagem: null, metodo: 'Catálogo de projeto', sugerido: true }); salvar(); renderPagina(true); },
+    'pr-sug': b => { principiosDe(PC.p, b.dataset.f).push({ id: uid('pr'), nome: b.dataset.nome, descricao: b.dataset.desc || '', imagem: null, metodo: 'Catálogo de projeto', sugerido: true, origem: 'catalogo', maturidade: 'mercado', concorrentes: [], fonte: '', imagemUrl: '', vantagens: '', desvantagens: '' }); salvar(); renderPagina(true); },
     'pr-catalogo-todas': () => {
         const p = PC.p; let n = 0;
         funcoesFolha(estEscolhida()).forEach(f => {
             const l = principiosDe(p, f.id);
-            sugerirPrincipios(f.nome).forEach(s => { if (!l.some(x => semAcento(x.nome) === semAcento(s.nome))) { l.push({ id: uid('pr'), nome: s.nome, descricao: s.descricao, imagem: null, metodo: 'Catálogo de projeto', sugerido: true }); n++; } });
+            sugerirPrincipios(f.nome).forEach(s => { if (!l.some(x => semAcento(x.nome) === semAcento(s.nome))) { l.push({ id: uid('pr'), nome: s.nome, descricao: s.descricao, imagem: null, metodo: 'Catálogo de projeto', sugerido: true, origem: 'catalogo', maturidade: 'mercado', concorrentes: [], fonte: '', imagemUrl: '', vantagens: '', desvantagens: '' }); n++; } });
         });
         salvar(); renderPagina(true);
         avisar(n ? `${n} princípio(s) acrescentado(s) do catálogo. Apague os que não servem.` : 'O catálogo não tem sugestões novas para estas funções. Use os métodos do Quadro 1.');
@@ -591,6 +626,7 @@ PAGINAS.matriz = {
         </section>
         </div>
 
+        ${htmlCartaoIA(p, true)}
         ${p.variantes.length ? `<section class="card"><h2>Resumo das concepções</h2>
             <div class="tabela-rolagem"><table class="tabela"><thead><tr><th>Função</th>${p.variantes.map(v => `<th><span class="ponto" style="background:${v.cor}"></span>${esc(v.nome)}</th>`).join('')}</tr></thead>
             <tbody>${folhas.map(f => `<tr><td><span class="num-f">F${esc(numeroFuncao(est, f.id))}</span> ${esc(f.nome)}</td>${p.variantes.map(v => `<td>${v.escolhas[f.id] ? esc(nomePr(v.escolhas[f.id])) : '<span class="falta">—</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
@@ -649,7 +685,7 @@ Object.assign(ACOES, {
     'mm-add': b => {
         const nome = prompt('Nome do novo princípio de solução:');
         if (!nome || !nome.trim()) return;
-        principiosDe(PC.p, b.dataset.f).push({ id: uid('pr'), nome: nome.trim(), descricao: '', imagem: null, metodo: '', sugerido: false });
+        principiosDe(PC.p, b.dataset.f).push({ id: uid('pr'), nome: nome.trim(), descricao: '', imagem: null, metodo: '', sugerido: false, origem: 'manual', maturidade: '', concorrentes: [], fonte: '', imagemUrl: '', vantagens: '', desvantagens: '' });
         salvar(); renderPagina(true);
     },
     'mm-gerar': () => {

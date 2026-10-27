@@ -149,8 +149,8 @@ function corpoRelatorio(p, opcoes = {}) {
     // 4 Princípios
     const principios = folhas.some(f => principiosDe(p, f.id).length) ? folhas.map(f => {
         const prs = principiosDe(p, f.id);
-        return `<h3>F${esc(numeroFuncao(est, f.id))} ${esc(f.nome)}</h3>` + (prs.length ? `<table><thead><tr><th>#</th><th>Princípio</th><th>Descrição</th><th>Método</th><th>Imagem</th></tr></thead><tbody>
-            ${prs.map((x, i) => `<tr><td>${i + 1}</td><td><b>${esc(x.nome)}</b></td><td>${esc(x.descricao)}</td><td>${esc(x.metodo)}</td><td class="centro">${img(x.imagem, x.nome, 'foto')}</td></tr>`).join('')}</tbody></table>` : vazio('Sem princípios.'));
+        return `<h3>F${esc(numeroFuncao(est, f.id))} ${esc(f.nome)}</h3>` + (prs.length ? `<table><thead><tr><th>#</th><th>Princípio</th><th>Descrição</th><th>Método / origem</th><th>Maturidade</th><th>Imagem</th></tr></thead><tbody>
+            ${prs.map((x, i) => `<tr><td>${i + 1}</td><td><b>${esc(x.nome)}</b>${x.concorrentes && x.concorrentes.length ? `<br><small>Usado por: ${esc(x.concorrentes.join(', '))}</small>` : ''}</td><td>${esc(x.descricao)}${x.fonte ? `<br><small>Fonte: ${esc(x.fonte)}</small>` : ''}</td><td>${esc(x.metodo)}${x.origem && x.origem !== 'manual' ? `<br><small>${esc(ORIGENS_PRINCIPIO[x.origem] || '')}</small>` : ''}</td><td>${MATURIDADES[x.maturidade] ? esc(MATURIDADES[x.maturidade].nome) + `<br><small>TRL ${MATURIDADES[x.maturidade].trl}</small>` : '—'}</td><td class="centro">${img(x.imagem, x.nome, 'foto')}</td></tr>`).join('')}</tbody></table>` : vazio('Sem princípios.'));
     }).join('') : '';
 
     // 5 Matriz morfológica
@@ -210,6 +210,18 @@ function corpoRelatorio(p, opcoes = {}) {
         if (c.proximosPassos) concepcao += `<h3>Próximos passos</h3><p class="pre">${esc(c.proximosPassos)}</p>`;
     }
 
+    // 8 Análises: maturidade (TRL), desdobramento e pendências
+    let analises = '';
+    if (est && typeof linhasMaturidade === 'function') {
+        const lm = linhasMaturidade(p);
+        if (v) analises += `<h3>Maturidade das soluções da concepção (para o TRL)</h3><table><thead><tr><th>Função</th><th>Princípio</th><th>Maturidade</th><th>TRL provável</th></tr></thead><tbody>
+            ${lm.map(({ f, x }) => `<tr><td>F${esc(numeroFuncao(est, f.id))} ${esc(f.nome)}</td><td>${x ? esc(x.nome) : '—'}</td><td>${x && MATURIDADES[x.maturidade] ? esc(MATURIDADES[x.maturidade].nome) : '—'}</td><td class="centro">${x && MATURIDADES[x.maturidade] ? MATURIDADES[x.maturidade].trl : '—'}</td></tr>`).join('')}</tbody></table>`;
+        if (p.especificacoes.length) analises += `<h3>Desdobramento: especificação → função</h3><table><thead><tr><th>Especificação</th><th>Funções que atendem</th></tr></thead><tbody>
+            ${p.especificacoes.map(e => `<tr><td>${esc(e.descricao)}</td><td>${esc(funcoesDaEspec(est, e).map(n => 'F' + numeroFuncao(est, n.id) + ' ' + n.nome).join('; ')) || (e.ehCusto ? '— (custo)' : '<b>nenhuma</b>')}</td></tr>`).join('')}</tbody></table>`;
+        const pend = pendencias(p).filter(x => x.nivel !== 'info');
+        if (pend.length) analises += `<h3>Pendências</h3><ul>${pend.map(x => `<li>${esc(x.texto)}</li>`).join('')}</ul>`;
+    }
+
     const referencias = `<ul class="referencias">
         <li>BACK, N.; OGLIARI, A.; DIAS, A.; SILVA, J. C. <i>Projeto integrado de produtos: planejamento, concepção e modelagem</i>. Barueri: Manole, 2008.</li>
         <li>FERREIRA, M. G. G. <i>Utilização de modelos para a representação de produtos no projeto conceitual</i>. Dissertação (Mestrado) — UFSC, Florianópolis, 1997.</li>
@@ -226,6 +238,7 @@ function corpoRelatorio(p, opcoes = {}) {
         ${secao('Matriz morfológica', matriz)}
         ${secao('Seleção da concepção', selecao)}
         ${secao('Concepção selecionada', concepcao)}
+        ${secao('Análises e TRL', analises)}
         ${secao('Referências', referencias)}
     </div></div>`;
 }

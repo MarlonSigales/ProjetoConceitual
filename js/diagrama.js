@@ -377,6 +377,78 @@ function organizarNivel(est, pai) {
 }
 
 // ============================================================================
+// MODELOS E LIGAÇÃO AUTOMÁTICA (para pré-preencher)
+// ============================================================================
+
+/**
+ * Liga os fluxos da fronteira (portas) que ainda estão soltos às funções do nível: cada entrada vai para a primeira
+ * função que "recebe" aquele tipo (ou a primeira função); cada saída sai da última que "entrega" aquele tipo (ou da última).
+ */
+/** Quantas palavras importantes dois textos têm em comum (para ligar "Torque dos pedais" a "Receber o torque dos pedais"). */
+function palavrasEmComum(a, b) {
+    const pal = t => new Set(semAcento(t).split(/[^a-z0-9]+/).filter(w => w.length > 3).map(w => w.slice(0, 6)));
+    const A = pal(a), B = pal(b);
+    let n = 0; A.forEach(w => { if (B.has(w)) n++; });
+    return n;
+}
+function maisParecida(funcs, rotulo) {
+    let melhor = null, m = 0;
+    funcs.forEach(f => { const k = palavrasEmComum(f.nome, rotulo); if (k > m) { m = k; melhor = f; } });
+    return melhor;
+}
+
+function ligarFronteira(est, pai, funcs, recebe = {}, entrega = {}) {
+    if (!pai || !funcs.length) return 0;
+    const pt = portasDoNivel(est, pai);
+    const ligs = ligacoesDoNivel(est, pai);
+    let n = 0;
+    pt.entradas.forEach(l => {
+        if (ligs.some(x => x.de === 'porta:' + l.id)) return;
+        const alvo = funcs.find(f => (recebe[f.id] || []).includes(l.tipo)) || maisParecida(funcs, l.rotulo) || funcs[0];
+        est.ligacoes.push({ id: uid('lg'), tipo: l.tipo, rotulo: l.rotulo, pai, de: 'porta:' + l.id, para: alvo.id }); n++;
+    });
+    pt.saidas.forEach(l => {
+        if (ligs.some(x => x.para === 'porta:' + l.id)) return;
+        const origem = funcs.slice().reverse().find(f => (entrega[f.id] || []).includes(l.tipo)) || maisParecida(funcs, l.rotulo) || funcs[funcs.length - 1];
+        est.ligacoes.push({ id: uid('lg'), tipo: l.tipo, rotulo: l.rotulo, pai, de: origem.id, para: 'porta:' + l.id }); n++;
+    });
+    return n;
+}
+
+/** Insere um modelo de estrutura (MODELOS_ESTRUTURA) no nível; liga os fluxos da fronteira e organiza. Devolve as funções criadas. */
+function aplicarModelo(est, pai, chave) {
+    const m = MODELOS_ESTRUTURA[chave];
+    if (!m) return [];
+    const existentes = new Set(nosDoNivel(est, pai).filter(n => n.tipo === 'funcao').map(n => semAcento(n.nome)));
+    const recebe = {}, entrega = {};
+    const criadas = m.funcoes.map(f => {
+        const ja = nosDoNivel(est, pai).find(n => n.tipo === 'funcao' && semAcento(n.nome) === semAcento(f.nome));
+        const n = ja || { id: uid('fn'), tipo: 'funcao', nome: f.nome, pai, x: 0, y: 0, w: 170, h: 70, descricao: '' };
+        if (!ja) est.nos.push(n);
+        recebe[n.id] = f.recebe || []; entrega[n.id] = f.entrega || [];
+        return n;
+    });
+    m.ligacoes.forEach(([a, b, tipo, rotulo]) => {
+        const de = criadas[a].id, para = criadas[b].id;
+        if (!est.ligacoes.some(l => l.pai === pai && l.de === de && l.para === para && l.tipo === tipo)) est.ligacoes.push({ id: uid('lg'), tipo, rotulo, pai, de, para });
+    });
+    ligarFronteira(est, pai, criadas, recebe, entrega);
+    organizarNivel(est, pai);
+    void existentes;
+    return criadas;
+}
+
+/** Encadeia funções soltas (sem nenhuma ligação) pelo fluxo principal — rascunho para o usuário ajustar. */
+function encadearFuncoes(est, pai, tipo = 'material') {
+    const funcs = nosDoNivel(est, pai).filter(n => n.tipo === 'funcao');
+    const ligs = ligacoesDoNivel(est, pai);
+    const soltas = funcs.filter(f => !ligs.some(l => l.de === f.id || l.para === f.id));
+    if (soltas.length < 2 && !(soltas.length === 1 && funcs.length === 1)) { ligarFronteira(est, pai, funcs); return; }
+    for (let i = 0; i < soltas.length - 1; i++) est.ligacoes.push({ id: uid('lg'), tipo, rotulo: '', pai, de: soltas[i].id, para: soltas[i + 1].id });
+    ligarFronteira(est, pai, soltas);
+}
+
+// ============================================================================
 // EDITOR INTERATIVO
 // ============================================================================
 
@@ -397,6 +469,7 @@ class EditorDiagrama {
         <div class="dg-barra">
             <div class="dg-grupo">
                 <button type="button" class="btn btn-primary btn-sm" data-dg="add-funcao" title="Acrescentar um bloco de função neste nível">+ Função</button>
+                <details class="dg-menu dg-menu-modelo"><summary class="btn btn-secondary btn-sm" title="Insere uma cadeia típica de funções já ligada">+ Modelo pronto ▾</summary><div></div></details>
                 <details class="dg-menu"><summary class="btn btn-secondary btn-sm">+ Bloco lateral ▾</summary>
                     <div>${['Usuário', 'Fonte de potência', 'Ambiente', 'Outro sistema', 'Outro bloco'].map(n => `<button type="button" data-dg="add-externo" data-nome="${escAttr(n)}">${esc(n)}</button>`).join('')}</div>
                 </details>
@@ -421,6 +494,9 @@ class EditorDiagrama {
             </div>
             <aside class="dg-painel"></aside>
         </div>`;
+        const tipo = (this.o.projeto() || {}).tipoProjeto;
+        this.raiz.querySelector('.dg-menu-modelo > div').innerHTML = modelosParaTipo(tipo).map(([k, m], i) =>
+            `<button type="button" data-dg="modelo" data-modelo="${k}">${i === 0 && tipo && tipo !== 'misto' ? '★ ' : ''}${esc(m.nome)}</button>`).join('');
         this.svg = this.raiz.querySelector('.dg-svg');
         this.painel = this.raiz.querySelector('.dg-painel');
         this.raiz.addEventListener('click', e => this.cliqueBarra(e));
@@ -510,6 +586,13 @@ class EditorDiagrama {
             if (this.modo === 'ligar' && this.tipoLig === b.dataset.tipo) { this.modo = 'mover'; this.origem = null; }
             else { this.modo = 'ligar'; this.tipoLig = b.dataset.tipo; this.origem = null; }
             this.render();
+        }
+        else if (a === 'modelo') {
+            b.closest('details').open = false;
+            if (!this.pai) { const g = noGlobal(est); if (g) this.pai = g.id; }
+            const n = aplicarModelo(est, this.pai, b.dataset.modelo).length;
+            this.sel = {}; this.mudou(false); this.render(true);
+            this.avisar(`${n} funções do modelo inseridas e ligadas. Renomeie, apague ou religue o que não servir.`);
         }
         else if (a === 'organizar') { organizarNivel(est, this.pai); this.mudou(false); this.render(true); }
         else if (a === 'ajustar') this.ajustar();

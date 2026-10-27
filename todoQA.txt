@@ -1,0 +1,65 @@
+© 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+
+TODO / QA — Sistema de Projeto Conceitual
+Marcadores: [fazer] [futuro] [resolvido] [rejeitado]
+Atualizado em 27/10/2026. Os números são fixos (servem de referência); a ordem dentro de cada parte é do mais simples para o mais difícil.
+
+=== DIRETRIZES PERMANENTES
+- SIMPLES PARA QUALQUER UM: quem nunca ouviu falar de projeto conceitual tem que conseguir usar sem ler manual.
+  Antes de fechar qualquer item, responder: (1) dá para fazer só clicando, sem digitar? (2) o que der para trazer do QFD ou
+  deduzir já vem preenchido? (3) o botão principal da tela é óbvio e diz o que acontece? (4) o texto evita jargão ou explica o
+  termo em meia frase? (5) a pessoa sabe o que falta (Análises → "O que falta")? Se alguma resposta for "não", o item não está pronto.
+- Pré-preencher sempre, nunca apagar: o preenchimento automático só completa o que está vazio.
+- As funções daqui alimentam a análise de TRL do Gestão de Projetos: toda mudança no modelo de funções precisa continuar
+  saindo completa em exportarParaGestao() (funções → subfunções, princípios, escolhido, maturidade, desdobramento).
+- Dados só pelo objeto PC (js/dados.js); mudou a estrutura de dados: subir PC_VERSAO e completar normalizarProjeto.
+- Texto do usuário sempre por esc()/escAttr() (interface, SVG, relatório, pedido para IA em JSON.stringify).
+- Todo dado novo entra no ZIP, no relatório, no exemplo (js/exemplo.js) e ganha teste (tests/testes.js).
+- Todo arquivo novo começa com a linha de direitos autorais. Sem CDN: bibliotecas em lib/. Trocar o ?v= ao publicar.
+- Testar em 360, 768, 1024 e 1920 px: nada sai da tela.
+
+=== O QUE FALTA (do mais simples para o mais difícil)
+13 [fazer] Conferir o PDF real (Chrome/Edge: Imprimir → Salvar como PDF, "Gráficos de fundo" ligado) num computador de verdade.
+14 [fazer] Testar o pacote para IA com ChatGPT, Claude e Gemini de verdade (com pesquisa na web) e ajustar o pedido se alguma
+   delas fugir do formato JSON. Simplicidade: a pessoa só baixa, cola e importa; se a IA errar o formato, a mensagem de erro
+   tem que dizer o que copiar.
+15 [futuro] Tour guiado na primeira vez (balões "clique aqui"), desligável. Simplicidade: no máximo 5 balões.
+16 [futuro] Foto pela câmera do celular direto no princípio e esboço desenhado com o dedo (canvas) na concepção.
+17 [futuro] Custo estimado por princípio (R$) → custo da concepção calculado e índice de custo (IDC) preenchido sozinho.
+   Simplicidade: campo opcional, faixa barato/médio/caro quando não souber o valor.
+18 [futuro] FMEA de concepção por função (o que pode falhar) já com sugestões do catálogo, exportada para Riscos do Gestão.
+19 [futuro] Biblioteca da equipe: exportar/importar os princípios usados em projetos anteriores como catálogo próprio.
+20 [futuro] Diagrama: roteamento das setas sem cruzar blocos e sem rótulos sobrepostos em diagramas grandes.
+21 [futuro] Abrir direto do QFD e voltar ao Gestão sem baixar arquivos (passar os dados entre os sistemas pelo navegador).
+22 [futuro] Busca de anterioridade por princípio (patentes que usam o princípio) ligada à aba Pesquisa do Gestão.
+
+=== REJEITADO
+(nenhum)
+
+=== FEITO
+--- Versão 1 (27/10/2026)
+01 [resolvido] Etapas de Spagnolo (2011): escopo (abstração em 5 passos), função global (caixa-preta), estrutura funcional,
+   princípios de solução (Quadro 1), matriz morfológica, seleção (4 técnicas de Reis, 2003), concepção, relatório.
+02 [resolvido] Editor de diagrama: funções, blocos laterais, ligações de energia/material/sinal com rótulo, níveis com portas na
+   fronteira, organizar, SVG, zoom com dedos; estruturas alternativas comparadas por Ferreira (1997).
+03 [resolvido] Fotos nos princípios e esboços na concepção; ZIP completo (dados, imagens, diagramas SVG, relatório com logos).
+04 [resolvido] Importação do backup do QFD; exemplo da roda de bicicleta (continuação do exemplo do QFD).
+
+--- Versão 2 (27/10/2026)
+05 [resolvido] Mais do QFD: concorrentes com as notas dos clientes, estado da técnica, caderno de ideias (viram princípios),
+   requisitos formadores de função e o backup completo (vai junto para o Gestão).
+06 [resolvido] Tipo de projeto (mecânico, elétrico, automação/eletrônico, máquina agrícola, misto), estimado sozinho pelo QFD.
+07 [resolvido] Catálogo elétrico e de automação (alimentação, conversão, proteção, acionamento, medição, condicionamento,
+   processamento, comunicação, registro, localização, diagnóstico) e mecânico/agrícola ampliado.
+08 [resolvido] Modelos prontos de estrutura (automação, elétrico, aplicação de insumo, mecânico) que já entram ligados à fronteira;
+   sugestões de fluxos na função global.
+09 [resolvido] Preenchimento automático: ao importar o QFD, monta rascunho de todas as etapas (abstração, funções, ligações,
+   princípios, 3 concepções, perguntas e critérios da seleção) e lista o que fez no Início para revisar; nunca apaga nada.
+10 [resolvido] Pesquisa com IA multiagente: pacote ZIP (prompt.md, contexto.json, fotos), pedido com 4 agentes (concorrentes,
+   patentes/literatura, especialista, integrador) e formato JSON fixo; "Colar a resposta" importa princípios (com concorrentes,
+   maturidade, fonte, imagem), incompatibilidades e concepções sem duplicar.
+11 [resolvido] Análises e TRL: "O que falta", especificação → função (ligar/desligar), maturidade das soluções (TRL provável),
+   concorrentes; no relatório também.
+12 [resolvido] Exportação para o Gestão de Projetos (arquivo "…-para-gestao.json" e gestao-conceitual.json no ZIP); o Gestão
+   importa e monta a árvore TRL (commit no repositório do Gestão).
+   QA: 27 testes automáticos ok; fluxo QFD → preenchimento → Gestão (versões completa e simplificada) sem erros.

@@ -19,11 +19,28 @@
 
 'use strict';
 
-const PC_VERSAO = 1;
+const PC_VERSAO = 2;
 const PC_CHAVE = 'pc_projeto';
 
 const TIPOS_FLUXO = { energia: 'Energia', material: 'Material', sinal: 'Sinal' };
 const TIPOS_NO = { funcao: 'Função', externo: 'Bloco lateral (externo)' };
+
+/** Tipo de projeto: muda o catálogo, os modelos de estrutura e os fluxos sugeridos. */
+const TIPOS_PROJETO = {
+    mecanico: { nome: 'Mecânico', icone: '⚙', exemplo: 'máquina, mecanismo, estrutura, roda' },
+    eletrico: { nome: 'Elétrico', icone: '⚡', exemplo: 'quadro elétrico, energia solar, motor, instalação' },
+    automacao: { nome: 'Automação / eletrônico', icone: '🔌', exemplo: 'sensores, controlador, IoT, embarcado' },
+    agricola: { nome: 'Máquina agrícola', icone: '🌱', exemplo: 'semeadora, pulverizador, colhedora, secador' },
+    misto: { nome: 'Misto (mecânico + elétrico + automação)', icone: '🧩', exemplo: 'máquina com motor elétrico e controle' }
+};
+
+/** Maturidade do princípio de solução (alimenta a análise de TRL no Gestão de Projetos). */
+const MATURIDADES = {
+    mercado: { nome: 'Existe pronto no mercado', trl: '7 a 9', cor: '#409580' },
+    adaptar: { nome: 'Existe, mas precisa adaptar', trl: '4 a 6', cor: '#d4a017' },
+    desenvolver: { nome: 'Precisa ser desenvolvido', trl: '1 a 3', cor: '#c0392b' }
+};
+const ORIGENS_PRINCIPIO = { manual: 'equipe', catalogo: 'catálogo', ia: 'IA', qfd: 'ideia do QFD' };
 
 /** Quadro 1 — métodos de busca por princípios de solução (Reis, 2003, apud Spagnolo, 2011) */
 const METODOS_BUSCA = {
@@ -92,8 +109,17 @@ function criarProjetoVazio() {
         schemaVersion: PC_VERSAO,
         projeto: { nome: '', cliente: '', instituicao: '', responsavel: '', equipe: [] },
         origemQFD: null,                 // { arquivo, importadoEm }
+        tipoProjeto: '',                 // chave de TIPOS_PROJETO
+        qfdBackup: null,                 // backup completo do QFD (vai para o Gestão de Projetos junto com as funções)
+        concorrentes: [],                // { id, nome, idQFD, notas: { [necessidadeId]: 1..5 } }
+        notasNosso: {},                  // notas do nosso produto atual no QFD { [necessidadeId]: 1..5 }
+        referencias: [],                 // estado da técnica do QFD { id, tipo, identificacao, titulo, resumo, link }
+        ideiasQFD: [],                   // caderno de ideias do QFD { id, titulo, descricao, status, especIds }
+        ia: { importadoEm: '', resumo: '' },
+        funcoesQFD: [],                  // requisitos "formadores de função" do QFD
+        ultimoPreenchimento: null,       // { em, itens: [{ etapa, texto }] } do preenchimento automático
         // 1 Escopo
-        especificacoes: [],              // { id, codigo, descricao, sentido, meta, unidade, avaliacao, aspectos, peso, dificuldade, origem, ehCusto, funcao }
+        especificacoes: [],              // { id, codigo, descricao, sentido, meta, unidade, avaliacao, aspectos, peso, dificuldade, origem, ehCusto, funcao, funcoesIds }
         necessidades: [],                // requisitos dos clientes { id, descricao, peso }
         restricoes: [],                  // { id, texto }
         abstracao: ['', '', '', '', ''],
@@ -105,7 +131,7 @@ function criarProjetoVazio() {
         diretrizes: {},                  // { indice: true } diretrizes de Back et al. aplicadas
         selecaoEstrutura: { tecnicos: {}, custos: [], notasCusto: {} }, // Ferreira (1997)
         // 3 e 4 Princípios e matriz morfológica (por estrutura escolhida, chave = id da função)
-        principios: {},                  // { [funcId]: [ { id, nome, descricao, imagem, metodo, sugerido } ] }
+        principios: {},                  // { [funcId]: [ { id, nome, descricao, imagem, metodo, sugerido, origem, maturidade, concorrentes, fonte, imagemUrl, vantagens, desvantagens } ] }
         incompatibilidades: [],          // { id, a, b, nota }  (ids de princípios)
         variantes: [],                   // { id, nome, cor, escolhas: { [funcId]: princId }, descricao }
         // 5 Seleção (Reis, 2003)
@@ -135,7 +161,7 @@ function normalizarProjeto(p) {
     const out = Object.assign(base, p);
     out.projeto = Object.assign(base.projeto, p.projeto || {});
     out.projeto.equipe = lista(out.projeto.equipe).map(x => txt(x, 120));
-    out.especificacoes = lista(p.especificacoes).map(e => Object.assign({ id: uid('es'), codigo: '', descricao: '', sentido: 'none', meta: '', unidade: '', avaliacao: '', aspectos: '', peso: 0, dificuldade: null, origem: 'manual', ehCusto: false, funcao: '' }, e));
+    out.especificacoes = lista(p.especificacoes).map(e => Object.assign({ id: uid('es'), codigo: '', descricao: '', sentido: 'none', meta: '', unidade: '', avaliacao: '', aspectos: '', peso: 0, dificuldade: null, origem: 'manual', ehCusto: false, funcao: '' }, e, { funcoesIds: lista(e.funcoesIds).map(String) }));
     out.necessidades = lista(p.necessidades).map(n => Object.assign({ id: uid('nc'), descricao: '', peso: 0 }, n));
     out.restricoes = lista(p.restricoes).map(r => Object.assign({ id: uid('rs'), texto: '' }, r));
     out.abstracao = [0, 1, 2, 3, 4].map(i => txt(lista(p.abstracao)[i] || ''));
@@ -157,7 +183,13 @@ function normalizarProjeto(p) {
     out.selecaoEstrutura.custos = lista(out.selecaoEstrutura.custos).map(c => Object.assign({ id: uid('ec'), descricao: '', peso: 0 }, c));
     out.principios = {};
     Object.entries(p.principios || {}).forEach(([k, l]) => {
-        out.principios[k] = lista(l).map(x => Object.assign({ id: uid('pr'), nome: '', descricao: '', imagem: null, metodo: '', sugerido: false }, x));
+        out.principios[k] = lista(l).map(x => {
+            const y = Object.assign({ id: uid('pr'), nome: '', descricao: '', imagem: null, metodo: '', sugerido: false, origem: '', maturidade: '', fonte: '', imagemUrl: '', vantagens: '', desvantagens: '' }, x);
+            y.concorrentes = lista(x.concorrentes).map(c => txt(c, 120));
+            if (!y.origem) y.origem = y.sugerido ? 'catalogo' : 'manual';
+            if (!MATURIDADES[y.maturidade]) y.maturidade = '';
+            return y;
+        });
     });
     out.incompatibilidades = lista(p.incompatibilidades).filter(x => x && x.a && x.b).map(x => Object.assign({ id: uid('ic'), nota: '' }, x));
     out.variantes = lista(p.variantes).map((v, i) => Object.assign({ id: uid('vr'), nome: `Concepção ${i + 1}`, cor: CORES_VARIANTES[i % CORES_VARIANTES.length], escolhas: {}, descricao: '' }, v));
@@ -173,6 +205,15 @@ function normalizarProjeto(p) {
     out.concepcao.imagens = lista(out.concepcao.imagens);
     out.concepcao.complementos = lista(out.concepcao.complementos);
     out.etapasConcluidas = lista(p.etapasConcluidas).filter(x => typeof x === 'string');
+    if (!TIPOS_PROJETO[out.tipoProjeto]) out.tipoProjeto = '';
+    out.concorrentes = lista(p.concorrentes).map(c => Object.assign({ id: uid('cc'), nome: '', notas: {} }, c, { notas: Object.assign({}, c.notas || {}) }));
+    out.notasNosso = Object.assign({}, p.notasNosso || {});
+    out.referencias = lista(p.referencias).map(r => Object.assign({ id: uid('rf'), tipo: '', identificacao: '', titulo: '', resumo: '', link: '' }, r));
+    out.ideiasQFD = lista(p.ideiasQFD).map(r => Object.assign({ id: uid('id'), titulo: '', descricao: '', status: '' }, r, { especIds: lista(r.especIds) }));
+    out.ia = Object.assign({ importadoEm: '', resumo: '' }, p.ia || {});
+    out.funcoesQFD = lista(p.funcoesQFD).map(String);
+    out.ultimoPreenchimento = p.ultimoPreenchimento && Array.isArray(p.ultimoPreenchimento.itens) ? p.ultimoPreenchimento : null;
+    out.qfdBackup = p.qfdBackup && typeof p.qfdBackup === 'object' ? p.qfdBackup : null;
     out.metadata = Object.assign(base.metadata, p.metadata || {});
     out.schemaVersion = PC_VERSAO;
     return out;
@@ -358,7 +399,7 @@ function importarQFD(p, d, arquivo = '') {
             id: ant.id || uid('es'), idQFD: r.id, codigo: `RP${d.requisitosProjeto.findIndex(x => x.id === r.id) + 1}`, descricao: desc,
             sentido: ['up', 'down', 'none'].includes(r.sentidoMelhoria) ? r.sentidoMelhoria : 'none',
             meta: textoMetaQFD(esp), unidade: esp.unidadeMedida || '', avaliacao: esp.formaAvaliacao || '', aspectos: esp.aspectosIndesejaveis || '',
-            peso: +r.pesoRelativo || 0, dificuldade: r.dificuldadeTecnica ?? null, origem: 'qfd', ordem: i + 1,
+            peso: +r.pesoRelativo || 0, dificuldade: r.dificuldadeTecnica ?? null, origem: 'qfd', ordem: i + 1, funcoesIds: lista(ant.funcoesIds), funcao: ant.funcao || '',
             ehCusto: ant.ehCusto !== undefined ? ant.ehCusto : /custo|preço|preco|r\$/i.test(desc)
         });
     });
@@ -380,16 +421,66 @@ function importarQFD(p, d, arquivo = '') {
     }));
 
     const formadores = d.requisitosCliente.concat(d.requisitosProjeto).filter(r => r.classificacao === 'funcao').map(r => String(r.descricao || ''));
-    let criouEstrutura = false;
-    if (!p.estruturas.length) { p.estruturas.push(montarEstruturaInicial(p, formadores)); p.estruturaEscolhida = p.estruturas[0].id; criouEstrutura = true; }
-    else {
+    // funções vindas do QFD (requisitos "formadores de função"): entram na estrutura no preenchimento automático
+    p.funcoesQFD = formadores;
+    const criouEstrutura = false;
+    if (p.estruturas.length) {
         const est = p.estruturas[0], g = noGlobal(est);
         if (g && !funcoesFilhas(est, g.id).length && formadores.length) acrescentarFuncoes(est, g.id, formadores);
     }
     if (!p.selecao.passa.perguntas.length) p.selecao.passa.perguntas = p.necessidades.map(n => ({ id: uid('pp'), texto: perguntaDaNecessidade(n.descricao) }));
     if (!p.selecao.avaliacao.criterios.length) p.selecao.avaliacao.criterios = p.necessidades.map(n => ({ id: uid('cr'), texto: n.descricao, peso: Math.round((n.peso || 0) * 1000) / 10 || 1 }));
+    // concorrentes e notas dos clientes (avaliação competitiva)
+    const ac = d.avaliacaoCompetitiva || {};
+    const ncPorQFD = new Map(p.necessidades.map(n => [n.idQFD, n.id]));
+    const notasDe = pid => {
+        const o = {};
+        lista(ac.notasCliente).filter(x => x.produtoId === pid && ncPorQFD.has(x.requisitoClienteId)).forEach(x => { o[ncPorQFD.get(x.requisitoClienteId)] = +x.nota || 0; });
+        return o;
+    };
+    const ccAnt = new Map(p.concorrentes.map(c => [c.idQFD, c]));
+    const vindos = lista(ac.produtos).filter(x => x.tipo === 'concorrente').map(x => Object.assign({}, ccAnt.get(x.id) || {}, { id: (ccAnt.get(x.id) || {}).id || uid('cc'), idQFD: x.id, nome: txt(x.nome, 120), notas: notasDe(x.id) }));
+    p.concorrentes = vindos.concat(p.concorrentes.filter(c => !c.idQFD));
+    p.notasNosso = notasDe('nosso');
+    // estado da técnica (normas, produtos, patentes, artigos)
+    const rfAnt = new Map(p.referencias.map(x => [x.idQFD, x]));
+    p.referencias = lista(d.referencias).map(x => Object.assign({}, rfAnt.get(x.id) || {}, { id: (rfAnt.get(x.id) || {}).id || uid('rf'), idQFD: x.id, tipo: txt(x.tipo, 40), identificacao: txt(x.identificacao, 120), titulo: txt(x.titulo, 300), resumo: txt(x.resumo, 1200), link: txt(x.link, 500) }))
+        .concat(p.referencias.filter(x => !x.idQFD));
+    // ideias de solução do caderno de ideias: viram sugestões de princípios
+    const espPorQFD = new Map(p.especificacoes.filter(e => e.idQFD).map(e => [e.idQFD, e.id]));
+    p.ideiasQFD = lista((d.cadernoIdeias || {}).ideias).filter(x => x.titulo || x.descricao).map(x => ({
+        id: uid('id'), idQFD: x.id, titulo: txt(x.titulo || x.descricao, 160), descricao: txt(x.descricao, 800), status: txt(x.status, 30),
+        especIds: lista(x.requisitos).filter(q => q.tipo === 'projeto' && espPorQFD.has(q.id)).map(q => espPorQFD.get(q.id))
+    }));
+    p.qfdBackup = clonar(d);
+    if (!p.tipoProjeto) p.tipoProjeto = detectarTipoProjeto(p);
     p.origemQFD = { arquivo: txt(arquivo, 160), importadoEm: new Date().toISOString() };
     return { especificacoes: novas.length, necessidades: p.necessidades.length, formadores: formadores.length, criouEstrutura };
+}
+
+/** Palpite do tipo de projeto pelo vocabulário das especificações e necessidades (o usuário pode trocar). */
+function detectarTipoProjeto(p) {
+    const t = semAcento([p.projeto.nome, p.formulacao, p.funcaoGlobal.nome].concat(p.especificacoes.map(e => e.descricao), p.necessidades.map(n => n.descricao)).join(' '));
+    const conta = re => (t.match(re) || []).length;
+    const pts = {
+        eletrico: conta(/eletric|tensao|corrente|potencia|bateria|volt|\bkw|\bw\b|inversor|solar|fotovolt|disjunt|cabo|aterr/g),
+        automacao: conta(/sensor|control|automa|software|comunica|sinal|wifi|bluetooth|iot|dado|monitor|embarc|microcontrol|precisao|app\b/g),
+        agricola: conta(/semente|plant|pulveriz|colh|grao|graos|solo|lavoura|aduba|fertiliz|trator|agric|dosa|secag|cultiv/g),
+        mecanico: conta(/massa|carga|resist|rigidez|desgaste|rolamento|eixo|engrenag|estrutura|chassi|quadro|roda|mola/g)
+    };
+    const ord = Object.entries(pts).sort((a, b) => b[1] - a[1]);
+    if (!ord[0][1]) return 'mecanico';
+    const fortes = ord.filter(([, v]) => v >= Math.max(2, ord[0][1] * 0.6)).map(([k]) => k);
+    if (fortes.length >= 2 && fortes.some(k => k === 'eletrico' || k === 'automacao') && fortes.some(k => k === 'mecanico' || k === 'agricola')) return 'misto';
+    return ord[0][0];
+}
+
+/** Funções da estrutura ligadas a uma especificação: escolhidas à mão (funcoesIds) ou com o mesmo nome da "função relacionada". */
+function funcoesDaEspec(est, e) {
+    if (!est) return [];
+    const ids = new Set(lista(e.funcoesIds));
+    const nome = semAcento(e.funcao || '').trim();
+    return est.nos.filter(n => n.tipo === 'funcao' && !n.global && (ids.has(n.id) || (nome && semAcento(n.nome).trim() === nome)));
 }
 
 function perguntaDaNecessidade(t) {
@@ -548,7 +639,8 @@ const ETAPAS = [
     ['matriz', '5', 'Matriz morfológica'],
     ['selecao', '6', 'Seleção da concepção'],
     ['concepcao', '7', 'Concepção selecionada'],
-    ['relatorio', '8', 'Relatório']
+    ['analises', '8', 'Análises e TRL'],
+    ['relatorio', '9', 'Relatório']
 ];
 
 function statusEtapas(p) {
@@ -567,8 +659,13 @@ function statusEtapas(p) {
         'matriz': s(p.variantes.length >= 2 && p.variantes.every(v => folhas.every(f => v.escolhas[f.id])), p.variantes.length > 0, `${p.variantes.length} concepção(ões)`),
         'selecao': s(r.length > 0 && !!p.selecao.avaliacao.referencia && r.some(x => x.promissora), r.some(x => x.viabilidade), r.length ? `${r.filter(x => x.promissora).length} promissora(s)` : 'sem concepções'),
         'concepcao': s(p.concepcao.varianteId && p.concepcao.descricao.trim(), p.concepcao.varianteId || p.concepcao.descricao.trim(), p.concepcao.varianteId ? 'concepção escolhida' : 'não escolhida'),
+        'analises': s(false, false, ''),
         'relatorio': s(false, false, 'gerar ao final')
     };
+    if (typeof pendencias === 'function') {
+        const pend = pendencias(p), altas = pend.filter(x => x.nivel === 'alta').length, medias = pend.filter(x => x.nivel === 'media').length;
+        out.analises = s(est && !altas && !medias && out.concepcao.estado === 'feito', est && folhas.length > 0, altas + medias ? `${altas} importante(s), ${medias} a melhorar` : 'nada pendente');
+    }
     out.relatorio = s(out.concepcao.estado === 'feito', out.estrutura.estado !== 'vazio', out.concepcao.estado === 'feito' ? 'pronto para gerar' : 'pode gerar a qualquer momento');
     p.etapasConcluidas.forEach(id => { if (out[id] && out[id].estado !== 'feito') out[id] = { estado: 'feito', resumo: out[id].resumo + ' · marcada como concluída', marcada: true }; });
     return out;
@@ -577,7 +674,7 @@ function statusEtapas(p) {
 function proximaEtapa(p, st) {
     st = st || statusEtapas(p);
     const e = ETAPAS.find(([id]) => id !== 'relatorio' && st[id].estado !== 'feito');
-    return e ? { id: e[0], numero: e[1], nome: e[2] } : { id: 'relatorio', numero: '8', nome: 'Relatório' };
+    return e ? { id: e[0], numero: e[1], nome: e[2] } : { id: 'relatorio', numero: '9', nome: 'Relatório' };
 }
 
 // ============================================================================
@@ -602,13 +699,17 @@ async function montarZip(p, extras = {}) {
     zip.file('projeto-conceitual.json', JSON.stringify(Object.assign({}, p, { arquivosImagens: mapa }), null, 2));
     lista(extras.diagramas).forEach(d => zip.file(`diagramas/${nomeSeguro(d.nome)}.svg`, d.svg));
     lista(extras.arquivos).forEach(a => zip.file(a.caminho, a.blob));
+    if (typeof exportarParaGestao === 'function' && p.estruturas.length) zip.file('gestao-conceitual.json', JSON.stringify(exportarParaGestao(p), null, 2));
+    if (p.qfdBackup) zip.file('qfd-backup.json', JSON.stringify(p.qfdBackup, null, 2));
     if (extras.relatorioHtml) zip.file('relatorio.html', typeof extras.relatorioHtml === 'function' ? extras.relatorioHtml(mapa) : extras.relatorioHtml);
     zip.file('LEIA-ME.txt', [
         'Projeto conceitual exportado pelo Sistema de Projeto Conceitual.',
         '', '- projeto-conceitual.json: todos os dados (abra em "Abrir projeto" para continuar de onde parou).',
         '- imagens/: fotos e esboços dos princípios de solução e da concepção.',
         '- diagramas/: estruturas de funções em SVG (abrem no navegador, Inkscape, Word, PowerPoint).',
-        '- relatorio.html: relatório completo (abra no navegador; para PDF, use Imprimir → Salvar como PDF).'
+        '- relatorio.html: relatório completo (abra no navegador; para PDF, use Imprimir → Salvar como PDF).',
+        '- gestao-conceitual.json: funções, princípios e concepção para o Gestão de Projetos (árvore TRL); o Gestão também aceita este ZIP inteiro.',
+        '- qfd-backup.json: o backup do QFD de onde o projeto partiu.'
     ].join('\n'));
     return zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
 }

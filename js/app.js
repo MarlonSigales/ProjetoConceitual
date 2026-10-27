@@ -200,7 +200,13 @@ const ACOES = {
     'fechar-menu': () => { document.body.classList.remove('sidebar-aberta'); },
     'marcar-etapa': b => { if (!PC.p.etapasConcluidas.includes(b.dataset.id)) PC.p.etapasConcluidas.push(b.dataset.id); salvar(); },
     'desmarcar-etapa': b => { PC.p.etapasConcluidas = PC.p.etapasConcluidas.filter(x => x !== b.dataset.id); salvar(); },
-    'ir': b => { location.hash = '#/' + b.dataset.id; }
+    'ir': b => { location.hash = '#/' + b.dataset.id; },
+    'tipo-projeto': b => { PC.p.tipoProjeto = b.dataset.tipo; salvar(); renderPagina(true); avisar(`Tipo: ${TIPOS_PROJETO[b.dataset.tipo].nome}. As sugestões passam a considerar este tipo.`); },
+    'preencher-tudo': () => {
+        const feito = preencherTudo(PC.p);
+        salvar(); renderPagina(true);
+        avisar(feito.length ? `${feito.length} item(ns) preenchido(s). Veja a lista e revise.` : 'Nada vazio para preencher: tudo já tem conteúdo.', 'ok', 6000);
+    }
 };
 
 document.addEventListener('click', e => {
@@ -282,10 +288,11 @@ function importarArquivoQFD(arq, d) {
     if (!ehBackupQFD(d)) throw new Error('Este arquivo não é um backup do Sistema QFD (Backup & Export → Exportar backup).');
     if (projetoTemConteudo(PC.p) && !confirm('Atualizar o projeto atual com os dados deste QFD? O que você já fez aqui é mantido; as especificações vindas do QFD são atualizadas.')) return;
     const r = importarQFD(PC.p, d, arq.name);
+    const feito = preencherTudo(PC.p);   // o que der para montar a partir do QFD já sai pronto (só completa o vazio)
     salvar();
-    location.hash = '#/escopo';
+    location.hash = '#/inicio';
     renderPagina();
-    avisar(`QFD importado: ${r.especificacoes} especificação(ões), ${r.necessidades} necessidade(s)${r.criouEstrutura ? ', estrutura funcional inicial criada' : ''}.`, 'ok', 6000);
+    avisar(`QFD importado: ${r.especificacoes} especificação(ões), ${r.necessidades} necessidade(s), ${PC.p.concorrentes.length} concorrente(s). ${feito.length} item(ns) pré-preenchido(s): revise no Início.`, 'ok', 7000);
 }
 
 async function carregarExemplo() {
@@ -317,6 +324,7 @@ PAGINAS.inicio = {
     sub: 'Do fim do QFD à concepção escolhida: escopo, estrutura de funções, princípios de solução, matriz morfológica e seleção — seguindo Pahl et al. (2005), Reis (2003) e Spagnolo (2011).',
     render(p) {
         const st = statusEtapas(p), prox = proximaEtapa(p, st);
+        const nEtapas = ETAPAS.length - 1;
         const feitas = ETAPAS.filter(([id]) => id !== 'relatorio' && st[id].estado === 'feito').length;
         const tem = projetoTemConteudo(p);
         const comecar = `
@@ -336,8 +344,8 @@ PAGINAS.inicio = {
             <div class="proximo-passo-texto">
                 <span class="proximo-passo-rotulo">Próximo passo</span> <b>${prox.numero}. ${esc(prox.nome)}</b>
                 <span class="proximo-passo-resumo">— ${esc(st[prox.id].resumo)}</span>
-                <div class="proximo-passo-barra"><i style="width:${Math.round(feitas / 7 * 100)}%"></i></div>
-                <small>${feitas} de 7 etapas concluídas</small>
+                <div class="proximo-passo-barra"><i style="width:${Math.round(feitas / nEtapas * 100)}%"></i></div>
+                <small>${feitas} de ${nEtapas} etapas concluídas</small>
             </div>
             <a class="btn btn-primary" href="#/${prox.id}">Continuar →</a>
         </div>
@@ -348,7 +356,9 @@ PAGINAS.inicio = {
                 <label>Cliente <input type="text" data-campo="projeto.cliente" value="${escAttr(p.projeto.cliente)}" maxlength="160"></label>
             </div>
             ${p.origemQFD ? `<p class="nota">Dados vindos do QFD: <b>${esc(p.origemQFD.arquivo || 'backup')}</b>, importado em ${new Date(p.origemQFD.importadoEm).toLocaleString('pt-BR')}.</p>` : ''}
+            ${htmlTipoProjeto(p)}
         </section>
+        ${htmlPreenchimento(p)}
         <section class="cartoes-etapas">
             ${ETAPAS.map(([id, num, nome]) => `<a class="cartao-etapa estado-${st[id].estado}" href="#/${id}">
                 <span class="sidebar-num">${st[id].estado === 'feito' ? '✓' : num}</span>
@@ -358,6 +368,26 @@ PAGINAS.inicio = {
         ${htmlFluxoMetodo(true)}`;
     }
 };
+
+/** Escolha do tipo de projeto (muda catálogo, modelos e sugestões). */
+function htmlTipoProjeto(p) {
+    return `<div class="tipo-projeto"><span class="tipo-rotulo">Tipo de projeto${p.tipoProjeto ? '' : ' <b class="falta">(escolha um)</b>'}:</span>
+        <div class="tipos" role="radiogroup" aria-label="Tipo de projeto">${Object.entries(TIPOS_PROJETO).map(([k, t]) => `<button type="button" role="radio" aria-checked="${p.tipoProjeto === k}" class="tipo ${p.tipoProjeto === k ? 'ativo' : ''}" data-acao="tipo-projeto" data-tipo="${k}" title="${escAttr(t.exemplo)}"><span aria-hidden="true">${t.icone}</span> ${esc(t.nome)}</button>`).join('')}</div>
+        <small>Muda as sugestões do catálogo, os modelos prontos de estrutura e os fluxos sugeridos.</small></div>`;
+}
+
+/** Botão "preencher o que der" e o resumo do último preenchimento automático. */
+function htmlPreenchimento(p) {
+    const u = p.ultimoPreenchimento;
+    const nomeEt = id => (ETAPAS.find(e => e[0] === id) || [])[2] || id;
+    return `<section class="card preencher">
+        <div class="card-topo"><h2>✨ Preenchimento automático</h2>
+            <button type="button" class="btn btn-primary" data-acao="preencher-tudo">Preencher o que estiver vazio</button></div>
+        <p class="nota">Monta um rascunho de todas as etapas com o que veio do QFD, o catálogo e os modelos prontos. <b>Nunca apaga</b> o que você já fez; só completa o que está vazio. Depois é só revisar.</p>
+        ${u && u.itens.length ? `<details ${Date.now() - new Date(u.em).getTime() < 3600e3 ? 'open' : ''}><summary>O que foi preenchido em ${new Date(u.em).toLocaleString('pt-BR')} (${u.itens.length}) — revise</summary>
+            <ul class="lista-preenchido">${u.itens.map(x => `<li><a href="#/${x.etapa}">${esc(nomeEt(x.etapa))}</a>: ${esc(x.texto)}</li>`).join('')}</ul></details>` : ''}
+    </section>`;
+}
 
 function htmlFluxoMetodo(recolhido = false) {
     const passos = [

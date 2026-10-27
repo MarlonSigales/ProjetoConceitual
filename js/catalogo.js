@@ -19,7 +19,8 @@ const VERBOS_FUNCAO = [
     'Converter', 'Cortar', 'Desacoplar', 'Descarregar', 'Detectar', 'Direcionar', 'Dissipar', 'Distribuir', 'Dosar', 'Elevar',
     'Esfriar', 'Fixar', 'Frear', 'Girar', 'Guiar', 'Indicar', 'Isolar', 'Limpar', 'Medir', 'Misturar', 'Mover', 'Posicionar',
     'Proteger', 'Pulverizar', 'Receber', 'Reduzir', 'Regular', 'Rolar', 'Secar', 'Selar', 'Separar', 'Sustentar', 'Transmitir',
-    'Transportar', 'Triturar', 'Vedar'
+    'Transportar', 'Triturar', 'Vedar',
+    'Aterrar', 'Comunicar', 'Condicionar', 'Diagnosticar', 'Energizar', 'Filtrar', 'Informar', 'Localizar', 'Monitorar', 'Processar', 'Registrar'
 ];
 
 const CATALOGO_PRINCIPIOS = [
@@ -221,7 +222,7 @@ const CATALOGO_PRINCIPIOS = [
         ['Tambor rotativo', 'Suave, para produtos frágeis.'],
         ['Agitação por retorno de bomba', 'Mantém caldas homogêneas.']
     ] },
-    { verbos: ['tritur', 'mo', 'picar', 'fragment', 'quebr'], objetos: [], principios: [
+    { verbos: ['tritur', 'moer', 'moa', 'picar', 'fragment', 'quebr'], objetos: [], principios: [
         ['Moinho de martelos', 'Robusto, para grãos e fibras.'],
         ['Moinho de rolos', 'Granulometria uniforme.'],
         ['Faca rotativa (picador)', 'Para forragem.'],
@@ -302,6 +303,143 @@ const CATALOGO_PRINCIPIOS = [
         ['Silo bolsa', 'Armazenagem temporária barata.'],
         ['Big bag com descarga inferior', 'Abastecimento rápido.']
     ] },
+    { verbos: ['convert', 'transform'], objetos: ['moviment', 'rotac', 'linear', 'alternativ'], principios: [
+        ['Biela-manivela', 'Rotação ↔ movimento alternativo.'],
+        ['Came e seguidor', 'Movimento programado pelo perfil do came.'],
+        ['Pinhão e cremalheira', 'Rotação → movimento linear.'],
+        ['Fuso (parafuso de potência)', 'Rotação → linear com grande redução.'],
+        ['Excêntrico', 'Oscilação simples e robusta.']
+    ] },
+    { verbos: ['acion', 'receb', 'mov', 'aliment'], objetos: ['mecanism', 'acionamento', 'dosador', 'rotor', 'eixo de acion'], principios: [
+        ['Roda de terra (acionamento pelo rodado)', 'Dose proporcional ao deslocamento, sem energia externa; patina.'],
+        ['Tomada de potência (TDP) do trator', 'Muita potência disponível; rotação fixa.'],
+        ['Motor hidráulico do trator', 'Rotação ajustável, usa o sistema hidráulico existente.'],
+        ['Motor elétrico com controle', 'Rotação variável por comando (taxa variável).'],
+        ['Motor a combustão próprio', 'Independe do trator; peso e manutenção.']
+    ] },
+    { verbos: ['deposit', 'coloc', 'enterr', 'semear', 'plant'], objetos: ['solo', 'sulco', 'insumo', 'semente', 'muda'], principios: [
+        ['Tubo condutor por gravidade', 'Simples; a semente pode quicar e perder o espaçamento.'],
+        ['Condutor com esteira (escova)', 'Leva a semente até o fundo do sulco sem quicar.'],
+        ['Ejetor pneumático', 'Lança a semente com velocidade controlada.'],
+        ['Roda puncionadora', 'Abre a cova e deposita sem sulco contínuo.'],
+        ['Distribuição a lanço', 'Rápida, sem precisão de posição.']
+    ] },
+    // ---------- elétrico ----------
+    { verbos: ['receb', 'aliment', 'fornec', 'energiz', 'suprir', 'captar'], objetos: ['energia eletr', 'eletric', 'alimentac', 'tensao', 'rede', 'potencia'], principios: [
+        ['Rede elétrica 127/220 V', 'Energia contínua e barata onde há rede; exige instalação e proteção.'],
+        ['Bateria com BMS (lítio)', 'Autonomia sem rede; o BMS protege contra sobrecarga e descarga profunda.'],
+        ['Painel fotovoltaico + controlador MPPT', 'Energia no campo, sem rede; depende de sol e de armazenamento.'],
+        ['Bateria/alternador do trator (12 V)', 'Aproveita a energia já disponível na máquina; potência limitada.'],
+        ['Gerador a combustão', 'Alta potência sem rede; ruído e manutenção.'],
+        ['Alimentação pelo cabo de dados (PoE / USB)', 'Um cabo só para energia e dados; baixa potência.']
+    ] },
+    { verbos: ['convert', 'transform', 'regul', 'ajust', 'adequ', 'reduz', 'elev'], objetos: ['tensao', 'eletric', 'ca ', 'cc ', 'ca-cc', 'cc-cc', 'alimentac', 'potencia eletr', 'corrente alternada', 'corrente continua'], principios: [
+        ['Fonte chaveada CA-CC', 'Compacta e eficiente; gera ruído de alta frequência.'],
+        ['Conversor CC-CC abaixador (buck)', 'Reduz a tensão com alta eficiência (ex.: 12 V → 5 V).'],
+        ['Conversor CC-CC elevador (boost)', 'Eleva a tensão de baterias.'],
+        ['Regulador linear (LDO)', 'Simples e sem ruído; desperdiça energia em calor.'],
+        ['Transformador + retificador', 'Robusto e isolado; pesado.'],
+        ['Inversor CC-CA', 'Gera corrente alternada a partir de bateria/painel.']
+    ] },
+    { verbos: ['proteg', 'isol', 'seccion', 'interromp', 'limit'], objetos: ['circuito', 'eletric', 'sobrecorrente', 'curto', 'surto', 'sobretensao', 'instalac', 'choque', 'equipamento'], principios: [
+        ['Fusível', 'Barato e rápido; precisa ser trocado depois de atuar.'],
+        ['Disjuntor termomagnético', 'Protege contra sobrecarga e curto; rearmável.'],
+        ['Dispositivo DR (diferencial residual)', 'Protege as pessoas contra choque elétrico.'],
+        ['DPS (protetor de surto)', 'Desvia surtos de tensão (raios, manobras).'],
+        ['Diodo TVS / varistor', 'Protege a eletrônica contra picos de tensão.'],
+        ['Fusível rearmável (PTC)', 'Volta a conduzir sozinho depois de esfriar.'],
+        ['Relé térmico de sobrecarga', 'Protege motores contra sobreaquecimento.']
+    ] },
+    { verbos: ['acion', 'comand', 'chave', 'ligar', 'aliment', 'control'], objetos: ['motor', 'carga', 'atuador', 'bomba', 'valvula', 'solenoide', 'lampada', 'resistencia'], principios: [
+        ['Contator', 'Liga cargas de potência por comando de baixa tensão; robusto.'],
+        ['Relé eletromecânico', 'Simples e barato; desgaste mecânico dos contatos.'],
+        ['Relé de estado sólido (SSR)', 'Sem desgaste e silencioso; aquece.'],
+        ['MOSFET com PWM', 'Controla a potência de cargas CC com eficiência.'],
+        ['Ponte H / driver de motor CC', 'Controla sentido e velocidade de motores CC.'],
+        ['Inversor de frequência', 'Controla a velocidade de motores de indução.'],
+        ['Soft-starter', 'Partida suave de motores, menos pico de corrente.']
+    ] },
+    { verbos: ['distribu', 'conduz', 'levar', 'transmit'], objetos: ['energia', 'eletric', 'potencia eletr', 'alimentac'], principios: [
+        ['Quadro de distribuição com barramento', 'Organiza e protege os circuitos.'],
+        ['Régua de bornes', 'Ligações organizadas e fáceis de manter.'],
+        ['Chicote elétrico com conectores', 'Montagem rápida em série; padrão automotivo.'],
+        ['Cabos em eletroduto / eletrocalha', 'Proteção mecânica dos cabos.']
+    ] },
+    { verbos: ['conect', 'lig', 'unir', 'acopl'], objetos: ['eletric', 'cabo', 'fio', 'sinal', 'conector', 'chicote'], principios: [
+        ['Conector circular IP67 (M12)', 'Estanque, padrão em sensores industriais.'],
+        ['Conector automotivo (tipo Deutsch)', 'Resiste a vibração, água e poeira.'],
+        ['Borne de mola / parafuso', 'Simples para painéis.'],
+        ['Terminal crimpado', 'Ligação confiável e rápida.'],
+        ['Solda em placa', 'Permanente e compacta.']
+    ] },
+    { verbos: ['aterr', 'isol', 'blind'], objetos: [], principios: [
+        ['Haste de aterramento', 'Escoa correntes de fuga e surtos.'],
+        ['Isolamento galvânico (optoacoplador / transformador)', 'Separa circuitos de potência e de controle.'],
+        ['Cabo blindado aterrado em um ponto', 'Reduz interferência nos sinais.'],
+        ['Dupla isolação (classe II)', 'Dispensa aterramento do equipamento.']
+    ] },
+    { verbos: ['med', 'monitor', 'sent', 'capt', 'detect'], objetos: ['corrente', 'tensao', 'consumo', 'energia', 'potencia'], principios: [
+        ['Resistor shunt + amplificador', 'Barato e preciso em CC.'],
+        ['Sensor de corrente por efeito Hall', 'Isolado, mede CC e CA.'],
+        ['Transformador de corrente (TC)', 'Para CA, sem contato elétrico.'],
+        ['Divisor resistivo', 'Mede tensão com o conversor A/D.'],
+        ['Medidor de energia com Modbus', 'Pronto para integrar ao controle.'],
+        ['CI monitor de energia (ex.: INA219)', 'Tensão, corrente e potência por I2C.']
+    ] },
+    // ---------- automação e eletrônica ----------
+    { verbos: ['capt', 'med', 'detect', 'sent', 'ler', 'perceb', 'adquir'], objetos: ['sinal', 'processo', 'grandeza', 'variavel', 'sensor', 'leitura'], principios: [
+        ['Sensor analógico com saída 0–10 V / 4–20 mA', 'Padrão industrial, fácil de ligar ao CLP.'],
+        ['Sensor digital (I2C / SPI)', 'Ligação direta ao microcontrolador, já calibrado.'],
+        ['Sensor óptico / infravermelho', 'Rápido, sem contato; sensível a sujeira.'],
+        ['Câmera e visão computacional', 'Vê muitas coisas ao mesmo tempo; exige processamento.'],
+        ['Chave / sensor de contato', 'Simples e barato para presença ou fim de curso.'],
+        ['Sensor capacitivo', 'Detecta produtos não metálicos (grãos, líquidos).']
+    ] },
+    { verbos: ['condicion', 'amplific', 'filtr', 'adequ', 'convert', 'digitaliz', 'trat'], objetos: ['sinal', 'leitura', 'medida', 'sensor', 'analog'], principios: [
+        ['Amplificador operacional', 'Amplifica e adapta a faixa do sinal.'],
+        ['Amplificador de instrumentação', 'Para sinais pequenos (célula de carga, termopar).'],
+        ['Filtro RC / filtro ativo', 'Remove ruído antes da leitura.'],
+        ['Conversor A/D externo (16–24 bits)', 'Mais resolução que o do microcontrolador.'],
+        ['Transmissor 4–20 mA', 'Sinal robusto a longas distâncias.'],
+        ['Filtro digital no software (média, Kalman)', 'Sem componentes extras.']
+    ] },
+    { verbos: ['process', 'calcul', 'decid', 'execut', 'control', 'gerenci', 'comput'], objetos: ['dado', 'sinal', 'informac', 'logica', 'algoritmo', 'leitura', 'process', 'malha'], principios: [
+        ['Microcontrolador (ESP32, STM32, Arduino)', 'Barato, baixo consumo, tempo real.'],
+        ['CLP (controlador lógico programável)', 'Robusto e padrão industrial.'],
+        ['Computador de placa única (Raspberry Pi)', 'Processamento alto, visão e Linux.'],
+        ['FPGA', 'Processamento paralelo muito rápido.'],
+        ['Controle PID em software', 'Malha fechada simples e conhecida.'],
+        ['Controle adaptativo / preditivo', 'Melhor desempenho com variações do processo; mais complexo.']
+    ] },
+    { verbos: ['comunic', 'transmit', 'envi', 'troc', 'conect', 'integr'], objetos: ['dado', 'sinal', 'informac', 'rede', 'nuvem', 'celular', 'trator', 'remot', 'mensag'], principios: [
+        ['CAN / ISOBUS', 'Padrão em máquinas agrícolas e veículos.'],
+        ['RS-485 com Modbus RTU', 'Robusto, longa distância, industrial.'],
+        ['Ethernet / Modbus TCP', 'Alta taxa, redes industriais.'],
+        ['Wi-Fi com MQTT', 'Envio à nuvem/IoT onde há rede.'],
+        ['Bluetooth Low Energy', 'Ligação com o celular, curto alcance.'],
+        ['LoRa / LoRaWAN', 'Longo alcance no campo, poucos dados.'],
+        ['Rede celular 4G / NB-IoT', 'Cobertura ampla; custo de dados.']
+    ] },
+    { verbos: ['armazen', 'registr', 'grav', 'guard', 'salv'], objetos: ['dado', 'informac', 'registro', 'histor', 'leitura', 'medic'], principios: [
+        ['Cartão SD', 'Grande capacidade, removível.'],
+        ['Memória flash interna / EEPROM', 'Sem peças extras; pouca capacidade.'],
+        ['Banco de dados em nuvem', 'Acesso remoto e histórico ilimitado; depende de conexão.'],
+        ['Datalogger dedicado', 'Pronto para uso.']
+    ] },
+    { verbos: ['localiz', 'posicion', 'georreferenc', 'naveg', 'guiar', 'orient'], objetos: ['posic', 'local', 'gps', 'gnss', 'campo', 'maquina', 'trajet', 'coordenad'], principios: [
+        ['Receptor GNSS (GPS)', 'Posição com erro de metros.'],
+        ['GNSS RTK', 'Posição centimétrica; precisa de base/correção.'],
+        ['Unidade inercial (IMU)', 'Orientação e movimento; deriva com o tempo.'],
+        ['Encoder de roda (odometria)', 'Distância percorrida; erra com patinagem.'],
+        ['Visão computacional', 'Segue linhas da cultura; sensível à luz.']
+    ] },
+    { verbos: ['diagnost', 'supervision', 'verific', 'detect', 'monitor'], objetos: ['falha', 'erro', 'defeito', 'funcionamento', 'estado'], principios: [
+        ['Watchdog', 'Reinicia o controle se o software travar.'],
+        ['Autodiagnóstico por software', 'Testa sensores e atuadores ao ligar.'],
+        ['Registro de falhas (log)', 'Ajuda a manutenção a achar a causa.'],
+        ['LED / buzzer de estado', 'Mostra o problema ao operador.'],
+        ['Alerta no celular', 'Avisa à distância.']
+    ] },
     { verbos: ['ved', 'sel', 'estanq'], objetos: [], principios: [
         ['Anel O-ring', 'Vedação estática simples.'],
         ['Retentor labial', 'Vedação de eixos girando.'],
@@ -309,6 +447,62 @@ const CATALOGO_PRINCIPIOS = [
         ['Junta plana', 'Entre flanges.']
     ] }
 ];
+
+/**
+ * Modelos de estrutura de funções (cadeias típicas), inseridos no nível aberto do diagrama.
+ * Cada função diz que fluxos da fronteira pode receber (recebe) e entregar (entrega), para a ligação automática.
+ */
+const MODELOS_ESTRUTURA = {
+    automacao: { nome: 'Cadeia de automação (sensor → controle → atuador)', tipo: 'automacao', funcoes: [
+        { nome: 'Captar o sinal do processo', recebe: ['material', 'sinal'] },
+        { nome: 'Condicionar o sinal' },
+        { nome: 'Processar e decidir', recebe: ['sinal'] },
+        { nome: 'Acionar o atuador', entrega: ['energia', 'material'] },
+        { nome: 'Informar o usuário', entrega: ['sinal'] },
+        { nome: 'Comunicar os dados', entrega: ['sinal'] },
+        { nome: 'Alimentar o sistema eletricamente', recebe: ['energia'] }
+    ], ligacoes: [[0, 1, 'sinal', 'Sinal do sensor'], [1, 2, 'sinal', 'Sinal condicionado'], [2, 3, 'sinal', 'Comando'], [2, 4, 'sinal', 'Estado'], [2, 5, 'sinal', 'Dados'],
+        [6, 2, 'energia', 'Energia elétrica'], [6, 3, 'energia', 'Energia de potência']] },
+    eletrico: { nome: 'Sistema elétrico (alimentação → proteção → conversão → carga)', tipo: 'eletrico', funcoes: [
+        { nome: 'Receber a energia elétrica', recebe: ['energia'] },
+        { nome: 'Proteger o circuito' },
+        { nome: 'Converter a tensão' },
+        { nome: 'Distribuir a energia' },
+        { nome: 'Acionar a carga', recebe: ['sinal'], entrega: ['energia', 'material'] },
+        { nome: 'Medir o consumo', entrega: ['sinal'] }
+    ], ligacoes: [[0, 1, 'energia', 'Energia da rede'], [1, 2, 'energia', 'Energia protegida'], [2, 3, 'energia', 'Tensão adequada'], [3, 4, 'energia', 'Energia para a carga'], [3, 5, 'sinal', 'Corrente e tensão']] },
+    agricola: { nome: 'Aplicação de insumo (armazenar → dosar → depositar)', tipo: 'agricola', funcoes: [
+        { nome: 'Armazenar o insumo', recebe: ['material'] },
+        { nome: 'Dosar o insumo', recebe: ['sinal'] },
+        { nome: 'Conduzir o insumo' },
+        { nome: 'Abrir o sulco', recebe: ['energia'] },
+        { nome: 'Depositar o insumo no solo', entrega: ['material'] },
+        { nome: 'Cobrir e compactar o sulco', entrega: ['material'] },
+        { nome: 'Acionar os mecanismos', recebe: ['energia'] }
+    ], ligacoes: [[0, 1, 'material', 'Insumo'], [1, 2, 'material', 'Insumo dosado'], [2, 4, 'material', 'Insumo'], [3, 4, 'material', 'Sulco aberto'], [4, 5, 'material', 'Insumo no sulco'], [6, 1, 'energia', 'Rotação']] },
+    mecanico: { nome: 'Sistema mecânico (receber → transmitir → atuar)', tipo: 'mecanico', funcoes: [
+        { nome: 'Receber a energia de acionamento', recebe: ['energia'] },
+        { nome: 'Transmitir o movimento' },
+        { nome: 'Converter o movimento' },
+        { nome: 'Atuar sobre o objeto', recebe: ['material'], entrega: ['material', 'energia'] },
+        { nome: 'Sustentar os componentes', recebe: ['material'] },
+        { nome: 'Comandar o sistema', recebe: ['sinal'], entrega: ['sinal'] }
+    ], ligacoes: [[0, 1, 'energia', 'Torque'], [1, 2, 'energia', 'Rotação'], [2, 3, 'energia', 'Movimento útil'], [5, 1, 'sinal', 'Comando'], [4, 3, 'material', 'Apoio']] }
+};
+
+/** Modelos na ordem de interesse para o tipo de projeto. */
+function modelosParaTipo(tipo) {
+    const todos = Object.entries(MODELOS_ESTRUTURA);
+    if (!tipo || tipo === 'misto') return todos;
+    return todos.sort((a, b) => (b[1].tipo === tipo) - (a[1].tipo === tipo));
+}
+
+/** Fluxos típicos da função global por tipo de projeto (chips de sugestão). */
+const FLUXOS_SUGERIDOS = {
+    energia: ['Energia elétrica da rede', 'Energia da bateria', 'Energia solar', 'Torque do motor', 'Rotação da tomada de potência', 'Energia humana', 'Calor dissipado', 'Movimento útil', 'Energia hidráulica'],
+    material: ['Insumo (sementes, adubo)', 'Produto a processar', 'Ar', 'Água', 'Peso suportado', 'Produto processado', 'Resíduos', 'Poeira e umidade do ambiente'],
+    sinal: ['Comando do operador', 'Ajuste de dose / setpoint', 'Leitura do sensor', 'Sinal de GPS / velocidade', 'Dados enviados', 'Alarme / indicação', 'Estado do sistema', 'Ruído / vibração']
+};
 
 /** Princípios do catálogo para uma função (melhores correspondências primeiro). Devolve [{nome, descricao}]. */
 function sugerirPrincipios(nomeFuncao, limite = 8) {

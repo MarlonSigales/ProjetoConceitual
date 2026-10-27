@@ -7,6 +7,20 @@ Pahl et al. (2005) e Reis (2003).
 **Usar:** https://marlonsigales.github.io/ProjetoConceitual/ (ou abra `index.html` por um servidor local:
 `python3 -m http.server`).
 
+## Feito para ser simples
+
+1. **Importe o backup do QFD** → a ferramenta monta um rascunho de **todas** as etapas (abstração, funções ligadas,
+   princípios do catálogo e das ideias do QFD, 3 concepções, perguntas e critérios da seleção) e lista no Início o que
+   fez, para revisar. Nunca apaga o que você já preencheu.
+2. Escolha o **tipo de projeto** (mecânico, elétrico, automação/eletrônico, máquina agrícola, misto): muda o catálogo, os
+   **modelos prontos de estrutura** e as sugestões de fluxos.
+3. **Pesquisa com IA (multiagente)**: baixe o pacote (pedido pronto + fotos + contexto), cole numa IA (ChatGPT, Claude,
+   Gemini…) e cole a resposta de volta — princípios dos concorrentes, de patentes e da literatura entram na matriz
+   morfológica, com maturidade, fontes e concepções sugeridas.
+4. **Análises e TRL**: o que falta, especificação → função, maturidade de cada solução (TRL provável) e concorrentes.
+5. **Gestão de Projetos**: baixe o arquivo "…-para-gestao.json" (ou use o ZIP) e importe na fase conceitual do Gestão: as
+   funções viram a árvore TRL.
+
 ## Etapas
 
 | # | Etapa | O que tem |
@@ -18,7 +32,8 @@ Pahl et al. (2005) e Reis (2003).
 | 5 | Matriz morfológica | Matriz com fotos, concepções coloridas ligadas por linhas, incompatibilidades, número de combinações, combinações compatíveis sugeridas e montagem automática de 3 concepções diferentes |
 | 6 | Seleção da concepção | As 4 técnicas de Reis (2003) em sequência: viabilidade, disponibilidade de tecnologia, passa/não passa (das necessidades) e matriz de avaliação com referência |
 | 7 | Concepção selecionada | Princípios escolhidos, descrição (rascunho automático), esboços e fotos, complementos de outras concepções, próximos passos |
-| 8 | Relatório | Mesmo design do Gestão de Projetos e do QFD; imprimir/PDF, HTML único ou dentro do ZIP |
+| 8 | Análises e TRL | O que falta (com link para a etapa), desdobramento especificação → função, maturidade das soluções da concepção (TRL provável), concorrentes; exportação para o Gestão de Projetos |
+| 9 | Relatório | Mesmo design do Gestão de Projetos e do QFD; imprimir/PDF, HTML único ou dentro do ZIP |
 
 ## Arquivo do projeto
 
@@ -37,7 +52,10 @@ Pahl et al. (2005) e Reis (2003).
 index.html          casca da aplicação (rotas por #/etapa)
 css/style.css       identidade visual (Gestão de Projetos / QFD), responsivo
 js/dados.js         modelo, armazenamento, imagens, importação do QFD, cálculos, ZIP
-js/catalogo.js      catálogo de princípios de solução e verbos de função
+js/catalogo.js      catálogo de princípios, verbos de função, modelos prontos de estrutura e fluxos sugeridos
+js/assistente.js    preenchimento automático a partir do QFD
+js/ia.js            pacote e pedido para IA multiagente; importação da resposta
+js/analises.js      análises (pendências, desdobramento, maturidade/TRL, concorrentes) e exportação para o Gestão
 js/diagrama.js      editor e desenho da estrutura de funções (SVG)
 js/relatorio.js     relatório (prévia, PDF e HTML)
 js/exemplo.js       projeto de exemplo
@@ -45,6 +63,7 @@ js/app.js           menu, rotas, salvar automático, ligação campo↔dado, arq
 js/etapas.js        páginas das etapas
 lib/jszip.min.js    JSZip 3.10.1 (MIT) — local, funciona sem internet
 tests/testes.html   testes automáticos (abrir pelo servidor)
+todoQA.txt          diretrizes, próximos passos e o que já foi feito
 ```
 
 ## Referências

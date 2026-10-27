@@ -422,3 +422,43 @@ details.sobre > summary h2 { display: inline; }
 .tabela td:first-child input[type=text] { min-width: 260px; }
 
 .topbar .topbar-zip { white-space: nowrap; flex: none; }
+
+/* ---------------- tipo de projeto e preenchimento automático ---------------- */
+.tipo-projeto { margin-top: 0.9rem; }
+.tipo-rotulo { font-size: 0.86rem; font-weight: 600; color: var(--suave); display: block; margin-bottom: 0.35rem; }
+.tipos { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.25rem; }
+.tipo { font: inherit; font-size: 0.88rem; cursor: pointer; border: 1px solid var(--borda); background: #fff; color: var(--texto); border-radius: 18px; padding: 0.3rem 0.8rem; max-width: 100%; }
+.tipo:hover { border-color: var(--verde); }
+.tipo.ativo { background: var(--teal); border-color: var(--teal); color: #fff; font-weight: 600; }
+.preencher { border-left: 5px solid var(--limao); }
+.preencher details > summary { cursor: pointer; font-weight: 600; color: var(--verde-escuro); font-size: 0.9rem; }
+.lista-preenchido { margin-top: 0.4rem; font-size: 0.88rem; }
+.lista-preenchido li { margin-bottom: 0.2rem; }
+
+/* ---------------- análises ---------------- */
+.pendencias { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.pendencias li { display: flex; gap: 0.6rem; align-items: baseline; flex-wrap: wrap; padding: 0.45rem 0.6rem; border-radius: 6px; background: #f7faf9; font-size: 0.9rem; }
+.pendencias li > span:nth-child(2) { flex: 1 1 260px; min-width: 0; }
+.pend-sinal { flex: 0 0 20px; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.78rem; color: #fff; background: #9fb3ae; }
+.pend-alta { background: #fdf0ef !important; } .pend-alta .pend-sinal { background: var(--perigo); }
+.pend-media { background: #fff8e6 !important; } .pend-media .pend-sinal { background: var(--amarelo); }
+.pend-info .pend-sinal { background: #2f6fb3; }
+.barra-maturidade { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: #e3ecea; margin: 0.3rem 0 0.5rem; }
+.barra-maturidade i { display: block; height: 100%; }
+.resp-mat-mercado { background: #e9f6ee; } .resp-mat-adaptar { background: #fff6df; } .resp-mat-desenvolver { background: #fdeceb; }
+.chip-fixo { display: inline-flex; align-items: center; gap: 0.25rem; background: var(--verde-claro); border-radius: 14px; padding: 0 0 0 0.5rem; margin: 0.1rem 0.25rem 0.1rem 0; font-size: 0.84rem; }
+.chip-fixo .btn-icone { width: 24px; height: 24px; flex-basis: 24px; }
+.tabela td.pior-nos { color: var(--perigo); font-weight: 700; }
+
+/* ---------------- IA ---------------- */
+.cartao-ia { border-left: 5px solid #2f6fb3; }
+.passos-ia { padding-left: 1.2rem; display: grid; gap: 0.6rem; font-size: 0.92rem; }
+.passos-ia textarea { margin-top: 0.35rem; }
+.ia-prompt { white-space: pre-wrap; background: #f7faf9; border: 1px solid var(--borda); border-radius: 6px; padding: 0.7rem; font-size: 0.8rem; max-height: 360px; overflow: auto; margin-top: 0.6rem; }
+.principio-mais { font-size: 0.82rem; }
+.principio-mais summary { cursor: pointer; color: var(--verde-escuro); }
+.principio-mais p { margin-top: 0.2rem; overflow-wrap: anywhere; }
+.selo-ia { background: #e3edf9; color: #1f4f86; }
+.selo-qfd { background: #e2f4ea; color: #1f5f45; }
+.chips-fluxo { margin-top: 0.25rem; }
+.chips-fluxo .chip { font-size: 0.76rem; padding: 0.1rem 0.55rem; }

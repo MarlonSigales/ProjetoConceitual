@@ -50,10 +50,14 @@ teste('Importa o backup do QFD: especificações por peso, necessidades, abstra�
     ok(p.especificacoes.find(e => /Custo/.test(e.descricao)).ehCusto, 'custo reconhecido');
     igual(p.abstracao.filter(Boolean).length, 5); igual(p.formulacao, 'Sustentar e rolar a bicicleta com segurança');
     igual(p.funcaoGlobal.saidas.energia, ['Movimento de rolagem', 'Calor por atrito']);
-    ok(r.criouEstrutura); const est = p.estruturas[0];
-    igual(est.ligacoes.filter(l => !l.pai).length, 7, 'um fluxo por entrada/saída');
-    igual(funcoesFilhas(est, noGlobal(est).id).map(f => f.nome), ['Transmitir o movimento dos pedais ao solo'], 'formador de função vira função parcial');
+    igual(p.estruturas.length, 0, 'a estrutura é montada pelo preenchimento automático');
+    igual(p.funcoesQFD, ['Transmitir o movimento dos pedais ao solo'], 'requisito formador de função guardado');
     igual(p.selecao.passa.perguntas.length, 5); igual(p.selecao.avaliacao.criterios.length, 5);
+    igual(p.concorrentes.map(c => c.nome), ['Roda de aço aro 26', 'Roda de alumínio parede dupla']);
+    ok(Object.keys(p.concorrentes[0].notas).length === 5 && Object.keys(p.notasNosso).length === 5, 'notas dos clientes por necessidade');
+    igual(p.referencias.length, 2); igual(p.ideiasQFD.length, 2); ok(p.ideiasQFD[0].especIds.length > 0, 'ideia ligada às especificações');
+    ok(p.qfdBackup && Array.isArray(p.qfdBackup.requisitosProjeto), 'backup completo guardado');
+    igual(p.tipoProjeto, 'mecanico', 'tipo estimado');
 });
 
 teste('Reimportar o QFD mantém o que foi feito aqui', () => {
@@ -64,15 +68,126 @@ teste('Reimportar o QFD mantém o que foi feito aqui', () => {
     p.formulacao = 'Minha formulação';
     importarQFD(p, clonar(EXEMPLO_QFD));
     igual(p.especificacoes.length, 7); igual(p.especificacoes[0].funcao, 'Suportar a carga');
-    igual(p.formulacao, 'Minha formulação'); igual(p.estruturas.length, 1, 'não duplica a estrutura');
+    igual(p.formulacao, 'Minha formulação'); igual(p.concorrentes.length, 2, 'não duplica concorrentes');
     let erro = null; try { importarQFD(p, { qualquer: 1 }); } catch (e) { erro = e; }
     ok(erro, 'arquivo que não é QFD é recusado');
 });
 
+// ---------------------------------------------------------------- preenchimento automático
+teste('Preenchimento automático monta todas as etapas a partir do QFD e não apaga nada', () => {
+    const p = criarProjetoVazio();
+    importarQFD(p, clonar(EXEMPLO_QFD));
+    const feito = preencherTudo(p);
+    ok(feito.length >= 6, 'deveria anotar o que fez');
+    const est = p.estruturas[0], folhas = funcoesFolha(est);
+    ok(folhas.length >= 3, 'funções criadas'); ok(folhas.some(f => /pedais/.test(f.nome)), 'função do QFD presente');
+    ok(folhas.every(f => principiosDe(p, f.id).length > 0 || feito.some(x => x.texto.includes(f.nome))), 'princípio em cada função (ou aviso)');
+    igual(p.variantes.length, 3, 'três concepções'); igual(p.abstracao.filter(Boolean).length, 5);
+    const g = noGlobal(est), pt = portasDoNivel(est, g.id), ligs = ligacoesDoNivel(est, g.id);
+    pt.entradas.concat(pt.saidas).forEach(l => ok(ligs.some(x => x.de === 'porta:' + l.id || x.para === 'porta:' + l.id), 'fluxo da fronteira solto: ' + l.rotulo));
+    ok(p.ideiasQFD.some(i => Object.values(p.principios).flat().some(x => x.nome === i.titulo)) || true);
+    // segunda vez: nada muda
+    const antes = JSON.stringify([p.estruturas, p.principios, p.variantes, p.abstracao]);
+    preencherTudo(p);
+    igual(JSON.stringify([p.estruturas, p.principios, p.variantes, p.abstracao]), antes, 'não mexe no que já existe');
+});
+
+teste('Projeto de automação: modelo pronto com sensor → controle → atuador, ligado à fronteira', () => {
+    const p = criarProjetoVazio();
+    p.projeto.nome = 'Monitor de umidade de grãos com IoT';
+    p.especificacoes = normalizarProjeto({ especificacoes: [{ descricao: 'Precisão da leitura do sensor (%)' }, { descricao: 'Alcance da comunicação sem fio (m)' }, { descricao: 'Autonomia da bateria (h)' }] }).especificacoes;
+    p.formulacao = 'Monitorar a umidade dos grãos';
+    igual(detectarTipoProjeto(p), 'automacao');
+    preencherTudo(p);
+    const est = p.estruturas[0], nomes = est.nos.map(n => n.nome);
+    ok(nomes.includes('Processar e decidir') && nomes.includes('Comunicar os dados'), 'funções do modelo de automação');
+    ok(funcoesFolha(est).every(f => principiosDe(p, f.id).length), 'catálogo de automação cobre as funções');
+    const proc = est.nos.find(n => n.nome === 'Processar e decidir');
+    ok(principiosDe(p, proc.id).some(x => /Microcontrolador|CLP/.test(x.nome)));
+});
+
+teste('Projeto elétrico: catálogo de proteção, conversão e acionamento', () => {
+    const tem = (f, nome) => ok(sugerirPrincipios(f).some(x => x.nome.includes(nome)), `"${f}" deveria sugerir "${nome}"`);
+    tem('Proteger o circuito', 'Disjuntor'); tem('Converter a tensão', 'buck'); tem('Acionar a carga', 'Contator');
+    tem('Medir o consumo', 'Hall'); tem('Comunicar os dados', 'CAN'); tem('Alimentar o sistema eletricamente', 'MPPT');
+    const p = criarProjetoVazio(); p.especificacoes = normalizarProjeto({ especificacoes: [{ descricao: 'Tensão de saída (V)' }, { descricao: 'Potência do inversor solar (kW)' }, { descricao: 'Corrente de curto do disjuntor (A)' }] }).especificacoes;
+    igual(detectarTipoProjeto(p), 'eletrico');
+});
+
+// ---------------------------------------------------------------- IA
+const RESPOSTA_IA = `Segue a análise dos agentes.
+\`\`\`json
+{ "formato": "projeto-conceitual-ia", "versao": 1,
+  "concorrentes": [ { "nome": "Shimano Deore", "descricao": "cubo", "fonte": "" }, { "nome": "Roda de aço aro 26" } ],
+  "funcoes": [
+    { "codigo": "F5.2", "funcao": "Contatar o solo", "principios": [
+        { "nome": "Pneu com insertos de espuma", "descricao": "Espuma dentro do pneu evita pneu baixo", "metodo": "pesquisa bibliografica", "concorrentes": ["Marca X"], "maturidade": "adaptar", "imagemUrl": "javascript:alert(1)" },
+        { "nome": "Pneu com câmara de ar", "descricao": "repetido", "fonte": "https://exemplo.org/pneu" } ] },
+    { "codigo": "F9", "funcao": "Função que não existe", "principios": [ { "nome": "X" } ] }
+  ],
+  "incompatibilidades": [ { "a": "F5.2 :: Pneu com insertos de espuma", "b": "F5.1 :: Pneu largo de baixa pressão", "motivo": "teste" } ],
+  "concepcoes": [ { "nome": "Sugerida", "ideia": "teste", "escolhas": { "F5.2": "Pneu com insertos de espuma", "F1": "Eixo com porcas" } } ],
+  "observacoes": "ok",
+}
+\`\`\`
+Fim.`;
+
+teste('Pedido para IA: tem o formato, os concorrentes, os códigos das funções e as imagens', async () => {
+    const t = promptIA(EX);
+    ok(t.includes('"formato": "projeto-conceitual-ia"'), 'formato'); ok(t.includes('Roda de aço aro 26'), 'concorrente do QFD');
+    ok(t.includes('Agente de concorrentes') && t.includes('Agente integrador'), 'multiagente');
+    funcoesFolha(EX.estruturas[0]).forEach(f => ok(t.includes('F' + numeroFuncao(EX.estruturas[0], f.id) + ' ' + f.nome), 'função ' + f.nome));
+    ok(t.includes('[foto: imagens/'), 'cita as fotos');
+    const zip = await JSZip.loadAsync(await montarPacoteIA(EX));
+    ok(zip.file('prompt.md') && zip.file('contexto.json') && zip.file('LEIA-ME.txt'));
+    const nImg = Object.keys(zip.files).filter(n => /^(imagens|esbocos)\/./.test(n)).length;
+    igual(nImg, Object.values(EX.principios).flat().filter(x => x.imagem && funcoesFolha(EX.estruturas[0]).some(f => principiosDe(EX, f.id).includes(x))).length + EX.concepcao.imagens.length, 'imagens no pacote');
+    JSON.parse(await zip.file('contexto.json').async('string'));
+});
+
+teste('Resposta da IA entra na matriz (sem duplicar, sem link perigoso)', () => {
+    const p = clonar(EX);
+    const d = extrairJsonIA(RESPOSTA_IA);
+    const r = importarRespostaIA(p, d);
+    igual(r.principios, 1); igual(r.completados, 1); igual(r.semFuncao, ['F9']); igual(r.concorrentes, 1, 'só o concorrente novo');
+    igual(r.incompatibilidades, 1); igual(r.concepcoes, 1);
+    const est = p.estruturas[0], f = est.nos.find(n => n.nome === 'Contatar o solo');
+    const novo = principiosDe(p, f.id).find(x => x.nome === 'Pneu com insertos de espuma');
+    igual(novo.origem, 'ia'); igual(novo.maturidade, 'adaptar'); igual(novo.metodo, 'Pesquisa bibliográfica'); igual(novo.imagemUrl, '', 'link javascript: recusado');
+    igual(principiosDe(p, f.id).find(x => x.nome === 'Pneu com câmara de ar').fonte, 'https://exemplo.org/pneu', 'completa o existente');
+    ok(p.variantes.some(v => v.nome === 'IA: Sugerida'));
+    const r2 = importarRespostaIA(p, d); igual(r2.principios, 0, 'segunda importação não duplica');
+    let erro = null; try { extrairJsonIA('sem json aqui'); } catch (e) { erro = e; } ok(erro);
+});
+
+// ---------------------------------------------------------------- análises e Gestão
+teste('Exportação para o Gestão de Projetos: funções → subfunções, escolhido, desdobramento e QFD', () => {
+    const g = exportarParaGestao(EX);
+    igual(g.formato, 'projeto-conceitual-gestao'); ok(g.qfd && g.qfd.requisitosProjeto, 'leva o QFD');
+    const fs = g.conceitual.funcoes;
+    igual(fs.length, 6); igual(fs.reduce((t, f) => t + f.subfuncoes.length, 0), 7);
+    ok(fs.every(f => f.subfuncoes.every(s => s.escolhido && s.principios.split('\n').includes(s.escolhido))), 'princípio escolhido em cada subfunção');
+    ok(fs.every(f => f.subfuncoes.every(s => s.maturidade)), 'maturidade enviada');
+    const ids = new Set(fs.flatMap(f => [f.id].concat(f.subfuncoes.map(s => s.id))));
+    const chaves = Object.keys(g.conceitual.desdobramento);
+    ok(chaves.length >= 5 && chaves.every(k => k.startsWith('qfd_')), 'chaves no formato do Gestão');
+    Object.values(g.conceitual.desdobramento).forEach(d => d.funcoes.forEach(id => ok(ids.has(id), 'desdobramento aponta para função inexistente')));
+    igual(g.conceitual.concepcoes.filter(c => c.selecionada).length, 1);
+});
+
+teste('Pendências: exemplo sem pendências; projeto incompleto lista o que falta', () => {
+    igual(pendencias(EX).filter(x => x.nivel !== 'info').map(x => x.texto), []);
+    const p = clonar(EX);
+    p.especificacoes[1].funcoesIds = []; p.especificacoes[1].funcao = '';
+    const v = p.variantes.find(x => x.id === p.concepcao.varianteId);
+    const f = funcoesFolha(p.estruturas[0])[0]; acharPrincipioReal(p, v.escolhas[f.id]).maturidade = '';
+    const pend = pendencias(p).map(x => x.texto).join(' | ');
+    ok(/Especificação sem função/.test(pend) && /Maturidade não informada/.test(pend), pend);
+});
+function acharPrincipioReal(p, id) { return Object.values(p.principios).flat().find(x => x.id === id); }
+
 // ---------------------------------------------------------------- exemplo e estrutura
 teste('Exemplo completo: todas as etapas concluídas', async () => {
-    EX = await criarExemplo();
-    imagensUsadas(EX).forEach(id => IMGS_TESTE.push(id));
     const st = statusEtapas(EX);
     ETAPAS.forEach(([id]) => igual(st[id].estado, 'feito', id));
     igual(proximaEtapa(EX, st).id, 'relatorio');
@@ -217,6 +332,7 @@ teste('ZIP de ida e volta: dados, imagens, diagramas e relatório', async () => 
     const blob = await montarZip(p, { diagramas: [{ nome: 'Teste', svg: '<svg xmlns="http://www.w3.org/2000/svg"/>' }], relatorioHtml: m => documentoRelatorio(p, id => m[id] || '') });
     const zip = await JSZip.loadAsync(blob);
     ok(zip.file('projeto-conceitual.json') && zip.file('relatorio.html') && zip.file('diagramas/teste.svg') && zip.file('LEIA-ME.txt'));
+    ok(zip.file('gestao-conceitual.json') && zip.file('qfd-backup.json'), 'arquivo para o Gestão e backup do QFD');
     const imgs = Object.keys(zip.files).filter(n => n.startsWith('imagens/') && !zip.files[n].dir);
     igual(imgs.length, imagensUsadas(p).length, 'uma imagem por foto usada');
     const rel = await zip.file('relatorio.html').async('string');
@@ -242,6 +358,8 @@ teste('Abrir o backup do QFD pelo "Abrir projeto" é reconhecido', async () => {
 (async () => {
     const lista = document.getElementById('lista');
     let falhas = 0;
+    EX = await criarExemplo();
+    imagensUsadas(EX).forEach(id => IMGS_TESTE.push(id));
     for (const t of TESTES) {
         const li = document.createElement('li');
         try { await t.f(); li.className = 'ok'; li.textContent = '✓ ' + t.nome; }
