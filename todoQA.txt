@@ -36,9 +36,9 @@ Atualizado em 27/10/2026 (versão 3). Os números são fixos (servem de referên
      padronização de componentes; mesmas rodadas de teste, adequação ok/x/?, histórico e lições aprendidas.
    Menos telas que a versão completa: o que a tese mostra que é comum (especificações, função global, portadores) fica
    pré-preenchido do QFD; o que é próprio do elétrico entra no lugar da matriz morfológica longa.
-13 [fazer] Conferir o PDF real (Chrome/Edge: Imprimir → Salvar como PDF, "Gráficos de fundo" ligado) num computador de verdade.
+13 [resolvido — 28/10/2026: relatório do projeto conceitual conferido pelo usuário, ok] Conferir o PDF real (Chrome/Edge: Imprimir → Salvar como PDF, "Gráficos de fundo" ligado) num computador de verdade.
    Não dá para fazer daqui: o teste automático gera o PDF no Chromium sem tela, não no navegador de quem usa.
-14 [parcial — 27/10/2026: um pedido testado no Gemini gerou a resposta certa; faltam ChatGPT e Claude] Testar o pacote para IA com ChatGPT, Claude e Gemini de verdade (com pesquisa na web) e ajustar o pedido se alguma
+14 [resolvido — 28/10/2026: testado no Gemini com resposta certa; decisão do usuário: considerar válido para as outras IAs. Se alguma fugir do formato, a mensagem de erro orienta e o pedido é ajustado] Testar o pacote para IA com ChatGPT, Claude e Gemini de verdade (com pesquisa na web) e ajustar o pedido se alguma
    delas fugir do formato JSON. Não dá para fazer daqui (precisa das contas). Simplicidade: a pessoa só baixa, cola e importa;
    se a IA errar o formato, a mensagem de erro diz o que copiar.
 23 [rejeitado] Biblioteca gravada num repositório do GitHub: substituída pela nuvem da equipe (item 25), que exige senha.
