@@ -25,7 +25,7 @@ Atualizado em 27/10/2026 (versão 3). Os números são fixos (servem de referên
    delas fugir do formato JSON. Não dá para fazer daqui (precisa das contas). Simplicidade: a pessoa só baixa, cola e importa;
    se a IA errar o formato, a mensagem de erro diz o que copiar.
 23 [rejeitado] Biblioteca gravada num repositório do GitHub: substituída pela nuvem da equipe (item 25), que exige senha.
-25 [aguardando teste] Nuvem da equipe (MEGA): testar com uma conta MEGA real criada só para isso (dados de exemplo).
+25 [resolvido — testado com conta MEGA real em 27/10/2026: salvando no MEGA] Nuvem da equipe (MEGA).
    Feito e testado com um MEGA simulado: entrar (senha guardada pelo gerenciador de senhas do navegador), salvar o projeto
    (cada salvamento é uma versão, ZIP completo), listar e abrir versões, biblioteca única da equipe juntando todos os projetos.
    Não testado de verdade daqui: este ambiente não acessa o MEGA nem baixa a biblioteca megajs. Se der erro, anotar a
