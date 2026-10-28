@@ -184,6 +184,7 @@ function preliminarVazio() {
         },
         adequacao: {},                           // { [especId]: { valor, estado: 'ok'|'x'|'?', motivo } }
         fechamento: fechamentoVazio(),           // 3.3.1, 3.3.3 e Spagnolo (2011), etapas 10–11
+        licoes: [],                              // lições aprendidas das recorrências { id: 'rd:<rodada>' | 'cy:<ciclo>', licao, data }
         historico: []                            // ganho de conhecimento: { id, em, etapa, caminho, item, rotulo, antes, depois, tipo, aprendizado }
     };
 }
@@ -219,6 +220,7 @@ function normalizarPreliminar(x) {
         custo: Object.assign(preliminarVazio().prototipo.custo, pr.custo || {})
     });
     o.adequacao = Object.assign({}, x.adequacao || {});
+    o.licoes = lista(x.licoes).map(l => Object.assign({ id: '', licao: '', data: '' }, l));
     o.historico = lista(x.historico).map(h => Object.assign({ id: uid('hk'), em: '', etapa: '', caminho: '', item: '', rotulo: '', antes: '', depois: '', tipo: '', aprendizado: '' }, h));
     const f = x.fechamento || {};
     o.fechamento = Object.assign(fechamentoVazio(), f, {

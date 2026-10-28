@@ -19,6 +19,23 @@ Atualizado em 27/10/2026 (versão 3). Os números são fixos (servem de referên
 - Testar em 360, 768, 1024 e 1920 px: nada sai da tela.
 
 === O QUE FALTA (do mais simples para o mais difícil)
+56 [futuro] Versão simplificada do todo (QFD → conceitual → preliminar) para projetos elétricos, eletrônicos, de sistemas
+   embarcados e de automação (pedido de 28/10/2026), escolhida junto com o tipo de projeto, baseada nas metodologias da tese
+   (Sigales, 2025, seção 2.1) e da dissertação (Sigales, 2021):
+   - fluxo elétrico de Nilsson e Riedel adaptado ao modelo de consenso (Ogliari, 1999): especificações → conceito
+     (transdutores, diagrama de blocos) → modelo do circuito → simulação (SPICE, Simulink, LabVIEW, Xcos) → protótipo
+     físico (componentes pelos limites de trabalho, pico e falha, fator de segurança) → medição em bancada, recursivo até
+     atender; volta ao modelo quando o protótipo não atende nem com refinamento;
+   - controle (Nise, 6 passos): sistema físico e especificações → diagrama de blocos → esquema → modelo (Laplace, espaço de
+     estados; parâmetros levantados em laboratório) → redução → análise, projeto e teste (degrau, rampa, senoide;
+     sensibilidade; robustez); requisitos conflitantes → reespecificar;
+   - embarcados (Marwedel): mapeamento hardware × software, biblioteca de módulos validados com versões, otimização,
+     avaliação e validação, testes de uso e de mau uso (Modelo V: unidade → integração → sistema → aceitação);
+   - CDIO como roteiro curto (conceber, projetar, implementar, operar);
+   - preliminar elétrico: leiaute da placa e da caixa (grau IP), cabos e conectores, normas, interferência e ruído,
+     padronização de componentes; mesmas rodadas de teste, adequação ok/x/?, histórico e lições aprendidas.
+   Menos telas que a versão completa: o que a tese mostra que é comum (especificações, função global, portadores) fica
+   pré-preenchido do QFD; o que é próprio do elétrico entra no lugar da matriz morfológica longa.
 13 [fazer] Conferir o PDF real (Chrome/Edge: Imprimir → Salvar como PDF, "Gráficos de fundo" ligado) num computador de verdade.
    Não dá para fazer daqui: o teste automático gera o PDF no Chromium sem tela, não no navegador de quem usa.
 14 [parcial — 27/10/2026: um pedido testado no Gemini gerou a resposta certa; faltam ChatGPT e Claude] Testar o pacote para IA com ChatGPT, Claude e Gemini de verdade (com pesquisa na web) e ajustar o pedido se alguma
@@ -278,3 +295,8 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    tese); "Levar os valores para a adequação" (ficam "?" até confirmar); pendências (rodada sem resultado, última pede ajuste);
    no relatório do preliminar. As rodadas não entram no histórico de mudanças do projeto (já são o registro delas).
    QA: 44 testes automáticos ok; rodadas testadas na tela em 1280 e 360 px.
+57 [resolvido] Lições aprendidas das recorrências do preliminar: cada nova rodada de teste depois de outra e cada passo do
+   protótipo reprovado vira uma lição (o que aconteceu, o que foi mudado e o resultado vêm sozinhos das rodadas; a equipe
+   escreve a lição); seção 7 da P7, pendência sem lição, relatório do preliminar e envio para as Lições aprendidas do Gestão
+   de Projetos (atualiza sem duplicar ao reimportar).
+   QA: 45 testes automáticos ok; transferência para o Gestão testada; t1/t2/t3 do Gestão sem erros.

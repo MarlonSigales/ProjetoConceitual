@@ -720,6 +720,25 @@ teste('Rodadas de teste: cada rodada com metodologia e resultados; a nova copia 
     HIST.p = null;
 });
 
+teste('Lições aprendidas das recorrências: cada nova rodada após ajuste vira lição; vai ao relatório e ao Gestão', () => {
+    const p = normalizarProjeto(JSON.parse(JSON.stringify(EX)));
+    p.preliminar.prototipo.rodadas = []; p.preliminar.licoes = [];
+    const r1 = novaRodada(p); r1.conclusao = 'ajustar'; r1.observacoes = 'vazamento na vedação';
+    igual(recorrenciasPreliminar(p).length, 0, 'uma rodada só não é recorrência');
+    const r2 = novaRodada(p); r2.modificacoes = '- anel de vedação redesenhado'; r2.conclusao = 'aprovado';
+    const rec = recorrenciasPreliminar(p);
+    igual(rec.length, 1); ok(/Rodada 1.*Ajustar.*vazamento/.test(rec[0].situacao), rec[0].situacao); ok(/anel/.test(rec[0].acao)); ok(/Aprovado/.test(rec[0].resultado));
+    ok(pendenciasPreliminar(p).some(x => /sem lição/.test(x.texto)));
+    licaoDe(p, rec[0].id).licao = 'Testar a vedação com fumaça antes do ensaio';
+    ok(!pendenciasPreliminar(p).some(x => /sem lição/.test(x.texto)));
+    p.preliminar.prototipo.ciclo[1].situacao = 'reprovou';
+    igual(recorrenciasPreliminar(p).length, 2, 'passo do protótipo reprovado também é recorrência');
+    ok(/Lições aprendidas/.test(corpoRelatorio(p, { tipo: 'preliminar' })) && /fumaça/.test(corpoRelatorio(p, { tipo: 'preliminar' })));
+    const g = exportarParaGestao(p);
+    ok(g.licoes.some(l => l.origem === 'projeto-preliminar' && /fumaça/.test(l.recomendacao) && /recorrência/.test(l.descricao)));
+    igual(normalizarProjeto(JSON.parse(JSON.stringify(p))).preliminar.licoes[0].licao, 'Testar a vedação com fumaça antes do ensaio');
+});
+
 // ---------------------------------------------------------------- execução
 (async () => {
     const lista = document.getElementById('lista');
