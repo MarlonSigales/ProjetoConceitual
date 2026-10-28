@@ -1,4 +1,4 @@
-© 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+© 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
 
 TODO / QA — Sistema de Projeto Conceitual
 Marcadores: [fazer] [futuro] [resolvido] [rejeitado]
@@ -315,3 +315,9 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    Cálculos, diagnósticos e comparações não entram no histórico de mudanças do projeto (já são registros).
    QA: 48 testes automáticos ok (calculadoras conferidas com valores calculados à parte); P1–P7 em 360 e 1280 px sem erros;
    nuvem (MEGA simulado), ZIP e fluxo completos sem erros.
+59 [resolvido] Backups antigos do QFD (schemaVersion 3, meta guardada em "valorUnitario"): a importação monta a meta com o
+   sinal do sentido de melhoria (≤ 1100 g, ≥ 1500 N, ≤ R$ 350) e usa a observação como forma de avaliação. Os backups novos
+   não mudam. Teste incluído.
+60 [resolvido] Licença: os projetos agora são proprietários. Saiu "código aberto; cópias permitidas desde que citadas" dos
+   cabeçalhos, do rodapé e do README; entrou o LICENSE (todos os direitos reservados; JSZip e megajs seguem as suas licenças).
+

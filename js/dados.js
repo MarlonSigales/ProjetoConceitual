@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * ============================================================================
  * PROJETO CONCEITUAL — MODELO DE DADOS, ARMAZENAMENTO E CÁLCULOS
@@ -508,6 +508,14 @@ function textoMetaQFD(e) {
     return `${s ? s + ' ' : ''}${e.valorMeta}${un}${e.tolerancia ? ' ± ' + e.tolerancia : ''}`.trim();
 }
 
+/** Backups antigos do QFD (sem tipoMeta/valorMeta) guardavam a meta em "valorUnitario"; o sinal vem do sentido de melhoria. */
+function metaAntigaQFD(e, r) {
+    if (!e || e.tipoMeta || e.valorMeta || !String(e.valorUnitario || '').trim()) return '';
+    const s = { up: '≥', down: '≤', none: '=' }[(r || {}).sentidoMelhoria] || '';
+    const un = String(e.unidadeMedida || '').trim(), v = String(e.valorUnitario).trim();
+    return `${s ? s + ' ' : ''}${/^(R\$|US\$|\$|€)$/.test(un) ? un + ' ' + v : (v + ' ' + un).trim()}`;
+}
+
 /**
  * Traz do QFD: dados do projeto, especificações (na ordem de importância), requisitos dos clientes,
  * abstração e formulação do Fechamento e a função global com os fluxos. Requisitos marcados no QFD como
@@ -531,7 +539,7 @@ function importarQFD(p, d, arquivo = '') {
         return Object.assign({}, ant, {
             id: ant.id || uid('es'), idQFD: r.id, codigo: `RP${d.requisitosProjeto.findIndex(x => x.id === r.id) + 1}`, descricao: desc,
             sentido: ['up', 'down', 'none'].includes(r.sentidoMelhoria) ? r.sentidoMelhoria : 'none',
-            meta: textoMetaQFD(esp), unidade: esp.unidadeMedida || '', avaliacao: esp.formaAvaliacao || '', aspectos: esp.aspectosIndesejaveis || '',
+            meta: textoMetaQFD(esp) || metaAntigaQFD(esp, r), unidade: esp.unidadeMedida || '', avaliacao: esp.formaAvaliacao || (esp.valorUnitario && !esp.tipoMeta ? esp.observacao || '' : ''), aspectos: esp.aspectosIndesejaveis || '',
             peso: +r.pesoRelativo || 0, dificuldade: r.dificuldadeTecnica ?? null, origem: 'qfd', ordem: i + 1, funcoesIds: lista(ant.funcoesIds), funcao: ant.funcao || '',
             ehCusto: ant.ehCusto !== undefined ? ant.ehCusto : /custo|preço|preco|r\$/i.test(desc)
         });

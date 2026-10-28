@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * PEDIDO PARA IA NO PROJETO PRELIMINAR
  * Monta um pedido para uma IA multiagente (com pesquisa na web) com o contexto do preliminar e um formato JSON fixo de

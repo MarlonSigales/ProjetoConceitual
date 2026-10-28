@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * ESBOÇO À MÃO: tela de desenho com o dedo, a caneta ou o mouse (celular, tablet ou computador).
  * abrirEsboco(titulo) devolve um File PNG (ou null se a pessoa cancelar).

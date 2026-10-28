@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * LIÇÕES APRENDIDAS DAS RECORRÊNCIAS DO PROJETO PRELIMINAR
  * O preliminar é executado de forma recursiva (Sigales, 2021, 2025): cada volta — uma nova rodada de teste depois de

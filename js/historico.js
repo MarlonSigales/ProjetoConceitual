@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * HISTÓRICO DE GANHO DE CONHECIMENTO DO PROJETO PRELIMINAR
  * Reis (2003, cap. 7) registra o ganho de conhecimento ao longo das fases; Sigales (2021, 2025) executa as tarefas de

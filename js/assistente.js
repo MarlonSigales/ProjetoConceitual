@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * PREENCHIMENTO AUTOMÁTICO: monta um rascunho de todas as etapas a partir do que veio do QFD, para o usuário
  * só revisar. Nunca apaga nem troca o que já foi preenchido; só completa o que está vazio.

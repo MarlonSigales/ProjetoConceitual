@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * BIBLIOTECA DA EQUIPE E BUSCA DE PATENTES
  * - A biblioteca guarda os princípios de solução usados nos projetos da equipe (exporta/importa um .json) e passa a

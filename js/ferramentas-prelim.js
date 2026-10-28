@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * FERRAMENTAS DO PROJETO PRELIMINAR (acrescentadas sem mudar o que já existe):
  *  - Dimensionamento com memória de cálculo (Reis, 2003, 3.2.2 "cálculos detalhados"): eixo, parafuso, rolamento (L10),

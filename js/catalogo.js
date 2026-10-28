@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * CATÁLOGO DE PRINCÍPIOS DE SOLUÇÃO
  * Pré-preenche a matriz morfológica: para cada função elementar (verbo + substantivo), procura no catálogo

@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * EXEMPLO: roda de bicicleta urbana — continuação do exemplo do Sistema QFD. Todas as etapas preenchidas,
  * com duas estruturas alternativas, princípios com imagens, quatro concepções e a seleção completa.

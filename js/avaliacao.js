@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * EVOLUIR E AVALIAR AS CONCEPÇÕES (Reis, 2003, etapas 2.6 e 2.7)
  * 2.6 — as concepções promissoras são desenvolvidas até permitir o cálculo aproximado de custos, pesos e dimensões

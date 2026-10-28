@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * BANCO DA EQUIPE: COMPONENTES PADRONIZADOS, MATERIAIS E FORNECEDORES
  * Reis (2003), tarefa 3.2.1: preferir soluções padronizadas e de catálogo; cap. 8: a falta de dados de projetos anteriores

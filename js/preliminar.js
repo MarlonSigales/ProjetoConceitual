@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * PROJETO PRELIMINAR — continua no mesmo projeto depois da concepção escolhida.
  * Roteiro de Reis (2003), fase 3, como detalhado por Sigales (2021, 2025): 3.1 leiautes preliminares e desenhos de forma,

@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * PESQUISA COM IA (multiagente): monta um pacote (prompt + contexto + imagens) para qualquer assistente de IA
  * (ChatGPT, Claude, Gemini, Copilot…) pesquisar princípios de solução a partir dos concorrentes, de patentes e da

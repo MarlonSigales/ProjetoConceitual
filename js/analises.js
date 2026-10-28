@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * ANÁLISES: o que falta (pendências), rastreabilidade especificação → função → princípio, maturidade (TRL) das funções
  * da concepção escolhida, concorrentes — e a exportação das funções para o Gestão de Projetos (análise de TRL).

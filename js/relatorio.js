@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * RELATÓRIO DO PROJETO CONCEITUAL — mesmo design do Gestão de Projetos e do QFD (capa pontilhada com os
  * quadrados verde e limão, títulos "1 TÍTULO" com linha limão, tabelas de cabeçalho verde e linhas zebradas).

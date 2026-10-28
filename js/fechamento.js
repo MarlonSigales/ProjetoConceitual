@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * FIM DO PROJETO PRELIMINAR: LEIAUTE DEFINITIVO E RELATÓRIO
  * Reis (2003): 3.3.1 otimizar e completar (eliminar os pontos fracos achados no caminho, aproveitar o que era bom nos

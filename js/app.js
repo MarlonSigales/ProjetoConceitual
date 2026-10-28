@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * APLICAÇÃO: casca (menu de etapas, rotas, salvar automático), ligação dos campos aos dados, arquivo do
  * projeto (ZIP, abrir, importar do QFD, exemplo) e página inicial. As páginas das etapas estão em etapas.js.

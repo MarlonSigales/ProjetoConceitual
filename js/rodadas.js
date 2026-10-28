@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * RODADAS DE TESTE — metodologia e resultados a cada rodada de modificações.
  * Sigales (2021, 2025): o preliminar é executado de forma recursiva; a tese registra o protótipo anterior e cada nova

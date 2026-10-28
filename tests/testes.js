@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * Testes automáticos: modelo, importação do QFD, estrutura de funções, catálogo, matriz morfológica,
  * seleção (Ferreira e Reis), relatório (escape) e ZIP de ida e volta. Não usam o projeto salvo.
@@ -780,6 +780,13 @@ teste('Fornecedores no banco da equipe: juntar pelo nome, completar campos, vir 
     igual(b.fornecedores.length, 2, 'mesmo nome não duplica');
     const a = b.fornecedores.find(f => f.nome === 'Aços RS'); igual(a.cidade, 'Porto Alegre', 'completa o vazio'); igual(a.contato, '53 0000', 'não sobrescreve');
     igual(cotacoesDe(b, 'Rolamentos Sul').length, 1);
+});
+
+teste('Backup antigo do QFD (meta em valorUnitario): meta com o sinal do sentido e método da observação', () => {
+    const p = criarProjetoVazio();
+    importarQFD(p, { requisitosCliente: [{ id: 'c1', descricao: 'Leve', peso: 1 }], requisitosProjeto: [{ id: 'r1', descricao: 'Massa', sentidoMelhoria: 'down', pesoRelativo: 0.6 }, { id: 'r2', descricao: 'Custo', sentidoMelhoria: 'down', pesoRelativo: 0.4 }],
+        especificacoesProjeto: [{ requisitoProjetoId: 'r1', unidadeMedida: 'g', valorUnitario: '1100', observacao: 'Pesagem em balança' }, { requisitoProjetoId: 'r2', unidadeMedida: 'R$', valorUnitario: '350' }], metadata: { schemaVersion: 3 } });
+    igual(p.especificacoes[0].meta, '≤ 1100 g'); igual(p.especificacoes[0].avaliacao, 'Pesagem em balança'); igual(p.especificacoes[1].meta, '≤ R$ 350');
 });
 
 // ---------------------------------------------------------------- execução

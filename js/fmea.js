@@ -1,5 +1,5 @@
 /**
- * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Código aberto; cópias permitidas desde que citadas.
+ * © 2026 Sistema de Projeto Conceitual — Inova Agro UFPel EMBRAPII. Todos os direitos reservados; copiar, reproduzir ou alterar exige autorização do autor (ver LICENSE).
  *
  * FMEA DA CONCEPÇÃO: o que pode falhar em cada função da concepção escolhida. Os modos de falha são sugeridos pelo
  * verbo/objeto da função e pela maturidade do princípio; a equipe ajusta S (severidade), O (ocorrência) e

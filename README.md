@@ -94,4 +94,4 @@ Desenvolvedor: Marlon Soares Sigales.
 Equipe de projeto: Roger Toscan Spagnolo, Ângelo Vieira dos Reis, Ádamo de Sousa Araújo, Gizele Ingrid
 Gadotti, Eduardo Walker, Giusepe Stefanello, Fabrício Ardais — Equipe Inova Agro - UFPel - EMBRAPII.
 
-Código aberto: cópias são permitidas desde que devidamente citadas.
+© 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar o código exige autorização do autor; veja [LICENSE](LICENSE). A biblioteca JSZip em `lib/` segue sua própria licença (MIT).
