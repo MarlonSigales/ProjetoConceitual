@@ -21,7 +21,7 @@ Atualizado em 27/10/2026 (versão 3). Os números são fixos (servem de referên
 === O QUE FALTA (do mais simples para o mais difícil)
 13 [fazer] Conferir o PDF real (Chrome/Edge: Imprimir → Salvar como PDF, "Gráficos de fundo" ligado) num computador de verdade.
    Não dá para fazer daqui: o teste automático gera o PDF no Chromium sem tela, não no navegador de quem usa.
-14 [fazer] Testar o pacote para IA com ChatGPT, Claude e Gemini de verdade (com pesquisa na web) e ajustar o pedido se alguma
+14 [parcial — 27/10/2026: um pedido testado no Gemini gerou a resposta certa; faltam ChatGPT e Claude] Testar o pacote para IA com ChatGPT, Claude e Gemini de verdade (com pesquisa na web) e ajustar o pedido se alguma
    delas fugir do formato JSON. Não dá para fazer daqui (precisa das contas). Simplicidade: a pessoa só baixa, cola e importa;
    se a IA errar o formato, a mensagem de erro diz o que copiar.
 23 [rejeitado] Biblioteca gravada num repositório do GitHub: substituída pela nuvem da equipe (item 25), que exige senha.
@@ -261,3 +261,13 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    PRELIMINAR separado (capa própria, concepção de partida, P1–P7, FMEA, referências), com prévia, PDF, HTML com imagens,
    no ZIP (relatorio-preliminar.html) e na nuvem; o relatório do conceitual fica só com o conceitual.
    QA: 41 testes automáticos ok; P1–P7 em 360 e 1280 px sem erros; HTML e ZIP conferidos.
+53 [resolvido] Histórico de ganho de conhecimento (Reis, 2003, cap. 7): toda mudança no preliminar (P1–P6) vira uma linha sozinha
+   (o que mudou, antes → depois, etapa, data); digitação seguida no mesmo campo junta numa linha; peça/leiaute/interface
+   incluído ou excluído vira uma linha (incluído e excluído sem anotação some). Em P7, cada linha tem o tipo (melhoria,
+   correção de erro, aprendizado, decisão) e "o que foi melhorado ou aprendido"; filtro "só as sem anotação"; pendência
+   enquanto houver linhas sem anotação; seção "Ganho de conhecimento" no relatório do preliminar.
+54 [resolvido] MEGA criava pastas repetidas para o mesmo projeto: agora mesmo nome = mesma pasta (o "-atual" é sobrescrito),
+   sem a pergunta de criar outra; gravações na nuvem uma de cada vez e criação de pasta sem duplicar mesmo com salvamentos
+   simultâneos; pastas repetidas antigas são juntadas no próximo salvamento (arquivos movidos para a primeira, a vazia
+   apagada) e a lista "Abrir projeto da nuvem" já mostra cada nome uma vez só.
+   QA: 43 testes automáticos ok (inclui salvamentos simultâneos e pastas repetidas no MEGA simulado); histórico testado na tela.

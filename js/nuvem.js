@@ -120,11 +120,36 @@ function formularioEntrada() {
 // ---------------------------------------------------------------- pastas e arquivos
 
 const filhosDe = pasta => (pasta && pasta.children) || [];
+/**
+ * Pasta pelo nome: usa a que existe; se duas chamadas pedirem a mesma pasta ao mesmo tempo, cria uma só
+ * (antes, salvamentos simultâneos criavam pastas repetidas com o mesmo nome).
+ */
+const CRIANDO_PASTA = new Map();
 async function pasta(mae, nome) {
     const ja = filhosDe(mae).find(f => f.directory && f.name === nome);
     if (ja) return ja;
-    return mae.mkdir(nome);
+    const chave = mae, porNome = CRIANDO_PASTA.get(chave) || new Map();
+    CRIANDO_PASTA.set(chave, porNome);
+    if (porNome.has(nome)) return porNome.get(nome);
+    const pr = (async () => { try { return await mae.mkdir(nome); } finally { setTimeout(() => porNome.delete(nome), 2000); } })();
+    porNome.set(nome, pr);
+    return pr;
 }
+/** Junta pastas repetidas com o mesmo nome (criadas antes da correção): move os arquivos para a primeira e apaga as vazias. */
+async function juntarPastasRepetidas(mae, nome) {
+    const iguais = filhosDe(mae).filter(f => f.directory && f.name === nome);
+    if (iguais.length < 2) return 0;
+    const [principal, ...extras] = iguais;
+    let n = 0;
+    for (const d of extras) {
+        for (const f of [...filhosDe(d)]) { if (typeof f.moveTo === 'function') { try { await f.moveTo(principal); n++; } catch (e) { /* fica onde está */ } } }
+        if (!filhosDe(d).length) { try { await d.delete(true); } catch (e) { /* fica */ } }
+    }
+    return n;
+}
+/** Uma operação de gravação na nuvem por vez (evita "-atual.zip" e pastas repetidos). */
+let filaNuvem = Promise.resolve();
+function naFilaNuvem(f) { const r = filaNuvem.then(f, f); filaNuvem = r.catch(() => {}); return r; }
 async function pastasBase() {
     const st = await nuvemGarantir();
     const raiz = await pasta(st.root, NUVEM.pastaRaiz);
@@ -143,19 +168,25 @@ async function baixar(arquivo) {
 function carimboLocal(d = new Date()) { const z = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}_${z(d.getHours())}h${z(d.getMinutes())}`; }
 const quandoArquivo = f => (f.timestamp ? new Date(f.timestamp * 1000) : null);
 
-/** Projetos da nuvem: [{ nome, pasta, versoes: [arquivo ...] (mais nova primeiro) }] */
+/** Projetos da nuvem: [{ nome, pasta, versoes: [arquivo ...] (mais nova primeiro) }]. Pastas repetidas com o mesmo nome contam como um projeto só. */
 async function listarProjetosNuvem() {
     const { projetos } = await pastasBase();
-    return filhosDe(projetos).filter(f => f.directory).map(d => ({
-        nome: d.name, pasta: d,
-        versoes: filhosDe(d).filter(f => !f.directory && /\.zip$/i.test(f.name)).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
-    })).sort((a, b) => ((b.versoes[0] || {}).timestamp || 0) - ((a.versoes[0] || {}).timestamp || 0));
+    const porNome = new Map();
+    filhosDe(projetos).filter(f => f.directory).forEach(d => {
+        const pr = porNome.get(d.name) || { nome: d.name, pasta: d, versoes: [] };
+        pr.versoes.push(...filhosDe(d).filter(f => !f.directory && /\.zip$/i.test(f.name)));
+        porNome.set(d.name, pr);
+    });
+    return [...porNome.values()].map(pr => Object.assign(pr, { versoes: pr.versoes.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)) }))
+        .sort((a, b) => ((b.versoes[0] || {}).timestamp || 0) - ((a.versoes[0] || {}).timestamp || 0));
 }
 
 /** Salva o projeto atual (ZIP completo) e junta os princípios dele na biblioteca da nuvem. */
-async function salvarNaNuvem(p) {
+function salvarNaNuvem(p) { return naFilaNuvem(() => salvarNaNuvemAgora(p)); }
+async function salvarNaNuvemAgora(p) {
     const { projetos, biblioteca } = await pastasBase();
     const nome = p.nuvemPasta || nomeSeguro(p.projeto.nome || 'projeto-sem-nome');
+    await juntarPastasRepetidas(projetos, nome);
     const dir = await pasta(projetos, nome);
     const blob = await gerarZipDoProjeto(p);
     await enviar(dir, `${nome}-${carimboLocal()}.zip`, blob);

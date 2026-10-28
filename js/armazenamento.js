@@ -56,9 +56,11 @@ function pastaDoProjeto(p) {
 }
 
 /** Envia o projeto: substitui o "-atual.zip" e, a cada hora de trabalho, guarda também uma versão datada. */
-async function enviarAtual(p) {
+function enviarAtual(p) { return naFilaNuvem(() => enviarAtualAgora(p)); }
+async function enviarAtualAgora(p) {
     const { projetos } = await pastasBase();
     const nome = pastaDoProjeto(p);
+    await juntarPastasRepetidas(projetos, nome);
     const dir = await pasta(projetos, nome);
     const blob = await gerarZipDoProjeto(p);
     const antigos = filhosDe(dir).filter(f => !f.directory && f.name === `${nome}-atual.zip`);
@@ -171,14 +173,7 @@ function perguntarArmazenamento() {
 async function passarParaNuvem() {
     try { await nuvemGarantir(); }
     catch (e) { avisar('Sem entrar na nuvem o projeto continua neste computador. Você pode escolher a nuvem depois no Início.', 'erro', 8000); if (!modoArmazenamento()) definirModo('pc'); salvarNoNavegador(); atualizarSelo(); renderPagina(true); return; }
-    const nome = pastaDoProjeto(PC.p);
-    try {
-        const lst = await listarProjetosNuvem();
-        if (lst.some(x => x.nome === nome) && !confirm(`Já existe na nuvem um projeto na pasta "${nome}". Salvar este projeto como a versão mais nova dessa pasta?\n\nCancelar cria uma pasta nova.`)) {
-            let k = 2; while (lst.some(x => x.nome === `${nome}-${k}`)) k++;
-            PC.p.nuvemPasta = `${nome}-${k}`;
-        }
-    } catch (e) { /* segue: a pasta é criada no envio */ }
+    pastaDoProjeto(PC.p); // mesmo nome = mesma pasta: o projeto passa a ser a versão mais nova dela (sobrescreve o "-atual")
     definirModo('nuvem', PC.p.nuvemPasta);
     ARM.carregado = true; ARM.pendente = true; ARM.ultimaVersao = 0;
     avisar('Enviando o projeto para a nuvem da equipe…', 'ok', 60000);

@@ -332,6 +332,7 @@ function megaFalso() {
         n.upload = (o, d) => ({ complete: (async () => { const f = no(o.name, false, new Uint8Array(d)); n.children.push(f); f.pai = n; return f; })() });
         n.downloadBuffer = async () => n.dados;
         n.delete = async () => { n.pai.children = n.pai.children.filter(x => x !== n); };
+        n.moveTo = async t => { n.pai.children = n.pai.children.filter(x => x !== n); t.children.push(n); n.pai = t; };
         return n;
     };
     return { root: no('Cloud Drive', true), close() {} };
@@ -634,6 +635,60 @@ teste('Fim do preliminar: pontos fracos juntados, leiaute definitivo pré-preenc
     igual(statusEtapas(p)['p-fechamento'].estado, 'feito');
     const volta = normalizarProjeto(JSON.parse(JSON.stringify(p)));
     igual(volta.preliminar.fechamento.analise, 'ok'); igual(volta.preliminar.fechamento.patente.busca, false);
+});
+
+teste('Nuvem: mesmo nome = mesma pasta (sem pastas repetidas, mesmo salvando ao mesmo tempo; junta as antigas repetidas)', async () => {
+    const guarda = ['pc_modo', 'pc_nuvem_projeto', BIB_CHAVE, 'pc_componentes'].map(k => [k, localStorage.getItem(k)]);
+    NUVEM.storage = megaFalso(); NUVEM.email = 'equipe@exemplo.com';
+    try {
+        const p = clonar(EX); delete p.nuvemPasta;
+        await Promise.all([enviarAtual(p), salvarNaNuvem(p), enviarAtual(p), salvarNaNuvem(clonar(EX))]);
+        const projetos = NUVEM.storage.root.children[0].children.find(x => x.name === 'Projetos');
+        igual(projetos.children.length, 1, 'uma pasta só');
+        igual(projetos.children[0].children.filter(f => /-atual\.zip$/.test(f.name)).length, 1, 'um "-atual" só');
+        // pastas repetidas de antes da correção: juntadas no próximo salvamento
+        const nome = projetos.children[0].name;
+        const rep = await projetos.mkdir(nome); await rep.upload({ name: nome + '-antigo.zip' }, new Uint8Array([1])).complete;
+        igual((await listarProjetosNuvem()).length, 1, 'a lista mostra um projeto só');
+        await enviarAtual(p);
+        igual(projetos.children.filter(d => d.name === nome).length, 1, 'repetida juntada e apagada');
+        ok(projetos.children[0].children.some(f => f.name === nome + '-antigo.zip'), 'arquivo da repetida preservado');
+    } finally {
+        NUVEM.storage = null;
+        guarda.forEach(([k, v]) => { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); });
+    }
+});
+
+teste('Histórico de ganho de conhecimento: cada mudança no preliminar vira linha; digitação seguida junta; inclusão e exclusão', () => {
+    const p = normalizarProjeto(JSON.parse(JSON.stringify(EX)));
+    p.preliminar.historico = [];
+    HIST.p = null; registrarMudancasPreliminar(p); // retrato inicial
+    const pt = p.preliminar.portadores.find(x => x.papel !== 'auxiliar');
+    pt.parametro = 'Ø 1'; registrarMudancasPreliminar(p);
+    pt.parametro = 'Ø 180 mm'; registrarMudancasPreliminar(p);
+    let H = p.preliminar.historico;
+    igual(H.length, 1, 'digitação seguida no mesmo campo = uma linha');
+    ok(/parâmetro característico/.test(H[0].rotulo) && H[0].depois === 'Ø 180 mm', H[0].rotulo);
+    igual(H[0].etapa, 'p-leiautes');
+    H[0].aprendizado = 'Medida tirada do catálogo do fabricante';
+    pt.parametro = 'Ø 200 mm'; registrarMudancasPreliminar(p);
+    igual(H.length, 2, 'linha anotada não é reaproveitada');
+    p.preliminar.diretrizes.ergonomia = { r: 'nao', acao: 'alavanca' }; registrarMudancasPreliminar(p);
+    ok(H.some(h => /Diretriz "Ergonomia": resposta/.test(h.rotulo) && h.depois === 'Não'));
+    const novo = { id: uid('pt'), nome: '', papel: 'auxiliar', origem: 'comprado', qtd: 1, custo: null, imagem: null, parametro: '', material: '', processo: '', fornecedor: '', funcId: '', principioId: '' };
+    p.preliminar.portadores.push(novo); registrarMudancasPreliminar(p);
+    novo.nome = 'Porca autotravante'; registrarMudancasPreliminar(p);
+    const inc = H.filter(h => h.item === novo.id);
+    igual(inc.length, 1); ok(/Porca autotravante/.test(inc[0].rotulo) && inc[0].depois === 'incluído');
+    p.preliminar.portadores = p.preliminar.portadores.filter(x => x !== novo); registrarMudancasPreliminar(p);
+    igual(H.filter(h => h.item === novo.id).length, 0, 'incluída e excluída sem anotação some');
+    const n0 = H.length;
+    p.preliminar.fechamento.analise = 'texto'; p.preliminar.historico[0].aprendizado += '.'; registrarMudancasPreliminar(p);
+    igual(H.length, n0, 'o fechamento e as próprias anotações não entram no histórico');
+    ok(pendenciasPreliminar(p).some(x => /sem anotar/.test(x.texto)));
+    ok(/Ganho de conhecimento/.test(corpoRelatorio(p, { tipo: 'preliminar' })));
+    igual(normalizarProjeto(JSON.parse(JSON.stringify(p))).preliminar.historico.length, H.length);
+    HIST.p = null;
 });
 
 // ---------------------------------------------------------------- execução
