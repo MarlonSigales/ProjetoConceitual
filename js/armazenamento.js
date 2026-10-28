@@ -103,7 +103,20 @@ function textoSituacao() {
     if (ARM.pendente) return { t: '☁ alterações a enviar…', classe: 'enviando' };
     return { t: ARM.ultimo ? `☁ salvo na nuvem às ${ARM.ultimo.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : '☁ na nuvem da equipe', classe: 'ok' };
 }
+/** Com a nuvem ligada, "Baixar ZIP completo" vira "Salvar projeto completo no MEGA" (o ZIP vai para a nuvem da equipe). */
+function trocarBotoesZip() {
+    const nuvem = emNuvem();
+    document.querySelectorAll('[data-acao="baixar-zip"]:not([data-copia]), [data-acao="arm-salvar-completo"]').forEach(b => {
+        if (!b.dataset.textoZip) { b.dataset.textoZip = b.textContent; b.dataset.tituloZip = b.title || ''; }
+        const curto = b.classList.contains('topbar-zip');
+        b.dataset.acao = nuvem ? 'arm-salvar-completo' : 'baixar-zip';
+        b.textContent = nuvem ? (curto ? '☁ Salvar no MEGA' : '☁ Salvar projeto completo no MEGA') : b.dataset.textoZip;
+        b.title = nuvem ? 'Salvar agora o projeto completo (dados, fotos, diagramas e relatório) na nuvem da equipe, com uma versão datada' : b.dataset.tituloZip;
+    });
+}
+
 function atualizarSelo() {
+    trocarBotoesZip();
     const s = textoSituacao(), selo = $('#topbar-selo'), est = $('#sidebar-estado');
     if (selo) {
         if (!selo.dataset.original) selo.dataset.original = selo.textContent;
@@ -236,6 +249,23 @@ Object.assign(ACOES, {
         ARM.pendente = true; ARM.erro = '';
         await enviarAgora();
         if (!ARM.erro) avisar('Salvo na nuvem da equipe.');
+    },
+    'arm-salvar-completo': async () => {
+        if (!emNuvem()) return baixarZip();
+        if (!ARM.carregado) { abrirDaNuvemAoIniciar(); return; }
+        try { await nuvemGarantir(); } catch (e) { return; }
+        avisar('Salvando o projeto completo no MEGA…', 'ok', 60000);
+        ARM.pendente = true; ARM.erro = ''; ARM.ultimaVersao = 0; // força a versão datada
+        await enviarAgora();
+        if (ARM.erro) { avisar(ARM.erro, 'erro', 9000); return; }
+        let extras = '';
+        try {
+            const { biblioteca } = await pastasBase();
+            const n = await juntarBibliotecaNuvem(biblioteca, itensDoProjeto(PC.p));
+            const c = typeof sincronizarComponentesNuvem === 'function' ? (await sincronizarComponentesNuvem(componentesDoProjeto(PC.p))).novosNaNuvem : 0;
+            if (n || c) extras = ` ${n} princípio(s) novo(s) na biblioteca e ${c} item(ns) novo(s) no banco de componentes da equipe.`;
+        } catch (e) { /* o projeto já está salvo */ }
+        avisar(`Projeto completo salvo no MEGA (pasta "${PC.p.nuvemPasta}"), com uma versão datada.${extras}`, 'ok', 8000);
     },
     'arm-abrir-nuvem': () => abrirDaNuvemAoIniciar(),
     'arm-sair-nuvem': () => {

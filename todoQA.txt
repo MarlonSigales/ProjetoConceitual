@@ -249,3 +249,6 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    QA: 40 testes automáticos ok (inclui o modo nuvem com MEGA simulado); fluxo completo no navegador (perguntar, PC, nuvem,
    envio automático, reabrir, projeto novo, recarregar a página) sem erros; 360 px sem estouro.
    Hoje só este sistema tem acesso ao MEGA; QFD e Gestão salvam no computador. Na união dos sistemas, valer a mesma regra.
+51 [resolvido] Com a nuvem ligada, "Baixar ZIP" / "Baixar ZIP completo" (topo, menu e Relatório) viram "☁ Salvar no MEGA" /
+   "☁ Salvar projeto completo no MEGA": salva na hora o ZIP completo na pasta da equipe, com versão datada, e junta biblioteca
+   e banco de componentes. "Baixar uma cópia em ZIP" fica em "Mais opções". Voltando para o computador, os botões voltam.
