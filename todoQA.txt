@@ -138,13 +138,13 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    para dosador (tese, Tabela 9, Coelho 1996): repetições ≥ 4 (≥ 5 recomendado), ≥ 250 amostras, ≥ 3 densidades, 3 níveis
    do reservatório, inclinações de −11° a 11°, ≥ 3 velocidades; análise: ANOVA e Tukey (média móvel exponencial quando a
    distribuição não é normal). Coleta pela rede de sensores da bancada (MQTT) quando houver.
-39 [feito] Ciclo do protótipo (Spagnolo, etapas 06–09): construção → teste preliminar → ajuste e adequação → teste
+39 [parcial — falta a tabela liga/desliga do diagnóstico de falha; hoje só a orientação em texto] Ciclo do protótipo (Spagnolo, etapas 06–09): construção → teste preliminar → ajuste e adequação → teste
    definitivo, cada um com data, resultado e fotos; reprovação mostra o botão "voltar ao passo" (execução recursiva, como na
    dissertação e na tese). Custo do protótipo: energia (potência × horas × tarifa) + material (kg × R$/kg, ou a estimativa
    do fatiador da impressora 3D) + peças compradas no varejo — com o aviso de que não é o custo de produção.
    Diagnóstico de falha guiado (tese, Tabelas 10–12): tabela liga/desliga de cada vedação ou componente suspeito com a medida
    obtida, para achar a causa; registro de cada correção e novo teste.
-40 [feito] Adequação aos requisitos (dissertação, tabela 9; qualidade integrada de Spagnolo): para cada especificação,
+40 [parcial — falta a comparação com produto comercial no mesmo teste e a eficiência energética; hoje só dica] Adequação aos requisitos (dissertação, tabela 9; qualidade integrada de Spagnolo): para cada especificação,
    valor estimado ou medido × meta → Atendido (ok) / Não atendido (x) / Ainda não avaliado (?) — com o motivo: depende do
    leiaute definitivo, do material definitivo (fadiga, intervalo de manutenção, vida útil não se verificam em peça impressa)
    ou de ensaio que faltou (ex.: germinação, inclinações) —, terços de importância à vista, com a regra de tolerância do
