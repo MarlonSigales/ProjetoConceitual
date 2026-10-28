@@ -636,3 +636,12 @@ body:not(.modo-nuvem) .so-nuvem { display: none !important; }
 .hist-campos { display: grid; grid-template-columns: minmax(130px, 170px) 1fr; gap: 0.5rem; }
 .hist-campos textarea { width: 100%; box-sizing: border-box; }
 @media (max-width: 600px) { .hist-campos { grid-template-columns: 1fr; } }
+/* ---------------- rodadas de teste ---------------- */
+.rodada { border: 1px solid var(--borda); border-left: 5px solid #d4a017; border-radius: 8px; padding: 0.5rem 0.8rem; margin-top: 0.6rem; background: #fff; }
+.rodada.rodada-aprovado { border-left-color: #2f7d57; } .rodada.rodada-reprovado { border-left-color: #c0392b; }
+.rodada > summary { cursor: pointer; display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; padding: 0.2rem 0; }
+.rodada > summary small { color: #6b7775; }
+.rodada-conclusao { margin-left: auto; font-size: 0.82rem; font-weight: 600; color: #55625f; }
+.rodada h3 { margin: 0.8rem 0 0.3rem; font-size: 0.98rem; }
+.rodada textarea { width: 100%; box-sizing: border-box; }
+.btn-link.perigo { color: #a12a1e; }

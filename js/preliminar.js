@@ -586,7 +586,7 @@ PAGINAS['p-prototipo'] = {
             </div>
         </section>
         <section class="card">
-            <div class="card-topo"><h2>3. Plano de teste e ensaio</h2>
+            <div class="card-topo"><h2>3. Plano geral de teste e ensaio <small>(base de cada rodada)</small></h2>
                 <button type="button" class="btn btn-secondary btn-sm" data-acao="pl-ensaio-dosador" title="Sigales (2025), Tabela 9, a partir de Coelho (1996) e da ISO 7256-1">Usar modelo de ensaio de dosador</button></div>
             <p class="nota"><b>Teste</b> confere uma especificação de forma pontual (contar, medir, cronometrar). <b>Ensaio</b> é a operação repetida e normatizada (Geitner e Eierman, 2022, em Sigales, 2025).</p>
             <div class="grade-campos">

@@ -691,6 +691,35 @@ teste('Histórico de ganho de conhecimento: cada mudança no preliminar vira lin
     HIST.p = null;
 });
 
+teste('Rodadas de teste: cada rodada com metodologia e resultados; a nova copia a anterior e traz as modificações do histórico', () => {
+    const p = normalizarProjeto(JSON.parse(JSON.stringify(EX)));
+    p.preliminar.prototipo.rodadas = []; p.preliminar.historico = [];
+    const r1 = novaRodada(p);
+    igual(r1.nome, 'Rodada 1'); igual(r1.metodologia.respostas, p.preliminar.prototipo.respostas, 'metodologia vem do plano geral');
+    ok(r1.resultados.length > 0 && r1.resultados.every(x => x.especId), 'linhas por especificação ainda não atendida');
+    const massa = p.especificacoes.find(e => /Massa/.test(e.descricao));
+    const lin = r1.resultados.find(x => x.especId === massa.id) || (r1.resultados.push({ id: uid('rs'), especId: massa.id, condicao: '', repeticoes: '', valor: '', obs: '' }), r1.resultados[r1.resultados.length - 1]);
+    lin.valor = '1760'; lin.condicao = 'sem pneu'; r1.metodologia.procedimento = 'Pesar 3 vezes'; r1.conclusao = 'ajustar';
+    ok(pendenciasPreliminar(p).some(x => /pede ajuste/.test(x.texto)));
+    r1.criadaEm = new Date(Date.now() - 60000).toISOString();
+    p.preliminar.historico.push({ id: 'h1', em: new Date().toISOString(), etapa: 'p-leiautes', caminho: 'x', item: '', rotulo: 'Peça "Aro": material', antes: 'Alumínio', depois: 'Aço', tipo: '', aprendizado: 'mais barato' });
+    const r2 = novaRodada(p);
+    igual(r2.nome, 'Rodada 2'); igual(r2.tipo, 'ajuste');
+    igual(r2.metodologia.procedimento, 'Pesar 3 vezes', 'copia a metodologia da anterior');
+    ok(r2.resultados.some(x => x.especId === massa.id && x.condicao === 'sem pneu' && x.valor === ''), 'mesmas linhas, valores em branco');
+    ok(/Aro.*Alumínio → Aço.*mais barato/.test(r2.modificacoes), 'modificações vindas do histórico');
+    r2.resultados.find(x => x.especId === massa.id && x.condicao === 'sem pneu').valor = '1700';
+    igual(levarRodadaParaAdequacao(p, r2), 1);
+    const a = p.preliminar.adequacao[massa.id];
+    igual(a.valor, '1700'); igual(a.estado, '?', 'continua ? até confirmar'); igual(a.rodada, 'Rodada 2');
+    const rel = corpoRelatorio(p, { tipo: 'preliminar' });
+    ok(/Rodadas de teste/.test(rel) && /Comparação entre as rodadas/.test(rel) && /1760/.test(rel) && /1700/.test(rel), 'relatório com cada rodada e a comparação');
+    const n0 = p.preliminar.historico.length; HIST.p = null; registrarMudancasPreliminar(p); r2.observacoes = 'x'; registrarMudancasPreliminar(p);
+    igual(p.preliminar.historico.length, n0, 'rodadas não entram no histórico de mudanças do projeto');
+    igual(normalizarProjeto(JSON.parse(JSON.stringify(p))).preliminar.prototipo.rodadas.length, 2);
+    HIST.p = null;
+});
+
 // ---------------------------------------------------------------- execução
 (async () => {
     const lista = document.getElementById('lista');

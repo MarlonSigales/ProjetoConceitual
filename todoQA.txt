@@ -271,3 +271,10 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    simultâneos; pastas repetidas antigas são juntadas no próximo salvamento (arquivos movidos para a primeira, a vazia
    apagada) e a lista "Abrir projeto da nuvem" já mostra cada nome uma vez só.
    QA: 43 testes automáticos ok (inclui salvamentos simultâneos e pastas repetidas no MEGA simulado); histórico testado na tela.
+55 [resolvido] Rodadas de teste (P5): cada rodada de modificações tem a sua metodologia (variáveis, norma, amostras e
+   repetições, procedimento, respostas, análise) e os seus resultados (especificação ou medida, condição, repetições, valor,
+   observação, indicação pela meta) e conclusão (aprovado / ajustar / reprovado). A nova rodada copia a metodologia e as linhas
+   da anterior e traz do histórico o que foi modificado desde então; comparação lado a lado das rodadas (como a Tabela 10 da
+   tese); "Levar os valores para a adequação" (ficam "?" até confirmar); pendências (rodada sem resultado, última pede ajuste);
+   no relatório do preliminar. As rodadas não entram no histórico de mudanças do projeto (já são o registro delas).
+   QA: 44 testes automáticos ok; rodadas testadas na tela em 1280 e 360 px.

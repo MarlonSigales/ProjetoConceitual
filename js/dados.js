@@ -179,6 +179,7 @@ function preliminarVazio() {
             proposito: [], aproximacao: '', abrangencia: '', variaveis: '', norma: '', respostas: '', analise: '',
             datas: { inicio: '', teste: '', decisao: '' },
             ciclo: [],                           // { id, etapa, data, situacao: ''|'feito'|'reprovou', notas, imagem }
+            rodadas: [],                         // rodadas de teste: metodologia e resultados a cada rodada de modificações
             custo: { potenciaW: null, horas: null, tarifa: null, kg: null, precoKg: null, outros: null }
         },
         adequacao: {},                           // { [especId]: { valor, estado: 'ok'|'x'|'?', motivo } }
@@ -211,6 +212,10 @@ function normalizarPreliminar(x) {
     o.prototipo = Object.assign(preliminarVazio().prototipo, pr, {
         proposito: lista(pr.proposito), datas: Object.assign({ inicio: '', teste: '', decisao: '' }, pr.datas || {}),
         ciclo: lista(pr.ciclo).map(c => Object.assign({ id: uid('cy'), etapa: '', data: '', situacao: '', notas: '', imagem: null }, c)),
+        rodadas: lista(pr.rodadas).map(r => Object.assign({ id: uid('rd'), nome: '', data: '', tipo: '', modificacoes: '', conclusao: '', observacoes: '', imagem: null, criadaEm: '' }, r, {
+            metodologia: Object.assign({ variaveis: '', norma: '', procedimento: '', amostras: '', respostas: '', analise: '' }, r.metodologia || {}),
+            resultados: lista(r.resultados).map(x => Object.assign({ id: uid('rs'), especId: '', condicao: '', repeticoes: '', valor: '', obs: '' }, x))
+        })),
         custo: Object.assign(preliminarVazio().prototipo.custo, pr.custo || {})
     });
     o.adequacao = Object.assign({}, x.adequacao || {});
@@ -425,7 +430,7 @@ function imagensUsadas(p) {
     p.concepcao.imagens.forEach(x => x && x.id && ids.add(x.id));
     Object.values(p.selecao.evolucao || {}).forEach(e => e && e.imagem && ids.add(e.imagem));
     const pl = p.preliminar || {};
-    [pl.esbocoRestricoes].concat(lista(pl.portadores).map(x => x.imagem), lista(pl.leiautes).map(x => x.imagem), [((pl.fechamento || {}).definitivo || {}).imagem], lista((pl.prototipo || {}).ciclo).map(x => x.imagem)).forEach(id => id && ids.add(id));
+    [pl.esbocoRestricoes].concat(lista(pl.portadores).map(x => x.imagem), lista(pl.leiautes).map(x => x.imagem), [((pl.fechamento || {}).definitivo || {}).imagem], lista((pl.prototipo || {}).ciclo).map(x => x.imagem), lista((pl.prototipo || {}).rodadas).map(x => x.imagem)).forEach(id => id && ids.add(id));
     return [...ids];
 }
 
