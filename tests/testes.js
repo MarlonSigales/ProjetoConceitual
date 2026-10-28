@@ -739,6 +739,49 @@ teste('Lições aprendidas das recorrências: cada nova rodada após ajuste vira
     igual(normalizarProjeto(JSON.parse(JSON.stringify(p))).preliminar.licoes[0].licao, 'Testar a vedação com fumaça antes do ensaio');
 });
 
+teste('Calculadoras do preliminar: resultados conferidos à mão e ligação com a meta', () => {
+    const c = (tipo, entradas) => resultadoCalculo({ tipo, entradas });
+    perto(c('eixo', { M: 100, T: 50, sadm: 100 }).valor, 22.4984, 0.01, 'eixo');
+    perto(c('parafuso', { F: 5000, Sp: 600, n: 2 }).valor, 16.6667, 0.01, 'parafuso'); ok(/M6/.test(c('parafuso', { F: 5000, Sp: 600, n: 2 }).texto), 'rosca sugerida M6 (At 20,1 ≥ 16,7)');
+    perto(c('rolamento', { C: 25, P: 5, rpm: 1000, tipo: 'esferas' }).valor, 2083.3333, 0.5, 'L10h');
+    perto(c('motor', { T: 10, rpm: 100, eta: 85 }).valor, 123.1997, 0.05, 'motor');
+    perto(c('cabo', { I: 20, L: 10, V: 12, queda: 3 }).valor, 19.1111, 0.01, 'cabo'); ok(/25 mm²/.test(c('cabo', { I: 20, L: 10, V: 12, queda: 3 }).texto), 'bitola comercial 25 mm²');
+    perto(c('bateria', { Ah: 100, V: 12, W: 50, dod: 80 }).valor, 19.2, 0.01, 'bateria');
+    perto(c('transmissao', { n1: 1500, n2: 500, z1: 12 }).valor, 3, 0.001, 'relação');
+    igual(c('eixo', {}), null, 'sem dados não calcula');
+    ok(materiaisPorExigencia({ corrosao: true, massa: true })[0].nome.length > 0);
+    igual(materiaisPorExigencia({ prototipo: true })[0].nome, 'PLA (impressão 3D)');
+});
+
+teste('Diagnóstico liga/desliga: combinações e efeito médio de cada suspeito (como a Tabela 11 da tese)', () => {
+    igual(combinacoes(3).length, 8);
+    const d = { suspeitos: [{ id: 'a', nome: 'Vedação sementes' }, { id: 'b', nome: 'Obturador' }], linhas: [] };
+    [[true, true, 54.22], [true, false, 13.72], [false, true, 13.72], [false, false, 9.97]].forEach(([a, b, v]) => d.linhas.push({ id: uid('dl'), estados: { a, b }, valor: String(v) }));
+    const ef = efeitosDiagnostico(d);
+    perto(ef[0].efeito, (54.22 + 13.72) / 2 - (13.72 + 9.97) / 2, 0.001);
+    const p = normalizarProjeto(JSON.parse(JSON.stringify(EX)));
+    p.preliminar.prototipo.diagnosticos.push(Object.assign({ id: 'dg1', nome: 'Estanqueidade', medida: 'pressão (mmHg)', sentido: 'maior', conclusao: '' }, d));
+    p.preliminar.calculos.push({ id: 'c1', tipo: 'motor', nome: 'motor do disco', especId: '', obs: '', entradas: { T: 10, rpm: 100, eta: 85 } });
+    p.preliminar.comparacao.produtos.push({ id: 'q1', nome: 'Comercial X' }); p.preliminar.comparacao.valores.q1 = { [p.especificacoes[0].id]: '1600' };
+    p.preliminar.eficiencia.push({ id: 'e1', nome: 'Elétrico', entradaW: 100, saidaW: 70, obs: '' });
+    const rel = corpoRelatorio(p, { tipo: 'preliminar' });
+    ok(/Dimensionamento/.test(rel) && /Diagnóstico de falhas/.test(rel) && /Comercial X/.test(rel) && /70%/.test(rel), 'relatório com as ferramentas');
+    const volta = normalizarProjeto(JSON.parse(JSON.stringify(p))).preliminar;
+    igual(volta.calculos.length, 1); igual(volta.prototipo.diagnosticos[0].linhas.length, 4); igual(volta.eficiencia.length, 1);
+    igual(normalizarProjeto({}).preliminar.calculos.length, 0, 'projeto antigo ganha os campos vazios');
+    const n0 = p.preliminar.historico.length; HIST.p = null; registrarMudancasPreliminar(p); p.preliminar.calculos[0].entradas.T = 12; registrarMudancasPreliminar(p);
+    igual(p.preliminar.historico.length, n0, 'cálculos e diagnósticos não entram no histórico de mudanças'); HIST.p = null;
+});
+
+teste('Fornecedores no banco da equipe: juntar pelo nome, completar campos, vir dos itens e ir no arquivo', () => {
+    const b = { itens: [{ tipo: 'componente', nome: 'Rolamento 6202', especificacao: '2RS', preco: 12, dataPreco: '2026-10-01', fornecedor: 'Rolamentos Sul', cidade: 'Pelotas' }] };
+    igual(juntarFornecedores(b, [{ nome: 'Aços RS', contato: '53 0000', avaliacao: '4' }]), 2, 'um da lista e um vindo do item');
+    juntarFornecedores(b, [{ nome: 'aços rs', cidade: 'Porto Alegre', contato: 'outro' }]);
+    igual(b.fornecedores.length, 2, 'mesmo nome não duplica');
+    const a = b.fornecedores.find(f => f.nome === 'Aços RS'); igual(a.cidade, 'Porto Alegre', 'completa o vazio'); igual(a.contato, '53 0000', 'não sobrescreve');
+    igual(cotacoesDe(b, 'Rolamentos Sul').length, 1);
+});
+
 // ---------------------------------------------------------------- execução
 (async () => {
     const lista = document.getElementById('lista');

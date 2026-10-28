@@ -100,16 +100,16 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    dimensões principais; usar as variações de arranjo (central / um por unidade / vários por unidade).
 31 [feito] 3.1.5 e 3.2.4 Seleção e avaliação técnico-econômica: mesma tabela de notas 1–5 da avaliação final da concepção
    (critérios = especificações com pesos do QFD), mais o valor econômico; gráfico técnico × econômico; ponto fraco em vermelho.
-32 [futuro] Dimensionamento com memória de cálculo: calculadoras prontas (eixo à flexão e torção, parafuso, rolamento L10,
+32 [feito 28/10/2026 — P4 "Dimensionamento com memória de cálculo"] Dimensionamento com memória de cálculo: calculadoras prontas (eixo à flexão e torção, parafuso, rolamento L10,
    torque e potência do motor, corrente e bitola de cabo, bateria, corrente/correia), metas do QFD já preenchidas; resultado
    diz se atende. Para elétrico/automação: o ciclo modelo → simulação → protótipo → medição, com campo para cada um;
    controle (Nise): diagrama de blocos → esquema → modelo → projeto e teste, com o levantamento experimental dos parâmetros do
    motor/planta; requisitos conflitantes viram aviso para reespecificar; embarcado (Marwedel): partição hardware × software
    e módulos reaproveitados da biblioteca com versão.
-33 [parcial] Materiais e processos por peça (do cadastro, item 34), com sugestões por exigência (resistência, corrosão, massa,
+33 [feito 28/10/2026 — P4 "Escolher material e processo pela exigência" (indicativo)] Materiais e processos por peça (do cadastro, item 34), com sugestões por exigência (resistência, corrosão, massa,
    custo). Para peças plásticas: perguntas prontas da injeção (Harada, 2004) — cantos arredondados, paredes finas e uniformes,
    nervuras de 0,2 a 0,7 da espessura da parede, ângulo de saída, contração e tolerâncias; impressão 3D (PLA) como protótipo.
-34 [parcial] Cadastros da equipe na nuvem (MEGA, só com senha): materiais padronizados e componentes comerciais (aços e
+34 [feito 28/10/2026 — fornecedores no banco da equipe, também no MEGA] Cadastros da equipe na nuvem (MEGA, só com senha): materiais padronizados e componentes comerciais (aços e
    perfis, chapas, parafusos e porcas ISO, rolamentos, correntes e correias, motores, sensores, controladores) com
    especificação, unidade, preço de referência e data da cotação; fornecedores (nome, contato, cidade, o que fornece, prazo,
    condições, avaliação, cotações com data). Pastas: SistemaProjetoConceitual/Cadastros/materiais.json e fornecedores.json;
@@ -138,13 +138,13 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    para dosador (tese, Tabela 9, Coelho 1996): repetições ≥ 4 (≥ 5 recomendado), ≥ 250 amostras, ≥ 3 densidades, 3 níveis
    do reservatório, inclinações de −11° a 11°, ≥ 3 velocidades; análise: ANOVA e Tukey (média móvel exponencial quando a
    distribuição não é normal). Coleta pela rede de sensores da bancada (MQTT) quando houver.
-39 [parcial — falta a tabela liga/desliga do diagnóstico de falha; hoje só a orientação em texto] Ciclo do protótipo (Spagnolo, etapas 06–09): construção → teste preliminar → ajuste e adequação → teste
+39 [feito 28/10/2026 — diagnóstico liga/desliga em P5] Ciclo do protótipo (Spagnolo, etapas 06–09): construção → teste preliminar → ajuste e adequação → teste
    definitivo, cada um com data, resultado e fotos; reprovação mostra o botão "voltar ao passo" (execução recursiva, como na
    dissertação e na tese). Custo do protótipo: energia (potência × horas × tarifa) + material (kg × R$/kg, ou a estimativa
    do fatiador da impressora 3D) + peças compradas no varejo — com o aviso de que não é o custo de produção.
    Diagnóstico de falha guiado (tese, Tabelas 10–12): tabela liga/desliga de cada vedação ou componente suspeito com a medida
    obtida, para achar a causa; registro de cada correção e novo teste.
-40 [parcial — falta a comparação com produto comercial no mesmo teste e a eficiência energética; hoje só dica] Adequação aos requisitos (dissertação, tabela 9; qualidade integrada de Spagnolo): para cada especificação,
+40 [feito 28/10/2026 — comparação comercial e eficiência energética em P6] Adequação aos requisitos (dissertação, tabela 9; qualidade integrada de Spagnolo): para cada especificação,
    valor estimado ou medido × meta → Atendido (ok) / Não atendido (x) / Ainda não avaliado (?) — com o motivo: depende do
    leiaute definitivo, do material definitivo (fadiga, intervalo de manutenção, vida útil não se verificam em peça impressa)
    ou de ensaio que faltou (ex.: germinação, inclinações) —, terços de importância à vista, com a regra de tolerância do
@@ -300,3 +300,18 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    escreve a lição); seção 7 da P7, pendência sem lição, relatório do preliminar e envio para as Lições aprendidas do Gestão
    de Projetos (atualiza sem duplicar ao reimportar).
    QA: 45 testes automáticos ok; transferência para o Gestão testada; t1/t2/t3 do Gestão sem erros.
+58 [resolvido] Ferramentas do preliminar (só acrescentadas, sem mudar o que já existia):
+   - P4 Dimensionamento com memória de cálculo: eixo (flexão e torção), parafuso (área resistente e rosca mínima), rolamento
+     (vida L10), motor (potência), cabo (bitola pela queda de tensão), bateria (autonomia), transmissão (relação, dentes,
+     velocidade); fórmula e números à vista; ligada a uma especificação diz se atende; no relatório.
+   - P4 Material e processo pela exigência (resistência, corrosão, massa, custo, desgaste, temperatura, protótipo rápido):
+     4 materiais mais indicados com processo e cuidado, aplicados na peça escolhida (notas indicativas; conferir no catálogo).
+   - P5 Diagnóstico de falha liga/desliga (tese, Tabelas 10–12): até 5 suspeitos, todas as combinações, a medida de cada uma,
+     efeito médio de cada suspeito e o de maior efeito; no relatório.
+   - P6 Comparação com produtos comerciais no mesmo teste (concorrentes do QFD já como colunas, ✓/✗ pela meta) e
+     eficiência energética (η = saída ÷ entrada, por alternativa); no relatório.
+   - Banco da equipe: cadastro de fornecedores (contato, cidade, o que fornece, prazo, condições, avaliação, observações)
+     com as cotações dos itens; juntado sem duplicar, no arquivo e no MEGA.
+   Cálculos, diagnósticos e comparações não entram no histórico de mudanças do projeto (já são registros).
+   QA: 48 testes automáticos ok (calculadoras conferidas com valores calculados à parte); P1–P7 em 360 e 1280 px sem erros;
+   nuvem (MEGA simulado), ZIP e fluxo completos sem erros.

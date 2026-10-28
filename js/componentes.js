@@ -52,6 +52,24 @@ function lerComponentes() {
     try { const b = JSON.parse(localStorage.getItem(COMP_CHAVE) || 'null'); if (b && Array.isArray(b.itens)) return b; } catch (e) { /* recomeça */ }
     return { formato: FORMATO_COMPONENTES, versao: 1, itens: COMPONENTES_BASE.map(x => Object.assign({}, x)) };
 }
+/** Fornecedores do banco: { nome, contato, cidade, fornece, prazo, condicoes, avaliacao (1–5), obs }. Juntar pelo nome. */
+const CAMPOS_FORN = [['nome', 'Fornecedor'], ['contato', 'Contato (telefone, e-mail, site)'], ['cidade', 'Cidade'], ['fornece', 'O que fornece'], ['prazo', 'Prazo'], ['condicoes', 'Condições'], ['avaliacao', 'Avaliação (1–5)'], ['obs', 'Observações']];
+function itemFornecedor(f) { const o = {}; CAMPOS_FORN.forEach(([k]) => { o[k] = txt(f[k] ?? '', 300); }); o.nome = o.nome.trim(); return o; }
+function juntarFornecedores(b, lst) {
+    b.fornecedores = lista(b.fornecedores);
+    let novos = 0;
+    lista(lst).forEach(bruto => {
+        if (!bruto || !String(bruto.nome || '').trim()) return;
+        const f = itemFornecedor(bruto), ja = b.fornecedores.find(x => semAcento(x.nome) === semAcento(f.nome));
+        if (!ja) { b.fornecedores.push(f); novos++; return; }
+        CAMPOS_FORN.forEach(([k]) => { if (!String(ja[k] || '').trim() && f[k]) ja[k] = f[k]; });
+    });
+    // quem aparece como fornecedor de algum item também entra na lista
+    b.itens.forEach(i => { if (i.fornecedor && !b.fornecedores.some(x => semAcento(x.nome) === semAcento(i.fornecedor))) { b.fornecedores.push(itemFornecedor({ nome: i.fornecedor, cidade: i.cidade, contato: i.contato, prazo: i.prazo })); novos++; } });
+    return novos;
+}
+function cotacoesDe(b, nome) { return b.itens.filter(i => i.fornecedor && semAcento(i.fornecedor) === semAcento(nome) && i.preco !== null); }
+
 function gravarComponentes(b) { try { localStorage.setItem(COMP_CHAVE, JSON.stringify(b)); return true; } catch (e) { return false; } }
 
 const chaveComp = i => `${i.tipo}|${semAcento(i.nome)}|${semAcento(i.especificacao || '')}`;
@@ -108,7 +126,7 @@ function acharComponente(nome) { const n = semAcento(nome || ''); return lerComp
 /** Listas para autocompletar (datalist) nos campos de nome, material e fornecedor. */
 function htmlListasComponentes() {
     const b = lerComponentes();
-    const fornecedores = [...new Set(b.itens.map(i => i.fornecedor).filter(Boolean))];
+    const fornecedores = [...new Set(b.itens.map(i => i.fornecedor).concat(lista(b.fornecedores).map(f => f.nome)).filter(Boolean))];
     return `<datalist id="dl-componentes">${b.itens.filter(i => i.tipo === 'componente').map(i => `<option value="${escAttr(i.nome)}">${esc(i.especificacao)}</option>`).join('')}</datalist>
         <datalist id="dl-materiais">${b.itens.filter(i => i.tipo === 'material').map(i => `<option value="${escAttr(i.nome)}">${esc(i.especificacao)}</option>`).join('')}</datalist>
         <datalist id="dl-fornecedores">${fornecedores.map(f => `<option value="${escAttr(f)}">`).join('')}</datalist>`;
@@ -123,16 +141,19 @@ async function sincronizarComponentesNuvem(itensExtras = []) {
     const dir = await pastaCadastros();
     const atual = filhosDe(dir).find(f => !f.directory && f.name === 'componentes.json');
     const nuvem = { formato: FORMATO_COMPONENTES, versao: 1, itens: [] };
-    if (atual) { try { const d = JSON.parse(await (await baixar(atual)).text()); juntarComponentes(nuvem, lista(d.itens)); } catch (e) { /* ilegível: recomeça */ } }
+    let fornNuvem = [];
+    if (atual) { try { const d = JSON.parse(await (await baixar(atual)).text()); juntarComponentes(nuvem, lista(d.itens)); fornNuvem = lista(d.fornecedores); } catch (e) { /* ilegível: recomeça */ } }
     const local = lerComponentes();
     const r = juntarComponentes(nuvem, local.itens.concat(itensExtras));
+    juntarFornecedores(nuvem, fornNuvem); const fn = juntarFornecedores(nuvem, local.fornecedores);
+    if (fn) r.atualizados++;
     nuvem.geradoEm = new Date().toISOString();
     if (r.novos || r.atualizados || !atual) {
         await enviar(dir, 'componentes.json', new Blob([JSON.stringify(nuvem, null, 2)], { type: 'application/json' }));
         if (atual) { try { await atual.delete(true); } catch (e) { /* fica a anterior também */ } }
     }
-    juntarComponentes(local, nuvem.itens); gravarComponentes(local);
-    return { total: nuvem.itens.length, novosNaNuvem: r.novos };
+    juntarComponentes(local, nuvem.itens); juntarFornecedores(local, nuvem.fornecedores); gravarComponentes(local);
+    return { total: nuvem.itens.length, novosNaNuvem: r.novos, fornecedores: nuvem.fornecedores.length };
 }
 
 // ---------------------------------------------------------------- tela
@@ -153,10 +174,39 @@ function htmlCartaoComponentes(p) {
             <div class="tabela-rolagem"><table class="tabela tabela-comp"><thead><tr><th>Tipo</th><th>Nome</th><th>Especificação</th><th>Preço</th><th>Fornecedor</th><th>Projeto</th></tr></thead>
             <tbody>${b.itens.map(i => `<tr><td>${esc(TIPOS_CADASTRO[i.tipo])}</td><td>${esc(i.nome)}</td><td>${esc(i.especificacao)}</td><td class="col-num">${i.preco !== null ? 'R$ ' + i.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + (i.dataPreco ? `<small> (${esc(i.dataPreco)})</small>` : '') : '<small>cotar</small>'}</td><td>${esc(i.fornecedor)}${i.cidade ? ` <small>${esc(i.cidade)}</small>` : ''}</td><td><small>${esc(i.projeto)}</small></td></tr>`).join('')}</tbody></table></div>
         </details>
+        ${htmlFornecedores(b)}
     </section>`;
 }
 
+function htmlFornecedores(b) {
+    juntarFornecedores(b, []);
+    const F = b.fornecedores;
+    return `<details ${App.verForn ? 'open' : ''} data-forn-painel><summary>Fornecedores (${F.length})</summary>
+        <p class="nota">Cadastro da equipe (vale para todos os projetos). As cotações vêm dos itens do banco com esse fornecedor e preço.</p>
+        <div class="tabela-rolagem"><table class="tabela tabela-partes tabela-forn"><thead><tr>${CAMPOS_FORN.map(([, t]) => `<th>${esc(t)}</th>`).join('')}<th>Cotações</th><th></th></tr></thead><tbody>
+        ${F.map((f, i) => `<tr>${CAMPOS_FORN.map(([k, t]) => `<td data-rotulo="${escAttr(t)}">${k === 'avaliacao' ? `<select data-forn="${i}" data-forn-campo="${k}" aria-label="${escAttr(t)}"><option value="">—</option>${[1, 2, 3, 4, 5].map(n => `<option ${String(f[k]) === String(n) ? 'selected' : ''}>${n}</option>`).join('')}</select>` : `<input type="text" data-forn="${i}" data-forn-campo="${k}" value="${escAttr(f[k] || '')}" maxlength="300" aria-label="${escAttr(t)}">`}</td>`).join('')}
+            <td data-rotulo="Cotações" class="pequeno">${cotacoesDe(b, f.nome).map(c => `${esc(c.nome)}: R$ ${c.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}${c.dataPreco ? ' (' + esc(c.dataPreco) + ')' : ''}`).join('<br>') || '—'}</td>
+            <td class="col-acao"><button type="button" class="btn-icone" data-acao="forn-del" data-i="${i}" aria-label="Excluir">✕</button></td></tr>`).join('') || `<tr><td colspan="${CAMPOS_FORN.length + 2}">Nenhum fornecedor ainda.</td></tr>`}</tbody></table></div>
+        <div class="botoes"><button type="button" class="btn btn-secondary btn-sm" data-acao="forn-add">+ Fornecedor</button></div>
+    </details>`;
+}
+document.addEventListener('change', e => {
+    const el = e.target;
+    if (!el || !el.dataset || el.dataset.forn === undefined) return;
+    const b = lerComponentes(); juntarFornecedores(b, []);
+    const f = b.fornecedores[+el.dataset.forn];
+    if (!f) return;
+    f[el.dataset.fornCampo] = txt(el.value, 300);
+    gravarComponentes(b);
+});
+document.addEventListener('toggle', e => { if (e.target && e.target.matches && e.target.matches('[data-forn-painel]')) App.verForn = e.target.open; }, true);
+
 Object.assign(ACOES, {
+    'forn-add': () => { const b = lerComponentes(); juntarFornecedores(b, []); b.fornecedores.push(itemFornecedor({ nome: '' })); gravarComponentes(b); App.verForn = true; renderPagina(true); },
+    'forn-del': b0 => { const b = lerComponentes(); juntarFornecedores(b, []); const f = b.fornecedores[+b0.dataset.i];
+        const usados = f && f.nome ? b.itens.filter(i => semAcento(i.fornecedor || '') === semAcento(f.nome)).length : 0;
+        if (usados) { avisar(`"${f.nome}" é o fornecedor de ${usados} item(ns) do banco: troque o fornecedor desses itens antes de excluir.`, 'erro', 8000); return; }
+        if (f && f.nome && !confirm(`Excluir o fornecedor "${f.nome}" do banco da equipe?`)) return; b.fornecedores.splice(+b0.dataset.i, 1); gravarComponentes(b); renderPagina(true); },
     'comp-guardar': () => {
         const b = lerComponentes(), r = juntarComponentes(b, componentesDoProjeto(PC.p));
         gravarComponentes(b); renderPagina(true);
@@ -176,7 +226,7 @@ Object.assign(ACOES, {
         const arq = await escolherArquivo('#arq-abrir');
         if (!arq) return;
         let d; try { d = JSON.parse((await arq.text()).replace(/^﻿/, '')); } catch (e) { avisar('Arquivo ilegível: use o "componentes-da-equipe.json" baixado por aqui.', 'erro'); return; }
-        const b = lerComponentes(), r = juntarComponentes(b, lista(d.itens));
+        const b = lerComponentes(), r = juntarComponentes(b, lista(d.itens)); juntarFornecedores(b, d.fornecedores);
         gravarComponentes(b); renderPagina(true);
         avisar(`${r.novos} item(ns) novo(s), ${r.atualizados} atualizado(s).`);
     }

@@ -27,7 +27,7 @@ const LISTAS_HIST = ['interfaces', 'portadores', 'leiautes'];
 function retratoPreliminar(pl) {
     const out = {};
     const vai = (v, cam) => {
-        if (cam === 'prototipo.rodadas') return; // as rodadas de teste já são o registro delas mesmas
+        if (cam === 'prototipo.rodadas' || cam === 'prototipo.diagnosticos' || cam === 'calculos' || cam === 'comparacao' || cam === 'eficiencia') return; // registros de teste e cálculo já são o próprio registro
         if (v === null || v === undefined || typeof v !== 'object') { out[cam] = v === undefined ? null : v; return; }
         if (Array.isArray(v)) {
             if (v.length && typeof v[0] === 'object' && v[0] && v[0].id) v.forEach(x => vai(x, `${cam}#${x.id}`));
