@@ -139,6 +139,8 @@ async function baixar(arquivo) {
     const b = await arquivo.downloadBuffer();
     return new Blob([b]);
 }
+/** Data e hora locais para o nome do arquivo: 2026-10-27_23h07 */
+function carimboLocal(d = new Date()) { const z = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}_${z(d.getHours())}h${z(d.getMinutes())}`; }
 const quandoArquivo = f => (f.timestamp ? new Date(f.timestamp * 1000) : null);
 
 /** Projetos da nuvem: [{ nome, pasta, versoes: [arquivo ...] (mais nova primeiro) }] */
@@ -153,11 +155,10 @@ async function listarProjetosNuvem() {
 /** Salva o projeto atual (ZIP completo) e junta os princípios dele na biblioteca da nuvem. */
 async function salvarNaNuvem(p) {
     const { projetos, biblioteca } = await pastasBase();
-    const nome = nomeSeguro(p.projeto.nome || 'projeto-sem-nome');
+    const nome = p.nuvemPasta || nomeSeguro(p.projeto.nome || 'projeto-sem-nome');
     const dir = await pasta(projetos, nome);
     const blob = await gerarZipDoProjeto(p);
-    const carimbo = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', 'h');
-    await enviar(dir, `${nome}-${carimbo}.zip`, blob);
+    await enviar(dir, `${nome}-${carimboLocal()}.zip`, blob);
     const n = await juntarBibliotecaNuvem(biblioteca, itensDoProjeto(p));
     // componentes padronizados, materiais e fornecedores do projeto vão para o banco da equipe
     let componentes = 0;
@@ -227,8 +228,9 @@ function htmlCartaoNuvem() {
     return `<section class="card cartao-nuvem">
         <div class="card-topo"><h2>☁ Nuvem da equipe</h2><span class="contador">${on ? `conectado: ${esc(NUVEM.email)}` : em ? `conta: ${esc(em)}` : 'MEGA — só a equipe acessa'}</span></div>
         <p class="nota">Guarda os projetos e a biblioteca da equipe numa conta MEGA <b>da equipe</b>, protegida por senha; nada fica público. Cada salvamento vira uma versão; a biblioteca junta os princípios de todos os projetos. ${htmlPorQueMega()}</p>
+        ${typeof htmlModoArmazenamento === 'function' ? htmlModoArmazenamento() : ''}
         <div class="botoes">
-            <button type="button" class="btn btn-primary btn-sm" data-acao="nuvem-salvar">☁⬆ Salvar este projeto na nuvem</button>
+            <button type="button" class="btn btn-primary btn-sm" data-acao="nuvem-salvar">☁⬆ ${typeof modoArmazenamento === 'function' && modoArmazenamento() === 'nuvem' ? 'Guardar uma versão datada agora' : 'Salvar este projeto na nuvem'}</button>
             <button type="button" class="btn btn-secondary btn-sm" data-acao="nuvem-abrir">☁⬇ Abrir projeto da nuvem</button>
             <button type="button" class="btn btn-secondary btn-sm" data-acao="nuvem-biblioteca">📚 Atualizar a biblioteca com a nuvem</button>
             ${on || em ? '<button type="button" class="btn btn-secondary btn-sm" data-acao="nuvem-sair">Sair da nuvem</button>' : ''}

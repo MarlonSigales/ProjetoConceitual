@@ -587,6 +587,34 @@ teste('IA do preliminar: pedido com contexto e formato; importação só complet
     try { importarRespostaIAPreliminar(p, { qualquer: 1 }); ok(false, 'devia recusar'); } catch (e) { ok(/formato/.test(e.message)); }
 });
 
+teste('Onde salvar: só na nuvem não grava no navegador; envia "-atual" e versão datada; novo projeto volta a perguntar (MEGA simulado)', async () => {
+    const guarda = ['pc_modo', 'pc_nuvem_projeto', 'pc_projeto', BIB_CHAVE].map(k => [k, localStorage.getItem(k)]);
+    const pAntes = PC.p;
+    NUVEM.storage = megaFalso(); NUVEM.email = 'equipe@exemplo.com';
+    try {
+        PC.p = clonar(EX); localStorage.setItem('pc_projeto', '{}');
+        definirModo('nuvem', ''); ARM.carregado = true; ARM.pendente = true; ARM.ultimaVersao = 0;
+        await enviarAgora();
+        ok(!ARM.erro, ARM.erro);
+        const pasta = NUVEM.storage.root.children[0].children.find(x => x.name === 'Projetos').children[0];
+        igual(pasta.children.filter(f => /-atual\.zip$/.test(f.name)).length, 1);
+        igual(pasta.children.length, 2, 'atual + versão datada');
+        igual(pastaNuvemAtual(), pasta.name);
+        PC.salvar(); clearTimeout(ARM.timer);
+        ok(localStorage.getItem('pc_projeto') === null, 'nada do projeto no navegador');
+        ok(ARM.pendente, 'alteração fica pendente para enviar');
+        await enviarAgora();
+        igual(pasta.children.filter(f => /-atual\.zip$/.test(f.name)).length, 1, 'o "-atual" é substituído');
+        igual(pasta.children.length, 2, 'sem versão nova dentro da mesma hora');
+        PC.substituir(normalizarProjeto({}));
+        igual(modoArmazenamento(), '', 'projeto novo volta a perguntar');
+        ok(/^\d{4}-\d\d-\d\d_\d\dh\d\d$/.test(carimboLocal()));
+    } finally {
+        clearTimeout(ARM.timer); NUVEM.storage = null; ARM.carregado = false; ARM.pendente = false; PC.p = pAntes;
+        guarda.forEach(([k, v]) => { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); });
+    }
+});
+
 // ---------------------------------------------------------------- execução
 (async () => {
     const lista = document.getElementById('lista');

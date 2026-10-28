@@ -58,6 +58,8 @@ async function hidratarImagens(raiz = document) {
 function publicarParaGestao() {
     try {
         const p = PC.p;
+        // projeto salvo só na nuvem: nada dele fica neste computador (o Gestão usa o arquivo baixado)
+        if (typeof modoArmazenamento === 'function' && modoArmazenamento() === 'nuvem') { localStorage.removeItem('pc_para_gestao'); return; }
         if (!p.estruturas.length || typeof exportarParaGestao !== 'function') return;
         localStorage.setItem('pc_para_gestao', JSON.stringify(exportarParaGestao(p)));
     } catch (e) { /* sem espaço: o arquivo para o Gestão continua disponível para baixar */ }
@@ -464,7 +466,11 @@ function iniciar() {
         $('.sidebar-toggle').setAttribute('aria-expanded', String(aberto));
     });
     window.addEventListener('hashchange', () => { if (!pedidoDoQFD()) renderPagina(); });
-    window.addEventListener('storage', e => { if (e.key === PC_CHAVE) { PC.carregar(); renderPagina(true); } });
+    window.addEventListener('storage', e => {
+        if (e.key !== PC_CHAVE) return;
+        if (typeof modoArmazenamento === 'function' && modoArmazenamento() === 'nuvem') return; // projeto da nuvem: não vem do navegador
+        PC.carregar(); renderPagina(true);
+    });
     renderPagina();
     pedidoDoQFD();
 }

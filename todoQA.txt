@@ -238,3 +238,14 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    (seleção, relatório e exportação); na adequação o resultado fica "?" até a equipe confirmar — estimativa, valor
    digitado e sugestão da IA só mostram a indicação "pela meta: atende / não atende" com o botão "Confirmar".
    QA: 39 testes automáticos ok; confirmação testada no navegador.
+50 [resolvido] Onde salvar, perguntado no início de cada projeto (novo, exemplo, ZIP aberto, QFD importado, partir de anterior):
+   "Neste computador" segue como antes; "Na nuvem da equipe (MEGA)" pede a conta (com o balão "Por que o MEGA?") e passa a
+   salvar SÓ lá: nada do projeto fica no navegador (nem o resumo para o Gestão); cada alteração vai sozinha para
+   Projetos/<pasta>/<pasta>-atual.zip e uma versão datada (hora local) fica a cada hora de trabalho; topo e menu mostram
+   "salvo na nuvem às…", "salvando…" ou o erro (com botão para entrar e salvar); fechar a página com envio pendente avisa;
+   ao abrir o sistema de novo, entra (senha lembrada pelo navegador) e abre a versão mais nova da pasta; dá para trocar no
+   Início ("Passar a salvar neste computador / só na nuvem"). Fotos e desenhos ficam na memória de trabalho do navegador
+   enquanto se usa (precisam estar lá para montar o ZIP).
+   QA: 40 testes automáticos ok (inclui o modo nuvem com MEGA simulado); fluxo completo no navegador (perguntar, PC, nuvem,
+   envio automático, reabrir, projeto novo, recarregar a página) sem erros; 360 px sem estouro.
+   Hoje só este sistema tem acesso ao MEGA; QFD e Gestão salvam no computador. Na união dos sistemas, valer a mesma regra.
