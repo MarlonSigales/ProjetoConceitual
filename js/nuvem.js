@@ -200,7 +200,8 @@ async function gerarZipDoProjeto(p) {
     return montarZip(p, {
         diagramas: diagramasDoProjeto(p),
         arquivos: Object.entries(rec).map(([n, b]) => ({ caminho: 'img/' + n, blob: b })),
-        relatorioHtml: mapa => documentoRelatorio(p, id => mapa[id] || '', n => rec[n] ? 'img/' + n : '')
+        relatorioHtml: mapa => documentoRelatorio(p, id => mapa[id] || '', n => rec[n] ? 'img/' + n : ''),
+        relatorioPreliminarHtml: mapa => documentoRelatorio(p, id => mapa[id] || '', n => rec[n] ? 'img/' + n : '', 'preliminar')
     });
 }
 

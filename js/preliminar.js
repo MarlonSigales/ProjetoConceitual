@@ -655,33 +655,45 @@ PAGINAS['p-adequacao'] = {
 
 // ---------------------------------------------------------------- relatório
 
-function htmlRelatorioPreliminar(p, img) {
+/** Seções do relatório do projeto preliminar: [[título, html], …] (Reis, 2003, fase 3; fechamento em fechamento.js). */
+function secoesRelatorioPreliminar(p, img) {
     const pl = p.preliminar;
-    if (!pl || !pl.iniciado) return '';
+    if (!pl || !pl.iniciado) return [];
     const est = estDoP(p), t = tercosEspec(p), esp = especsUsadas(p);
     const nomeF = id => { const f = est && est.nos.find(n => n.id === id); return f ? `F${numeroFuncao(est, f.id)} ${f.nome}` : ''; };
     const lt = pl.leiautes.find(l => l.id === pl.leiauteEscolhido);
     const resp = o => `${RESPOSTAS_CHECK[(o || {}).r] || '—'}${(o || {}).acao ? ' — ' + esc(o.acao) : ''}`;
-    return `<h3>Requisitos determinantes e restrições</h3><ul>${esp.filter(e => pl.determinantes[e.id]).map(e => `<li>${esc(e.descricao)}${e.meta ? ' (' + esc(e.meta) + ')' : ''}</li>`).join('')}</ul>
-        <p>Espaço disponível: ${esc([pl.envelope.c, pl.envelope.l, pl.envelope.a].map(x => x || '?').join(' × '))} mm. ${esc(pl.envelope.obs)}</p>
-        ${pl.interfaces.length ? `<table><thead><tr><th>Interface / restrição</th><th>Valor</th></tr></thead><tbody>${pl.interfaces.map(i => `<tr><td>${esc(i.texto)}</td><td>${esc(i.medida)}</td></tr>`).join('')}</tbody></table>` : ''}
-        <h3>Portadores de efeito físico</h3><table><thead><tr><th>Função</th><th>Portador</th><th>Papel</th><th>Parâmetro</th></tr></thead><tbody>
-        ${pl.portadores.filter(x => x.papel !== 'auxiliar').map(x => `<tr><td>${esc(nomeF(x.funcId))}</td><td>${esc(x.nome)}</td><td>${esc(PAPEIS[x.papel])}</td><td>${esc(x.parametro)}</td></tr>`).join('')}</tbody></table>
-        <h3>Leiautes</h3><table><thead><tr><th>Leiaute</th><th>Arranjo</th><th>Dimensões</th><th>Massa</th><th>Técnico</th><th>Econômico</th></tr></thead><tbody>
-        ${avaliarLeiautes(p).map((a, i) => { const l = pl.leiautes[i]; return `<tr class="${l.id === pl.leiauteEscolhido ? 'melhor' : ''}"><td>${esc(l.nome)}${l.id === pl.leiauteEscolhido ? ' ★' : ''}</td><td>${esc(l.arranjo)}</td><td>${esc(l.dimensoes)}</td><td>${esc(l.massa)}</td><td class="num">${a.tec === null ? '—' : a.tec.toFixed(2)}</td><td class="num">${a.eco === null ? '—' : a.eco.toFixed(2)}</td></tr>`; }).join('')}</tbody></table>
-        ${lt && lt.imagem && img ? `<figure>${img(lt.imagem, lt.nome)}<figcaption>${esc(lt.nome)}</figcaption></figure>` : ''}
-        <h3>Diretrizes (regras básicas e DfX)</h3><table><tbody>${diretrizesDoTipo(p).map(([k, n]) => `<tr><td>${esc(n)}</td><td>${resp(pl.diretrizes[k])}</td></tr>`).join('')}</tbody></table>
-        <h3>Lista de verificação (Reis, 2003, Quadro 4.4)</h3><table><tbody>${VERIFICACAO.map(([k, n]) => `<tr><td>${esc(n)}</td><td>${resp(pl.verificacao[k])}</td></tr>`).join('')}</tbody></table>
-        <h3>Lista de partes preliminar</h3><table><thead><tr><th>Peça</th><th>Qtd.</th><th>Origem</th><th>Material / processo</th><th>Fornecedor</th><th>Total</th></tr></thead><tbody>
-        ${pl.portadores.map(x => `<tr><td>${esc(x.nome)}</td><td class="num">${x.qtd ?? 1}</td><td>${esc(ORIGENS_PECA[x.origem])}</td><td>${esc([x.material, x.processo].filter(Boolean).join(' · '))}</td><td>${esc(x.fornecedor)}</td><td class="num">${x.custo !== null && x.custo !== '' ? reais(+x.custo * (+x.qtd || 1)) : '—'}</td></tr>`).join('')}
-        <tr><td colspan="5"><b>Total</b></td><td class="num"><b>${reais(custoLista(p))}</b></td></tr></tbody></table>
-        <h3>Protótipo</h3><p>Para: ${esc(pl.prototipo.proposito.map(k => PROPOSITOS[k]).join('; ') || '—')}. Variáveis: ${esc(pl.prototipo.variaveis || '—')}. Norma: ${esc(pl.prototipo.norma || '—')}. Respostas: ${esc(pl.prototipo.respostas || '—')}. Análise: ${esc(pl.prototipo.analise || '—')}.</p>
-        <table><thead><tr><th>Etapa</th><th>Data</th><th>Situação</th><th>Notas</th></tr></thead><tbody>${pl.prototipo.ciclo.map(x => `<tr><td>${esc(x.etapa)}</td><td>${esc(x.data)}</td><td>${x.situacao === 'feito' ? 'feito' : x.situacao === 'reprovou' ? '<span class="nok">reprovou</span>' : 'a fazer'}</td><td>${esc(x.notas)}</td></tr>`).join('')}</tbody></table>
-        <p>Custo do protótipo: ${reais(custoPrototipo(p).total)} (não é o custo de produção).</p>
-        <h3>Adequação às especificações</h3><table><thead><tr><th>Especificação</th><th>Terço</th><th>Meta</th><th>Obtido</th><th>Resultado</th><th>Motivo</th></tr></thead><tbody>
-        ${esp.map(e => { const a = pl.adequacao[e.id] || {}; return `<tr><td>${esc(e.descricao)}</td><td>${esc({ superior: 'superior', medio: 'médio', inferior: 'inferior' }[t[e.id]] || '')}</td><td>${esc(e.meta)}</td><td>${esc(a.valor || '')}</td><td class="centro">${a.estado === 'ok' ? '<span class="ok">ok</span>' : a.estado === 'x' ? '<span class="nok">x</span>' : '?'}</td><td>${a.estado === 'ok' ? '' : esc(a.motivo || '')}</td></tr>`; }).join('')}</tbody></table>
-        <p><i>ok — atendido; x — não atendido; ? — ainda não avaliado.</i></p>`;
+    const fig = (id, leg) => id && img ? `<figure>${img(id, leg)}<figcaption>${esc(leg)}</figcaption></figure>` : '';
+    return [
+        ['Requisitos determinantes e restrições', `<p>Especificações que definem tamanho, arranjo e material (Reis, 2003, tarefa 3.1.1):</p><ul>${esp.filter(e => pl.determinantes[e.id]).map(e => `<li>${esc(e.descricao)}${e.meta ? ' (' + esc(e.meta) + ')' : ''}</li>`).join('') || '<li>—</li>'}</ul>
+            <p>Espaço disponível: ${esc([pl.envelope.c, pl.envelope.l, pl.envelope.a].map(x => x || '?').join(' × '))} mm. ${esc(pl.envelope.obs)}</p>
+            ${pl.interfaces.length ? `<table><thead><tr><th>Interface / restrição</th><th>Valor</th></tr></thead><tbody>${pl.interfaces.map(i => `<tr><td>${esc(i.texto)}</td><td>${esc(i.medida)}</td></tr>`).join('')}</tbody></table>` : ''}
+            ${fig(pl.esbocoRestricoes, 'Restrições em escala')}`],
+        ['Portadores de efeito físico e leiautes', `<table><thead><tr><th>Função</th><th>Portador</th><th>Papel</th><th>Parâmetro característico</th></tr></thead><tbody>
+            ${pl.portadores.filter(x => x.papel !== 'auxiliar').map(x => `<tr><td>${esc(nomeF(x.funcId))}</td><td>${esc(x.nome)}</td><td>${esc(PAPEIS[x.papel])}</td><td>${esc(x.parametro)}</td></tr>`).join('')}</tbody></table>
+            <h3>Leiautes preliminares e seleção (técnico × econômico)</h3><table><thead><tr><th>Leiaute</th><th>Arranjo</th><th>Dimensões</th><th>Massa</th><th>Técnico</th><th>Econômico</th></tr></thead><tbody>
+            ${avaliarLeiautes(p).map((a, i) => { const l = pl.leiautes[i]; return `<tr class="${l.id === pl.leiauteEscolhido ? 'melhor' : ''}"><td>${esc(l.nome)}${l.id === pl.leiauteEscolhido ? ' ★' : ''}</td><td>${esc(l.arranjo)}</td><td>${esc(l.dimensoes)}</td><td>${esc(l.massa)}</td><td class="num">${a.tec === null ? '—' : a.tec.toFixed(2)}</td><td class="num">${a.eco === null ? '—' : a.eco.toFixed(2)}</td></tr>`; }).join('')}</tbody></table>
+            ${lt ? fig(lt.imagem, lt.nome) : ''}`],
+        ['Funções auxiliares e diretrizes', `<table><thead><tr><th>Função auxiliar</th><th>Peça padronizada</th><th>Especificação</th><th>Qtd.</th></tr></thead><tbody>
+            ${pl.portadores.filter(x => x.papel === 'auxiliar').map(x => `<tr><td>${esc(x.funcaoAux || '')}</td><td>${esc(x.nome)}</td><td>${esc(x.parametro)}</td><td class="num">${x.qtd ?? 1}</td></tr>`).join('') || '<tr><td colspan="4">—</td></tr>'}</tbody></table>
+            <h3>Regras básicas e projeto para X (DfX)</h3><table><tbody>${diretrizesDoTipo(p).map(([k, n]) => `<tr><td>${esc(n)}</td><td>${resp(pl.diretrizes[k])}</td></tr>`).join('')}</tbody></table>`],
+        ['Verificações e lista de partes', `<h3>Lista de verificação (Reis, 2003, Quadro 4.4)</h3><table><tbody>${VERIFICACAO.map(([k, n]) => `<tr><td>${esc(n)}</td><td>${resp(pl.verificacao[k])}</td></tr>`).join('')}</tbody></table>
+            <h3>Lista de partes preliminar</h3><table><thead><tr><th>Peça</th><th>Qtd.</th><th>Origem</th><th>Material / processo</th><th>Fornecedor</th><th>Total</th></tr></thead><tbody>
+            ${pl.portadores.map(x => `<tr><td>${esc(x.nome)}</td><td class="num">${x.qtd ?? 1}</td><td>${esc(ORIGENS_PECA[x.origem])}</td><td>${esc([x.material, x.processo].filter(Boolean).join(' · '))}</td><td>${esc(x.fornecedor)}</td><td class="num">${x.custo !== null && x.custo !== '' ? reais(+x.custo * (+x.qtd || 1)) : '—'}</td></tr>`).join('')}
+            <tr><td colspan="5"><b>Total</b></td><td class="num"><b>${reais(custoLista(p))}</b></td></tr></tbody></table>
+            ${(p.fmea || []).length ? `<h3>FMEA</h3><table><thead><tr><th>Modo de falha</th><th>Efeito</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Ação</th></tr></thead><tbody>${p.fmea.map(l => `<tr class="${fmeaCritico(l) ? 'melhor' : ''}"><td>${esc(l.modo)}</td><td>${esc(l.efeito)}</td><td class="num">${l.s}</td><td class="num">${l.o}</td><td class="num">${l.d}</td><td class="num"><b>${rpn(l)}</b></td><td>${esc(l.acao)}</td></tr>`).join('')}</tbody></table>` : ''}`],
+        ['Protótipo e testes', `<p><b>Para:</b> ${esc(pl.prototipo.proposito.map(k => PROPOSITOS[k]).join('; ') || '—')}. <b>Tipo:</b> ${esc({ fisico: 'físico', analitico: 'analítico' }[pl.prototipo.aproximacao] || '—')}, ${esc({ completo: 'completo', focado: 'focado' }[pl.prototipo.abrangencia] || '—')}.</p>
+            <table><tbody><tr><td>Variáveis</td><td>${esc(pl.prototipo.variaveis || '—')}</td></tr><tr><td>Norma ou método</td><td>${esc(pl.prototipo.norma || '—')}</td></tr><tr><td>Respostas</td><td>${esc(pl.prototipo.respostas || '—')}</td></tr><tr><td>Análise</td><td>${esc(pl.prototipo.analise || '—')}</td></tr>
+            <tr><td>Datas</td><td>início ${esc(pl.prototipo.datas.inicio || '—')} · teste ${esc(pl.prototipo.datas.teste || '—')} · decisão ${esc(pl.prototipo.datas.decisao || '—')}</td></tr></tbody></table>
+            <h3>Ciclo do protótipo (Spagnolo, 2011)</h3><table><thead><tr><th>Etapa</th><th>Data</th><th>Situação</th><th>Notas</th></tr></thead><tbody>${pl.prototipo.ciclo.map(x => `<tr><td>${esc(x.etapa)}</td><td>${esc(x.data)}</td><td>${x.situacao === 'feito' ? 'feito' : x.situacao === 'reprovou' ? '<span class="nok">reprovou</span>' : 'a fazer'}</td><td>${esc(x.notas)}</td></tr>`).join('')}</tbody></table>
+            <p>Custo do protótipo: ${reais(custoPrototipo(p).total)} (energia, material, peças compradas e outros; não é o custo de produção).</p>`],
+        ['Adequação às especificações', `<table><thead><tr><th>Especificação</th><th>Terço</th><th>Meta</th><th>Obtido</th><th>Resultado</th><th>Motivo</th></tr></thead><tbody>
+            ${esp.map(e => { const a = pl.adequacao[e.id] || {}; return `<tr><td>${esc(e.descricao)}</td><td>${esc({ superior: 'superior', medio: 'médio', inferior: 'inferior' }[t[e.id]] || '')}</td><td>${esc(e.meta)}</td><td>${esc(a.valor || '')}</td><td class="centro">${a.estado === 'ok' ? '<span class="ok">ok</span>' : a.estado === 'x' ? '<span class="nok">x</span>' : '?'}</td><td>${a.estado === 'ok' ? '' : esc(a.motivo || '')}</td></tr>`; }).join('')}</tbody></table>
+            <p><i>ok — atendido; x — definitivamente não atendido; ? — ainda não avaliado ou não confirmado (Sigales, 2025).</i></p>`]
+    ];
 }
+/** Resumo em uma seção (usado onde só cabe um bloco). */
+function htmlRelatorioPreliminar(p, img) { return secoesRelatorioPreliminar(p, img).map(([t, h]) => `<h3>${esc(t)}</h3>${h}`).join(''); }
 
 // ---------------------------------------------------------------- ações
 

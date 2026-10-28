@@ -181,7 +181,18 @@ function preliminarVazio() {
             ciclo: [],                           // { id, etapa, data, situacao: ''|'feito'|'reprovou', notas, imagem }
             custo: { potenciaW: null, horas: null, tarifa: null, kg: null, precoKg: null, outros: null }
         },
-        adequacao: {}                            // { [especId]: { valor, estado: 'ok'|'x'|'?', motivo } }
+        adequacao: {},                           // { [especId]: { valor, estado: 'ok'|'x'|'?', motivo } }
+        fechamento: fechamentoVazio()            // 3.3.1, 3.3.3 e Spagnolo (2011), etapas 10–11
+    };
+}
+function fechamentoVazio() {
+    return {
+        pontos: {},                              // { [chave]: { resolvido, acao } } pontos fracos a eliminar (3.3.1)
+        incorporar: '',                          // bons pontos dos leiautes descartados
+        definitivo: { descricao: '', dimensoes: '', massa: '', imagem: null },
+        documentos: {},                          // { [chave]: true }
+        analise: '', trabalhosFuturos: '',
+        patente: { busca: false, novidade: '', decisao: '', obs: '' }
     };
 }
 function normalizarPreliminar(x) {
@@ -202,6 +213,11 @@ function normalizarPreliminar(x) {
         custo: Object.assign(preliminarVazio().prototipo.custo, pr.custo || {})
     });
     o.adequacao = Object.assign({}, x.adequacao || {});
+    const f = x.fechamento || {};
+    o.fechamento = Object.assign(fechamentoVazio(), f, {
+        pontos: Object.assign({}, f.pontos || {}), documentos: Object.assign({}, f.documentos || {}),
+        definitivo: Object.assign(fechamentoVazio().definitivo, f.definitivo || {}), patente: Object.assign(fechamentoVazio().patente, f.patente || {})
+    });
     return o;
 }
 
@@ -407,7 +423,7 @@ function imagensUsadas(p) {
     p.concepcao.imagens.forEach(x => x && x.id && ids.add(x.id));
     Object.values(p.selecao.evolucao || {}).forEach(e => e && e.imagem && ids.add(e.imagem));
     const pl = p.preliminar || {};
-    [pl.esbocoRestricoes].concat(lista(pl.portadores).map(x => x.imagem), lista(pl.leiautes).map(x => x.imagem), lista((pl.prototipo || {}).ciclo).map(x => x.imagem)).forEach(id => id && ids.add(id));
+    [pl.esbocoRestricoes].concat(lista(pl.portadores).map(x => x.imagem), lista(pl.leiautes).map(x => x.imagem), [((pl.fechamento || {}).definitivo || {}).imagem], lista((pl.prototipo || {}).ciclo).map(x => x.imagem)).forEach(id => id && ids.add(id));
     return [...ids];
 }
 
@@ -836,12 +852,14 @@ async function montarZip(p, extras = {}) {
     if (typeof exportarParaGestao === 'function' && p.estruturas.length) zip.file('gestao-conceitual.json', JSON.stringify(exportarParaGestao(p), null, 2));
     if (p.qfdBackup) zip.file('qfd-backup.json', JSON.stringify(p.qfdBackup, null, 2));
     if (extras.relatorioHtml) zip.file('relatorio.html', typeof extras.relatorioHtml === 'function' ? extras.relatorioHtml(mapa) : extras.relatorioHtml);
+    if (extras.relatorioPreliminarHtml && p.preliminar && p.preliminar.iniciado) zip.file('relatorio-preliminar.html', extras.relatorioPreliminarHtml(mapa));
     zip.file('LEIA-ME.txt', [
         'Projeto conceitual exportado pelo Sistema de Projeto Conceitual.',
         '', '- projeto-conceitual.json: todos os dados (abra em "Abrir projeto" para continuar de onde parou).',
         '- imagens/: fotos e esboços dos princípios de solução e da concepção.',
         '- diagramas/: estruturas de funções em SVG (abrem no navegador, Inkscape, Word, PowerPoint).',
         '- relatorio.html: relatório completo (abra no navegador; para PDF, use Imprimir → Salvar como PDF).',
+        '- relatorio-preliminar.html: relatório do projeto preliminar (quando iniciado).',
         '- gestao-conceitual.json: funções, princípios e concepção para o Gestão de Projetos (árvore TRL); o Gestão também aceita este ZIP inteiro.',
         '- qfd-backup.json: o backup do QFD de onde o projeto partiu.'
     ].join('\n'));

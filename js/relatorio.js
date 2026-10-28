@@ -98,7 +98,7 @@ function corpoRelatorio(p, opcoes = {}) {
         ${recurso('relatorio-fundo-capa.png') ? `<img class="fundo" src="${escAttr(recurso('relatorio-fundo-capa.png'))}" alt="">` : ''}
         <div class="capa-logos">${logo('logo-inovaagro.png', 'Inova Agro')}${logo('logo-nimeq.png', 'NIMEq')}${logo('logo-instagri.png', 'InstAgri')}</div>
         <div class="capa-centro">
-            <p class="capa-tipo">Relatório de<br>projeto conceitual</p>
+            <p class="capa-tipo">Relatório de<br>projeto ${opcoes.tipo === 'preliminar' ? 'preliminar' : 'conceitual'}</p>
             <h1>${esc(p.projeto.nome || 'Projeto sem nome')}</h1>
             ${p.projeto.cliente ? `<p><b>Cliente:</b> ${esc(p.projeto.cliente)}</p>` : ''}
             ${p.projeto.instituicao ? `<p><b>Instituição:</b> ${esc(p.projeto.instituicao)}</p>` : ''}
@@ -246,6 +246,22 @@ function corpoRelatorio(p, opcoes = {}) {
         <li>ROOZENBURG, N. F. M.; EEKELS, J. <i>Product design: fundamentals and methods</i>. Chichester: Wiley, 1995.</li>
         <li>SPAGNOLO, R. T. <i>Integração da qualidade no projeto conceitual de máquinas agrícolas</i>. Tese (Doutorado) — UFPel, Pelotas, 2011.</li></ul>`;
 
+    if (opcoes.tipo === 'preliminar' && typeof secoesRelatorioPreliminar === 'function') {
+        const secs = secoesRelatorioPreliminar(p, img).concat(typeof secoesFechamento === 'function' ? secoesFechamento(p, img) : []);
+        const refsPrelim = `<ul class="refs">
+            <li>GEITNER, F. K.; EIERMAN, R. G. <i>Machinery component maintenance and repair</i>. 2022 (diferença entre teste e ensaio, como citado em Sigales, 2025).</li>
+            <li>PAHL, G.; BEITZ, W.; FELDHUSEN, J.; GROTE, K.-H. <i>Projeto na engenharia</i>. São Paulo: Edgard Blücher, 2005 (2007).</li>
+            <li>REIS, A. V. <i>Desenvolvimento de concepções para a dosagem e deposição de precisão para sementes miúdas</i>. Tese (Doutorado) — UFSC, Florianópolis, 2003.</li>
+            <li>SIGALES, M. S. <i>Dosador de sementes pneumático com cilindro vertical acionado eletricamente</i>. Dissertação (Mestrado) — PPG-SPAF, UFPel, Pelotas, 2021.</li>
+            <li>SIGALES, M. S. Tese (Doutorado) — PPG-SPAF, UFPel, Pelotas, 2025 (dosador pneumático de cilindro vertical acionado eletricamente com controle robusto).</li>
+            <li>SPAGNOLO, R. T. <i>Integração da qualidade no projeto conceitual de máquinas agrícolas</i>. Tese (Doutorado) — UFPel, Pelotas, 2011.</li>
+            <li>ULRICH, K. T.; EPPINGER, S. D. <i>Product design and development</i>. New York: McGraw-Hill (planejamento de protótipos, como citado em Reis, 2003).</li></ul>`;
+        return `<div class="rel"><div class="pagina">${capa}</div><div class="pagina">
+            ${secao('Concepção de partida (projeto conceitual)', concepcao)}
+            ${secs.map(([t, h]) => secao(t, h)).join('')}
+            ${secao('Referências', refsPrelim)}
+        </div></div>`;
+    }
     return `<div class="rel"><div class="pagina">${capa}</div><div class="pagina">
         ${secao('Escopo do problema', escopo)}
         ${secao('Função global', funcaoGlobal)}
@@ -255,7 +271,6 @@ function corpoRelatorio(p, opcoes = {}) {
         ${secao('Seleção da concepção', selecao)}
         ${secao('Concepção selecionada', concepcao)}
         ${secao('Análises e TRL', analises)}
-        ${typeof htmlRelatorioPreliminar === 'function' ? secao('Projeto preliminar', htmlRelatorioPreliminar(p, img)) : ''}
         ${secao('Referências', referencias)}
     </div></div>`;
 }
@@ -263,10 +278,10 @@ function corpoRelatorio(p, opcoes = {}) {
 const ESTADOS_VIAB_REL = { viavel: 'Viável', condicional: 'Condicionalmente viável', nao: 'Não viável' };
 
 /** Documento HTML completo (para o ZIP ou para baixar). */
-function documentoRelatorio(p, imgSrc, recurso) {
+function documentoRelatorio(p, imgSrc, recurso, tipo = 'conceitual') {
     return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Relatório de projeto conceitual — ${esc(p.projeto.nome || 'projeto')}</title>
+<title>Relatório de projeto ${tipo === 'preliminar' ? 'preliminar' : 'conceitual'} — ${esc(p.projeto.nome || 'projeto')}</title>
 <style>body{margin:0;background:#e9efed}${RELATORIO_CSS}</style></head><body>
-${corpoRelatorio(p, { imgSrc, recurso: recurso || (n => 'img/' + n) })}
+${corpoRelatorio(p, { imgSrc, recurso: recurso || (n => 'img/' + n), tipo })}
 </body></html>`;
 }

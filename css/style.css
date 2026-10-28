@@ -616,3 +616,10 @@ body.esb-aberto { overflow: hidden; }
 .faixa-nuvem { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 150; background: #fdeceb; color: #a12a1e; border: 1px solid #f2c4bf;
   border-radius: 10px; padding: 0.5rem 0.7rem; display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; max-width: calc(100% - 24px); box-shadow: 0 4px 16px rgba(0,0,0,.15); }
 body:not(.modo-nuvem) .so-nuvem { display: none !important; }
+.lista-docs { list-style: none; padding: 0; display: grid; gap: 0.35rem; }
+.lista-docs label { display: inline-flex; gap: 0.45rem; align-items: center; }
+@media print {
+  body.imprimindo-rel .container > *:not(#relatorio-previa) { display: none !important; }
+  body.imprimindo-rel .container { max-width: none; padding: 0; }
+  body.imprimindo-rel .main-content { padding: 0; }
+}

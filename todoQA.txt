@@ -138,7 +138,7 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
 41 [adiado — decisão de 27/10/2026: por enquanto os sistemas ficam separados; depois QFD, conceitual e
    preliminar serão unidos ao Gestão num só sistema, e esta ligação entra nessa união] Viabilidade econômica preliminar: custo da lista de partes + processos + protótipo; ligação com a análise
    econômica do Gestão (custo pleno, CAPEX/OPEX).
-42 [futuro] Fechamento (Spagnolo, etapas 10–11): análise e discussão dos resultados, trabalhos futuros, e checklist de
+42 [feito — P7] Fechamento (Spagnolo, etapas 10–11): análise e discussão dos resultados, trabalhos futuros, e checklist de
    patente (busca de anterioridade com os links já gerados por princípio) antes de publicar — inclusive para instrumentos
    criados para os testes (como o sensor de pressão da tese, depositado no INPI); relatório do preliminar no ZIP,
    na nuvem e no Gestão. Exemplo da roda continuado, testes automáticos e tour das novas etapas.
@@ -252,3 +252,12 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
 51 [resolvido] Com a nuvem ligada, "Baixar ZIP" / "Baixar ZIP completo" (topo, menu e Relatório) viram "☁ Salvar no MEGA" /
    "☁ Salvar projeto completo no MEGA": salva na hora o ZIP completo na pasta da equipe, com versão datada, e junta biblioteca
    e banco de componentes. "Baixar uma cópia em ZIP" fica em "Mais opções". Voltando para o computador, os botões voltam.
+52 [resolvido] P7 "Leiaute definitivo e relatório" (fim do preliminar): 3.3.1 pontos fracos juntados sozinhos (leiaute com nota
+   1–2 no terço superior, diretrizes e verificação com "Não", FMEA crítica, especificação "x", teste reprovado) com ação e
+   "resolvido"; bons pontos dos leiautes descartados; 3.3.3 leiaute definitivo pré-preenchido do escolhido (descrição,
+   dimensões, massa, imagem) com aviso se passa do espaço disponível; documentos para a produção (lista de partes e
+   registro de testes marcados sozinhos quando completos); Spagnolo 10–11: análise e discussão e trabalhos futuros com
+   rascunho automático, patente antes de publicar (buscas prontas por princípio, novidade, decisão). RELATÓRIO DO PROJETO
+   PRELIMINAR separado (capa própria, concepção de partida, P1–P7, FMEA, referências), com prévia, PDF, HTML com imagens,
+   no ZIP (relatorio-preliminar.html) e na nuvem; o relatório do conceitual fica só com o conceitual.
+   QA: 41 testes automáticos ok; P1–P7 em 360 e 1280 px sem erros; HTML e ZIP conferidos.

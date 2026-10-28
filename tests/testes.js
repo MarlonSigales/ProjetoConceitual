@@ -539,9 +539,11 @@ teste('Preliminar: meta, leiautes, pendências, status e relatório', () => {
     const st = statusEtapas(p);
     ok(st['p-requisitos'] && st['p-adequacao'], 'status das etapas do preliminar');
     igual(st['p-leiautes'].estado, 'feito', 'exemplo tem leiaute escolhido');
-    ok(/Projeto preliminar/.test(corpoRelatorio(p)) && /Quadro 4.4/.test(corpoRelatorio(p)));
+    const relP = corpoRelatorio(p, { tipo: 'preliminar' });
+    ok(/projeto preliminar/.test(relP) && /Quadro 4.4/.test(relP) && /Leiaute definitivo/.test(relP) && /Trabalhos futuros/.test(relP), 'relatório do preliminar');
+    ok(!/Quadro 4.4/.test(corpoRelatorio(p)), 'o relatório do conceitual fica só com o conceitual');
     const semC = normalizarProjeto({}); ok(pendenciasPreliminar(semC)[0].etapa === 'concepcao');
-    igual(todasEtapas().length, ETAPAS.length + 6);
+    igual(todasEtapas().length, ETAPAS.length + 7);
 });
 
 teste('Banco da equipe: junta sem repetir, atualiza preço mais recente, recebe peças do projeto', () => {
@@ -613,6 +615,25 @@ teste('Onde salvar: só na nuvem não grava no navegador; envia "-atual" e vers�
         clearTimeout(ARM.timer); NUVEM.storage = null; ARM.carregado = false; ARM.pendente = false; PC.p = pAntes;
         guarda.forEach(([k, v]) => { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); });
     }
+});
+
+teste('Fim do preliminar: pontos fracos juntados, leiaute definitivo pré-preenchido, rascunhos, pendências e status', () => {
+    const p = normalizarProjeto(JSON.parse(JSON.stringify(EX)));
+    const pf = pontosFracosPreliminar(p);
+    ok(pf.some(x => x.chave === 'dir-corrosao' && /inox/.test(x.acao)), 'diretriz com "Não" vira ponto fraco com a ação');
+    ok(pf.some(x => x.origem === 'FMEA'), 'FMEA crítica entra');
+    preencherFechamento(p);
+    const f = p.preliminar.fechamento, lt = p.preliminar.leiautes.find(l => l.id === p.preliminar.leiauteEscolhido);
+    igual(f.definitivo.dimensoes, lt.dimensoes); ok(f.definitivo.descricao.includes(lt.nome));
+    ok(/Leiaute B/.test(f.incorporar), 'leiaute descartado lembrado');
+    ok(/especificações/.test(rascunhoAnalise(p)) && /protótipo/.test(rascunhoAnalise(p)));
+    ok(/Verificar/.test(rascunhoTrabalhosFuturos(p)), 'especificações "?" viram trabalhos futuros');
+    ok(pendenciasPreliminar(p).some(x => x.etapa === 'p-fechamento'));
+    igual(statusEtapas(p)['p-fechamento'].estado, 'andamento');
+    DOCUMENTOS.forEach(([k]) => { f.documentos[k] = true; }); f.analise = 'ok';
+    igual(statusEtapas(p)['p-fechamento'].estado, 'feito');
+    const volta = normalizarProjeto(JSON.parse(JSON.stringify(p)));
+    igual(volta.preliminar.fechamento.analise, 'ok'); igual(volta.preliminar.fechamento.patente.busca, false);
 });
 
 // ---------------------------------------------------------------- execução
