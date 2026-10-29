@@ -152,8 +152,7 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
    Inclui eficiência energética quando houver energia elétrica ou mecânica envolvida, e a comparação com um produto
    comercial medido no mesmo teste (concorrentes já vêm do QFD). Especificação que contradiz a física (ex.: velocidade de
    partes móveis ≤ 0,3 m/s num disco pequeno em alta velocidade) é marcada para revisão no projeto informacional.
-41 [adiado — decisão de 27/10/2026: por enquanto os sistemas ficam separados; depois QFD, conceitual e
-   preliminar serão unidos ao Gestão num só sistema, e esta ligação entra nessa união] Viabilidade econômica preliminar: custo da lista de partes + processos + protótipo; ligação com a análise
+41 [resolvido 29/10/2026 — no Gestão de Projetos as páginas do conceitual e do preliminar viram seções das fases, com os dados no projeto do Gestão; este sistema continua funcionando sozinho] Viabilidade econômica preliminar: custo da lista de partes + processos + protótipo; ligação com a análise
    econômica do Gestão (custo pleno, CAPEX/OPEX).
 42 [feito — P7] Fechamento (Spagnolo, etapas 10–11): análise e discussão dos resultados, trabalhos futuros, e checklist de
    patente (busca de anterioridade com os links já gerados por princípio) antes de publicar — inclusive para instrumentos
