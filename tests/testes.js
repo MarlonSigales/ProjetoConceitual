@@ -789,6 +789,34 @@ teste('Backup antigo do QFD (meta em valorUnitario): meta com o sinal do sentido
     igual(p.especificacoes[0].meta, '≤ 1100 g'); igual(p.especificacoes[0].avaliacao, 'Pesagem em balança'); igual(p.especificacoes[1].meta, '≤ R$ 350');
 });
 
+teste('FMEA: modos de falha casam pelo início da palavra e pelo contexto (roda não vira dosador nem fonte de energia)', () => {
+    const m = nome => sugerirModosFalha({ nome }, null).map(x => x.modo);
+    ok(!m('Ajustar a tensão dos raios').some(x => /dosagem/.test(x)), '"dos" (preposição) não é dosar');
+    ok(!m('Distribuir a carga entre aro e cubo').some(x => /dosagem/.test(x)), 'distribuir carga não é dosar');
+    ok(m('Distribuir sementes na linha').some(x => /dosagem/.test(x)), 'distribuir sementes é dosar');
+    ok(!m('Receber o pneu e a carga do solo').some(x => /energia/.test(x)), 'receber carga não é energia');
+    ok(m('Receber energia da bateria').some(x => /energia/.test(x)), 'receber energia é energia');
+    ok(m('Ajustar a tensão dos raios').some(x => /ajuste/.test(x)), 'ajustar tem modo próprio');
+});
+
+teste('FMEA ↔ preliminar: verificação de segurança acompanha a FMEA sem repetir; rodada reprovada vira linha da FMEA', () => {
+    const p = clonar(EX);
+    p.fmea = [{ id: 'a', modo: 'Trinca por fadiga', s: 9, o: 3, d: 4, acao: 'Ilhós' }, { id: 'b', modo: 'Trinca por fadiga', s: 9, o: 3, d: 4, acao: 'Ilhós' }, { id: 'c', modo: 'Folga', s: 2, o: 2, d: 2, acao: '' }];
+    p.preliminar.verificacao.seguranca = { r: '', acao: '' };
+    atualizarVerificacaoFmea(p);
+    igual(p.preliminar.verificacao.seguranca.acao, 'Da FMEA da concepção: Trinca por fadiga → Ilhós', 'crítico uma vez só');
+    p.preliminar.verificacao.seguranca.acao = 'Texto da equipe'; atualizarVerificacaoFmea(p);
+    igual(p.preliminar.verificacao.seguranca.acao, 'Texto da equipe', 'texto da equipe fica');
+    const e = p.especificacoes.find(x => /≤/.test(x.meta || '')) || p.especificacoes[0];
+    e.meta = '≤ 10'; e.sentido = 'down';
+    p.preliminar.prototipo.rodadas = [{ id: 'r1', nome: 'Rodada 1', conclusao: 'reprovado', observacoes: 'trincou', resultados: [{ especId: e.id, valor: '12', condicao: '' }] },
+        { id: 'r2', nome: 'Rodada 2', conclusao: 'aprovado', modificacoes: 'aro reforçado', resultados: [{ especId: e.id, valor: '9', condicao: '' }] }];
+    sincronizarFmeaRodadas(p);
+    const l = p.fmea.find(x => x.origem === 'rodada');
+    ok(l, 'linha da rodada'); ok(/fora da meta/.test(l.modo)); ok(/aro reforçado/.test(l.acao) && /atendido na Rodada 2/.test(l.acao), 'ação e resolução');
+    l.s = 3; sincronizarFmeaRodadas(p); igual(p.fmea.filter(x => x.origem === 'rodada').length, 1, 'não duplica'); igual(l.s, 3, 'nota da equipe fica');
+});
+
 // ---------------------------------------------------------------- execução
 (async () => {
     const lista = document.getElementById('lista');

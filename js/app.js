@@ -389,7 +389,7 @@ PAGINAS.inicio = {
                 <label>Nome do projeto <input type="text" data-campo="projeto.nome" value="${escAttr(p.projeto.nome)}" maxlength="160"></label>
                 <label>Cliente <input type="text" data-campo="projeto.cliente" value="${escAttr(p.projeto.cliente)}" maxlength="160"></label>
             </div>
-            ${p.origemQFD ? `<p class="nota">Dados vindos do QFD: <b>${esc(p.origemQFD.arquivo || 'backup')}</b>, importado em ${new Date(p.origemQFD.importadoEm).toLocaleString('pt-BR')}.</p>` : ''}
+            ${p.origemQFD ? (/[?&]gp=1/.test(location.search) ? `<p class="nota">Especificações e necessidades vêm do QFD do projeto (projeto informacional do Gestão) e se atualizam sozinhas; última atualização em ${new Date(p.origemQFD.importadoEm).toLocaleString('pt-BR')}.</p>` : `<p class="nota">Dados vindos do QFD: <b>${esc(p.origemQFD.arquivo || 'backup')}</b>, importado em ${new Date(p.origemQFD.importadoEm).toLocaleString('pt-BR')}.</p>`) : ''}
             ${htmlTipoProjeto(p)}
         </section>
         ${htmlPreenchimento(p)}

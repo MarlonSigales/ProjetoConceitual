@@ -10,20 +10,24 @@
 
 const FMEA_LIMITE = 100;   // mesmo critério do Gestão de Projetos: RPN ≥ 100 ou S ≥ 9 é crítico
 
-/** [radicais da função, modo, efeito, causa, S, O, D] */
+/**
+ * [radicais da função, modo, efeito, causa, S, O, D, contexto?]. Cada radical casa com o INÍCIO de uma palavra da função
+ * (radical com espaço casa com o trecho); com "contexto", alguma palavra do contexto também precisa estar na função.
+ */
 const MODOS_FALHA = [
     [['transmit', 'conduz'], 'Escorregamento ou quebra do elemento de transmissão', 'A função seguinte para de receber o esforço', 'Sobrecarga, desgaste, montagem errada', 7, 3, 3],
     [['sustent', 'suport', 'apoi', 'carga'], 'Fratura ou deformação excessiva', 'Perda da estrutura, risco ao usuário', 'Carga acima da prevista, fadiga, material errado', 9, 2, 4],
-    [['fix', 'prend', 'mont'], 'Afrouxamento da fixação', 'Folga, desalinhamento ou soltura', 'Vibração, torque de aperto baixo', 8, 3, 3],
+    [['fix', 'prend', 'mont', 'trav'], 'Afrouxamento da fixação', 'Folga, desalinhamento ou soltura', 'Vibração, torque de aperto baixo', 8, 3, 3],
     [['gir', 'rot', 'mancal', 'eixo'], 'Desgaste ou travamento do mancal', 'Atrito alto, ruído, parada', 'Contaminação, falta de lubrificação', 6, 3, 4],
     [['ved', 'proteg', 'isol'], 'Entrada de água ou poeira', 'Corrosão e falha dos componentes internos', 'Vedação danificada ou mal especificada', 6, 4, 3],
     [['frear', 'dissip'], 'Perda de eficiência de frenagem', 'Distância de parada maior, risco ao usuário', 'Água, desgaste, contaminação', 9, 3, 3],
     [['amortec', 'absorv'], 'Amortecimento insuficiente', 'Impactos chegam à estrutura e ao usuário', 'Pressão/rigidez fora do previsto', 5, 3, 4],
     [['contat', 'solo', 'rol'], 'Perda de contato ou de pressão (furo)', 'Perda de tração e de controle', 'Objetos cortantes, pressão baixa', 7, 4, 3],
-    [['dos', 'dosar', 'distribu'], 'Falha ou duplicidade na dosagem', 'Dose fora da especificação', 'Produto fora do padrão, rotação errada, entupimento', 7, 4, 4],
+    [['dosa', 'dose', 'dosag', 'distribu'], 'Falha ou duplicidade na dosagem', 'Dose fora da especificação', 'Produto fora do padrão, rotação errada, entupimento', 7, 4, 4, ['dosa', 'dose', 'dosag', 'sement', 'adub', 'insum', 'grao', 'calda', 'fertiliz', 'produto', 'liquid']],
     [['transport', 'aliment', 'carreg'], 'Entupimento do fluxo de material', 'Interrupção da operação', 'Umidade, impurezas, embuchamento', 6, 4, 3],
     [['cort', 'abr', 'sulc'], 'Corte ou abertura insuficiente', 'Trabalho incompleto', 'Desgaste do elemento, regulagem errada', 6, 3, 4],
-    [['aliment', 'energiz', 'receb', 'fornec'], 'Falta de energia (bateria descarregada, rede caída)', 'O sistema para', 'Autonomia insuficiente, falha da fonte', 7, 3, 3],
+    [['aliment', 'energiz', 'receb', 'fornec'], 'Falta de energia (bateria descarregada, rede caída)', 'O sistema para', 'Autonomia insuficiente, falha da fonte', 7, 3, 3, ['energ', 'eletr', 'bateri', 'tensao', 'potenc', 'corrente', 'rede']],
+    [['ajust', 'alinh', 'centr', 'tension', 'regul'], 'Perda do ajuste (desalinhamento ou perda de tensão)', 'Desvio, vibração ou desgaste prematuro', 'Aperto desigual, vibração, acomodação dos componentes', 5, 5, 3],
     [['convert', 'regul'], 'Tensão ou potência fora da faixa', 'Componentes desligam ou queimam', 'Fonte subdimensionada, aquecimento', 7, 2, 4],
     [['proteg', 'circuito'], 'Proteção não atua ou atua sem motivo', 'Queima de componentes ou paradas indevidas', 'Proteção mal dimensionada', 8, 2, 5],
     [['acion', 'atuador', 'comand'], 'Atuador não responde ou superaquece', 'A ação não acontece', 'Driver/contato danificado, sobrecarga', 7, 3, 3],
@@ -36,8 +40,10 @@ const MODOS_FALHA = [
 
 /** Sugestões para uma função (no máximo 2), considerando a maturidade do princípio escolhido. */
 function sugerirModosFalha(funcao, principio) {
-    const n = semAcento(funcao.nome);
-    const out = MODOS_FALHA.filter(([chaves]) => chaves.some(k => n.includes(k))).slice(0, 2)
+    const n = semAcento(funcao.nome), palavras = n.split(/[^a-z0-9]+/).filter(Boolean);
+    const casa = k => (k.includes(' ') ? n.includes(k) : palavras.some(w => w.startsWith(k)));
+    const vistos = new Set();
+    const out = MODOS_FALHA.filter(([chaves, modo, , , , , , ctx]) => chaves.some(casa) && (!ctx || ctx.some(casa)) && !vistos.has(modo) && vistos.add(modo)).slice(0, 2)
         .map(([, modo, efeito, causa, s, o, d]) => ({ modo, efeito, causa, s, o, d }));
     if (!out.length) out.push({ modo: `Não ${funcao.nome.charAt(0).toLowerCase() + funcao.nome.slice(1)} (falha total ou parcial)`, efeito: 'O produto não cumpre esta função', causa: 'A definir pela equipe', s: 6, o: 3, d: 4 });
     if (principio && principio.maturidade === 'desenvolver') out.push({ modo: `Comportamento desconhecido de "${principio.nome}" (tecnologia a desenvolver)`, efeito: 'Desempenho abaixo das especificações', causa: 'Falta de testes e de experiência com o princípio', s: 7, o: 6, d: 7 });
@@ -67,7 +73,7 @@ function htmlFMEA(p) {
     const v = p.variantes.find(x => x.id === p.concepcao.varianteId);
     if (!est || !v) return '';
     const n10 = val => Array.from({ length: 10 }, (_, i) => `<option ${+val === i + 1 ? 'selected' : ''}>${i + 1}</option>`).join('');
-    const nomeF = id => { const f = est.nos.find(n => n.id === id); return f ? `F${numeroFuncao(est, f.id)} ${f.nome}` : '(função removida)'; };
+    const nomeF = (id, l) => { if (l && l.origem === 'rodada') return `Rodada de teste: ${l.rodadaNome || ''}`; const f = est.nos.find(n => n.id === id); return f ? `F${numeroFuncao(est, f.id)} ${f.nome}` : '(função removida)'; };
     const linhas = p.fmea.slice().sort((a, b) => rpn(b) - rpn(a));
     const criticos = p.fmea.filter(fmeaCritico).length;
     return `<section class="card">
@@ -75,7 +81,7 @@ function htmlFMEA(p) {
             <div class="botoes"><button type="button" class="btn btn-secondary btn-sm" data-acao="fmea-sugerir">Sugerir modos de falha</button><button type="button" class="btn btn-secondary btn-sm" data-acao="fmea-add">+ Linha</button></div></div>
         <p class="nota">Para cada função: como ela pode falhar, o efeito e a causa. Notas de 1 a 10 — <b>S</b> gravidade, <b>O</b> chance de acontecer, <b>D</b> dificuldade de perceber antes. <b>RPN = S × O × D</b>; RPN ≥ ${FMEA_LIMITE} ou S ≥ 9 é crítico${criticos ? ` (<b>${criticos}</b> agora)` : ''}. Vai para o Gestão de Projetos (FMEA → Riscos).</p>
         ${linhas.length ? `<div class="tabela-rolagem"><table class="tabela tabela-fmea"><thead><tr><th>Função</th><th>Modo de falha</th><th>Efeito</th><th>Causa</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Ação</th><th></th></tr></thead>
-        <tbody>${linhas.map(l => `<tr class="${fmeaCritico(l) ? 'fmea-critico' : ''}"><td class="pequeno">${esc(nomeF(l.funcId))}</td>
+        <tbody>${linhas.map(l => `<tr class="${fmeaCritico(l) ? 'fmea-critico' : ''}"><td class="pequeno">${esc(nomeF(l.funcId, l))}</td>
             <td><textarea rows="2" data-campo="fmea#${l.id}.modo" aria-label="Modo de falha">${esc(l.modo)}</textarea></td>
             <td><textarea rows="2" data-campo="fmea#${l.id}.efeito" aria-label="Efeito">${esc(l.efeito)}</textarea></td>
             <td><textarea rows="2" data-campo="fmea#${l.id}.causa" aria-label="Causa">${esc(l.causa)}</textarea></td>

@@ -143,7 +143,7 @@ function exportarParaGestao(p) {
         projeto: { nome: p.projeto.nome, cliente: p.projeto.cliente },
         qfd: p.qfdBackup || null,
         especificacoesManuais: p.especificacoes.filter(e => !e.idQFD).map(e => ({ id: gid(e.id), requisito: e.descricao, criterioAceite: e.meta })),
-        fmea: (p.fmea || []).map(l => { const f = est ? est.nos.find(n => n.id === l.funcId) : null; return { id: gid(l.id), item: f ? `F${numeroFuncao(est, f.id)} ${f.nome}` : '', modo: l.modo, efeito: l.efeito, causa: l.causa, s: +l.s || 5, o: +l.o || 5, d: +l.d || 5, acao: l.acao }; }),
+        fmea: (p.fmea || []).map(l => { const f = est ? est.nos.find(n => n.id === l.funcId) : null; return { id: gid(l.id), item: f ? `F${numeroFuncao(est, f.id)} ${f.nome}` : l.origem === 'rodada' ? `Rodada de teste: ${l.rodadaNome || ''}` : '', modo: l.modo, efeito: l.efeito, causa: l.causa, s: +l.s || 5, o: +l.o || 5, d: +l.d || 5, acao: l.acao }; }),
         conceitual: { funcaoGlobal: { nome: p.funcaoGlobal.nome, entradas: fluxos('entradas'), saidas: fluxos('saidas') }, funcoes, desdobramento, concepcoes }
     };
 }

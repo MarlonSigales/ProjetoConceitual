@@ -321,3 +321,12 @@ confere e completa; o sistema avisa o que falta (pendências) e para onde voltar
 60 [resolvido] Licença: os projetos agora são proprietários. Saiu "código aberto; cópias permitidas desde que citadas" dos
    cabeçalhos, do rodapé e do README; entrou o LICENSE (todos os direitos reservados; JSZip e megajs seguem as suas licenças).
 
+61 [resolvido] FMEA da concepção: os modos de falha sugeridos casam pelo início da palavra e, quando preciso, pelo contexto
+   ("tensão dos raios" não vira dosagem; "receber a carga" não vira falta de energia); modos repetidos não se repetem;
+   novo modo "Perda do ajuste" para ajustar/alinhar/centrar/tensionar. Testes incluídos.
+62 [resolvido] FMEA ↔ preliminar (js/fmea-prelim.js, a cada salvamento): a verificação de segurança (P4) acompanha os modos
+   críticos da FMEA, sem repetir, enquanto o texto for o gerado (o da equipe fica); rodadas reprovadas ou "ajustar" com
+   especificação fora da meta viram linhas da FMEA (origem rodada), com a ação da rodada seguinte e "✓ atendido na
+   Rodada N" quando resolvido; as notas que a equipe mudar ficam. Vão também para o Gestão (FMEA do preliminar).
+63 [resolvido] Aberto dentro do Gestão (?gp=1): o Início diz que as especificações vêm do QFD do projeto e se atualizam
+   sozinhas (em vez de "importado em").
