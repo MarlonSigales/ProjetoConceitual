@@ -120,7 +120,7 @@ Object.assign(ACOES, {
         renderPagina(true); avisar(`Biblioteca compartilhada lida: ${n} princípio(s) novo(s).`);
     },
     'bib-exportar': () => {
-        const p = PC.p, b = { formato: FORMATO_BIBLIOTECA, versao: 1, geradoEm: new Date().toISOString(), itens: [] };
+        const p = PC.raiz, b = { formato: FORMATO_BIBLIOTECA, versao: 1, geradoEm: new Date().toISOString(), itens: [] };
         juntarBiblioteca(b, lerBiblioteca().itens);
         juntarBiblioteca(b, itensDoProjeto(p));
         if (!b.itens.length) { avisar('Ainda não há princípios da equipe para exportar (os do catálogo não entram).', 'erro'); return; }

@@ -263,6 +263,23 @@ function seloTerco(p, e) {
     return t ? `<span class="selo-terco terco-${t}" title="Terço ${t === 'medio' ? 'médio' : t} de importância">${t === 'superior' ? 'sup.' : t === 'medio' ? 'méd.' : 'inf.'}</span>` : '';
 }
 
+/** Desenvolvimento de um bloco (fluxo simplificado): ciclo de Nilsson e Riedel, passos de Nise e testes de software. */
+function normalizarDevBloco(d) {
+    d = d && typeof d === 'object' ? d : {};
+    const c = d.circuito || {}, k = d.controle || {}, sw = d.software || {};
+    const ok3 = v => ['ok', 'x'].includes(v) ? v : '';
+    return {
+        circuito: { conceito: txt(c.conceito), modelo: txt(c.modelo), ferramenta: txt(c.ferramenta, 80), simulacao: txt(c.simulacao),
+            componentes: lista(c.componentes).map(x => Object.assign({ id: uid('cp'), componente: '', grandeza: '', trabalho: '', pico: '', falha: '' }, x)) },
+        controle: { sistema: txt(k.sistema), diagrama: txt(k.diagrama), esquema: txt(k.esquema), modelo: txt(k.modelo), representacao: ['laplace', 'estados'].includes(k.representacao) ? k.representacao : '',
+            reducao: txt(k.reducao), projeto: txt(k.projeto), sensibilidade: txt(k.sensibilidade), robustez: txt(k.robustez), conflito: !!k.conflito, reespecificacao: txt(k.reespecificacao),
+            parametros: lista(k.parametros).map(x => Object.assign({ id: uid('pm'), nome: '', valor: '', unidade: '', como: '' }, x)),
+            testes: lista(k.testes).map(x => Object.assign({ id: uid('te'), entrada: 'degrau', resultado: '', atende: '' }, x, { atende: ok3(x.atende) })) },
+        software: { testes: txt(sw.testes) },
+        iteracoes: lista(d.iteracoes).map(x => Object.assign({ id: uid('it'), data: '', etapa: 'simulacao', descricao: '', medido: '', atende: '', decisao: '' }, x, { atende: ok3(x.atende) }))
+    };
+}
+
 /** Completa campos ausentes sem apagar nada (projetos antigos, importados ou corrompidos). */
 function normalizarProjeto(p) {
     const base = criarProjetoVazio();
@@ -321,11 +338,21 @@ function normalizarProjeto(p) {
     out.etapasConcluidas = lista(p.etapasConcluidas).filter(x => typeof x === 'string');
     if (!TIPOS_PROJETO[out.tipoProjeto]) out.tipoProjeto = '';
     out.fluxo = p.fluxo === 'simplificado' ? 'simplificado' : '';
+    out.especificacoes.forEach(e => { if (!['mecanico', 'eletrico', 'ambas'].includes(e.disciplina)) e.disciplina = ''; });
+    out.parteEletrica = p.parteEletrica && typeof p.parteEletrica === 'object' && !p.ehParteEletrica ? normalizarProjeto(Object.assign({}, p.parteEletrica, { ehParteEletrica: true })) : null;
+    out.ehParteEletrica = !!p.ehParteEletrica;
+    out.aceites = {};
+    Object.entries(p.aceites && typeof p.aceites === 'object' ? p.aceites : {}).forEach(([k, a]) => {
+        if (!a || typeof a !== 'object') return;
+        const dec = d => d && typeof d === 'object' && ['aceito', 'recusado'].includes(d.decisao) ? { decisao: d.decisao, por: txt(d.por, 120), em: txt(d.em, 40), motivo: txt(d.motivo, 1000), hash: txt(d.hash, 40) } : null;
+        out.aceites[k] = { enviado: a.enviado && typeof a.enviado === 'object' ? { por: txt(a.enviado.por, 120), em: txt(a.enviado.em, 40), hash: txt(a.enviado.hash, 40) } : null,
+            coordenador: dec(a.coordenador), gestor: dec(a.gestor) };
+    });
     out.blocos = {};
     Object.entries(p.blocos && typeof p.blocos === 'object' ? p.blocos : {}).forEach(([k, b]) => {
         if (!b || typeof b !== 'object') return;
         out.blocos[k] = { decisao: ['reuso', 'desenvolver'].includes(b.decisao) ? b.decisao : '', principioId: txt(b.principioId, 60), alocacao: ['hw', 'sw', 'hwsw'].includes(b.alocacao) ? b.alocacao : '',
-            plataforma: txt(b.plataforma, 300), testes: txt(b.testes, 1000) };
+            plataforma: txt(b.plataforma, 300), testes: txt(b.testes, 1000), metodo: ['circuito', 'controle', 'software'].includes(b.metodo) ? b.metodo : '', dev: normalizarDevBloco(b.dev) };
     });
     out.concorrentes = lista(p.concorrentes).map(c => Object.assign({ id: uid('cc'), nome: '', notas: {} }, c, { notas: Object.assign({}, c.notas || {}) }));
     out.notasNosso = Object.assign({}, p.notasNosso || {});
@@ -348,30 +375,40 @@ function normalizarProjeto(p) {
 // ============================================================================
 
 const PC = {
-    p: null,
+    _raiz: null,
+    parte: '',      // '' = projeto (ou parte mecânica do misto); 'eletrica' = parte elétrica do projeto misto
     ouvintes: [],
+    /** O projeto inteiro (o que é salvo, exportado e vai no ZIP). */
+    get raiz() { return this._raiz; },
+    /** A parte em que se trabalha agora: o projeto ou, no misto, a parte elétrica. Atribuir troca o projeto inteiro. */
+    get p() { const r = this._raiz; return r && this.parte === 'eletrica' && r.parteEletrica ? r.parteEletrica : r; },
+    set p(v) { this._raiz = v; },
     carregar() {
         let dados = null;
         try { dados = JSON.parse(localStorage.getItem(PC_CHAVE) || 'null'); } catch (e) { dados = null; }
-        this.p = normalizarProjeto(dados);
+        this._raiz = normalizarProjeto(dados);
         return this.p;
     },
     salvar(motivo = '') {
-        this.p.metadata.modificado = new Date().toISOString();
+        const r = this._raiz, agora = new Date().toISOString();
+        r.metadata.modificado = agora;
+        if (r.parteEletrica) r.parteEletrica.metadata.modificado = agora;
         try {
-            localStorage.setItem(PC_CHAVE, JSON.stringify(this.p));
+            localStorage.setItem(PC_CHAVE, JSON.stringify(r));
         } catch (e) {
             throw new Error('Não foi possível guardar no navegador (armazenamento cheio?). Baixe o ZIP do projeto.');
         }
         this.ouvintes.forEach(f => { try { f(motivo); } catch (e) { console.error(e); } });
     },
-    substituir(novo) { this.p = normalizarProjeto(novo); this.salvar('substituir'); },
+    substituir(novo) { this._raiz = normalizarProjeto(novo); this.salvar('substituir'); },
     aoMudar(f) { this.ouvintes.push(f); },
     estrutura(id) {
         const p = this.p;
         return p.estruturas.find(e => e.id === (id || p.estruturaEscolhida)) || p.estruturas[0] || null;
     }
 };
+/** As partes do projeto (a raiz e, no misto, a parte elétrica). */
+function partesDo(r) { return r ? [r].concat(r.parteEletrica ? [r.parteEletrica] : []) : []; }
 
 // ============================================================================
 // IMAGENS (IndexedDB): fotos de princípios de solução e esboços da concepção

@@ -56,7 +56,7 @@ function sincronizarFmeaRodadas(p) {
 {
     const salvarAntesFmea = PC.salvar;
     PC.salvar = function (motivo) {
-        try { if (this.p) { sincronizarFmeaRodadas(this.p); atualizarVerificacaoFmea(this.p); } } catch (e) { console.warn('FMEA ↔ preliminar', e); }
+        try { (typeof partesDo === 'function' ? partesDo(this.raiz) : [this.p]).forEach(x => { if (x) { sincronizarFmeaRodadas(x); atualizarVerificacaoFmea(x); } }); } catch (e) { console.warn('FMEA ↔ preliminar', e); }
         return salvarAntesFmea.apply(this, arguments);
     };
 }

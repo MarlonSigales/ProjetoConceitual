@@ -665,3 +665,21 @@ body:not(.modo-nuvem) .so-nuvem { display: none !important; }
 .bloco-outra { display: flex; gap: .5rem; align-items: center; }
 .bloco-outra input { flex: 1; min-width: 0; }
 .bloco-outra .btn { white-space: nowrap; }
+.passos-dev { padding-left: 1.2rem; display: grid; gap: .8rem; }
+.passos-dev > li > label { display: block; margin-top: .3rem; }
+.bloco-dev h3 { margin-top: 1rem; }
+.bloco-dev table input, .bloco-dev table select { width: 100%; min-width: 70px; }
+.abas-parte { display: flex; gap: .4rem; margin: 0 0 1rem; border-bottom: 2px solid #d5e0dd; flex-wrap: wrap; }
+.aba-parte { border: 1px solid #d5e0dd; border-bottom: none; background: #f4f8f7; padding: .55rem 1rem; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; color: #085357; }
+.aba-parte small { display: block; font-weight: 400; color: #5b6b6b; }
+.aba-parte.ativa { background: #085357; color: #fff; border-color: #085357; }
+.aba-parte.ativa small { color: #d9efe9; }
+.cartao-aceite { border-left: 4px solid #d4a017; }
+.cartao-aceite.aceite-aceito { border-left-color: #409580; }
+.cartao-aceite.aceite-recusado, .cartao-aceite.aceite-alterado { border-left-color: #c0392b; }
+.selo-aceite { font-size: .85rem; font-weight: 600; padding: .15rem .55rem; border-radius: 999px; background: #fdf3d8; color: #7a5a00; }
+.aceite-aceito .selo-aceite { background: #e3f3ee; color: #1f5f45; }
+.aceite-recusado .selo-aceite, .aceite-alterado .selo-aceite { background: #fdecea; color: #a12a1e; }
+.lista-aceite { margin: .3rem 0 .6rem 1.1rem; }
+.botoes-aceite { align-items: end; }
+.so-leitura-eletrica .editor-diagrama, .so-leitura-eletrica .dg-tela { opacity: .92; }

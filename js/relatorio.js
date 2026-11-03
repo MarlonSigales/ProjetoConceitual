@@ -264,12 +264,13 @@ function corpoRelatorio(p, opcoes = {}) {
     }
     if (p.fluxo === 'simplificado' && typeof secoesRelatorioSimpl === 'function') {
         const sm = secoesRelatorioSimpl(p);
-        const refsSimpl = referencias.replace('<ul class="referencias">', `<ul class="referencias"><li>${REF_MARWEDEL}</li>`);
+        const refsSimpl = referencias.replace('<ul class="referencias">', `<ul class="referencias"><li>${REF_MARWEDEL}</li>${typeof REF_NILSSON !== 'undefined' ? `<li>${REF_NILSSON}</li><li>${REF_NISE}</li>` : ''}`);
         return `<div class="rel"><div class="pagina">${capa}</div><div class="pagina">
         ${secao('Especificação', escopo)}
         ${secao('Função global', funcaoGlobal)}
         ${secao('Diagrama de blocos', estrutura)}
         ${secao('Soluções dos blocos: reuso e hardware × software', sm.blocos)}
+        ${secao('Desenvolvimento dos blocos (Nilsson e Riedel; Nise)', sm.desenvolvimento || '')}
         ${secao('Concepção', concepcao)}
         ${secao('Plano de testes (Modelo V)', sm.testes)}
         ${secao('Análises e TRL', analises)}

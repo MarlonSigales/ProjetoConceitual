@@ -52,6 +52,14 @@ prontos do mercado) e sugere usá-la: o bloco reaproveitado só precisa do **tes
 pronta são desenvolvidos em hardware, software ou os dois, com a plataforma. A concepção é montada sozinha, e o plano de testes
 segue o Modelo V (unidade, integração, sistema e aceitação, com uso e mau uso).
 
+Os blocos a desenvolver passam pela etapa **Desenvolvimento dos blocos**: circuito pelo ciclo de Nilsson e Riedel (modelo,
+simulação, protótipo com componentes pelos limites de trabalho, pico e falha, bancada; repetir ou voltar ao modelo),
+controle pelos 6 passos de Nise e software com testes de unidade.
+
+**Projeto misto:** duas abas — Mecânica (fluxo completo) e Elétrica e automação (fluxo simplificado). Cada especificação é
+marcada como mecânica, elétrica ou das duas. **Parte elétrica no Gestão:** só a equipe da área elétrica edita (fora as
+especificações); o coordenador e o gestor aceitam ou recusam cada etapa.
+
 ## Arquivo do projeto
 
 - Tudo fica guardado **no navegador** (dados no `localStorage`, fotos no IndexedDB).
@@ -74,6 +82,9 @@ js/assistente.js    preenchimento automático a partir do QFD
 js/esboco.js        desenho à mão (dedo, caneta, mouse)
 js/biblioteca.js    biblioteca da equipe e links de busca de patentes
 js/fmea.js          FMEA da concepção
+js/desenvolvimento.js desenvolvimento dos blocos (Nilsson e Riedel; Nise)
+js/misto.js         projeto misto em duas abas
+js/aceite.js        aceite da parte elétrica (equipe, coordenador e gestor)
 js/simplificado.js  fluxo simplificado (Marwedel): blocos, reuso, hardware × software e plano de testes do Modelo V
 js/tour.js          tour da primeira visita
 js/nuvem.js         nuvem da equipe (conta MEGA; biblioteca megajs carregada só quando a nuvem é usada)
@@ -94,6 +105,8 @@ todoQA.txt          diretrizes, próximos passos e o que já foi feito
 - BACK, N. et al. *Projeto integrado de produtos*. Manole, 2008.
 - FERREIRA, M. G. G. *Utilização de modelos para a representação de produtos no projeto conceitual*. UFSC, 1997.
 - MARWEDEL, P. *Embedded system design*. 4. ed. Springer, 2021.
+- NILSSON, J. W.; RIEDEL, S. A. *Circuitos elétricos*. 10. ed. Pearson, 2016.
+- NISE, N. S. *Engenharia de sistemas de controle*. 7. ed. LTC, 2017.
 - PAHL, G.; BEITZ, W.; FELDHUSEN, J.; GROTE, K.-H. *Projeto na engenharia*. 6. ed. Blücher, 2005.
 - REIS, A. V. *Desenvolvimento de concepções para a dosagem e deposição de precisão para sementes miúdas*. UFSC, 2003.
 - ROOZENBURG, N. F. M.; EEKELS, J. *Product design: fundamentals and methods*. Wiley, 1995.

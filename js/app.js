@@ -57,7 +57,7 @@ async function hidratarImagens(raiz = document) {
 /** Deixa o resultado pronto para o Gestão de Projetos abrir no mesmo navegador (sem baixar arquivo). */
 function publicarParaGestao() {
     try {
-        const p = PC.p;
+        const p = PC.raiz;
         // projeto salvo só na nuvem: nada dele fica neste computador (o Gestão usa o arquivo baixado)
         if (typeof modoArmazenamento === 'function' && modoArmazenamento() === 'nuvem') { localStorage.removeItem('pc_para_gestao'); return; }
         if (!p.estruturas.length || typeof exportarParaGestao !== 'function') return;
@@ -234,7 +234,7 @@ const ACOES = {
     'qfd-navegador': () => {
         const q = lerQFDDoNavegador();
         if (!q) { avisar('Não achei o QFD neste navegador. Use "Importar do QFD" com o arquivo de backup.', 'erro'); return; }
-        if (importarArquivoQFD({ name: `QFD deste navegador (${q.nome})` }, q.dados)) { PC.p.origemQFD.navegador = true; PC.p.origemQFD.qfdModificado = q.modificado; salvar(); renderPagina(true); }
+        if (importarArquivoQFD({ name: `QFD deste navegador (${q.nome})` }, q.dados)) { PC.raiz.origemQFD.navegador = true; PC.raiz.origemQFD.qfdModificado = q.modificado; salvar(); renderPagina(true); }
     },
     'fechar-menu': () => { document.body.classList.remove('sidebar-aberta'); },
     'marcar-etapa': b => { if (!PC.p.etapasConcluidas.includes(b.dataset.id)) PC.p.etapasConcluidas.push(b.dataset.id); salvar(); },
@@ -282,7 +282,7 @@ async function carregarRecursos() {
 function blobParaDataUrl(b) { return new Promise(ok => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.readAsDataURL(b); }); }
 
 async function baixarZip() {
-    const p = PC.p;
+    const p = PC.raiz;
     avisar('Montando o ZIP…', 'ok', 2000);
     const blob = await gerarZipDoProjeto(p);
     baixarArquivo(blob, `${nomeSeguro(p.projeto.nome || 'projeto-conceitual')}-${new Date().toISOString().slice(0, 10)}.zip`);
@@ -296,9 +296,9 @@ async function abrirProjeto() {
         const t = JSON.parse((await arq.text()).replace(/^﻿/, ''));
         if (ehBackupQFD(t)) return importarArquivoQFD(arq, t);
     }
-    if (projetoTemConteudo(PC.p) && !confirm('Abrir este arquivo substitui o projeto atual neste navegador. Se quiser guardar o atual, baixe o ZIP antes. Continuar?')) return;
+    if (projetoTemConteudo(PC.raiz) && !confirm('Abrir este arquivo substitui o projeto atual neste navegador. Se quiser guardar o atual, baixe o ZIP antes. Continuar?')) return;
     // as fotos do projeto anterior saem; as do arquivo entram
-    const anteriores = imagensUsadas(PC.p);
+    const anteriores = imagensUsadas(PC.raiz);
     const { dados, qfd } = await lerZipOuJson(arq);
     if (qfd) return importarArquivoQFD(arq, dados);
     const novo = normalizarProjeto(dados);
@@ -320,19 +320,19 @@ async function importarDoQFD() {
 
 function importarArquivoQFD(arq, d) {
     if (!ehBackupQFD(d)) throw new Error('Este arquivo não é um backup do Sistema QFD (Backup & Export → Exportar backup).');
-    if (projetoTemConteudo(PC.p) && !confirm('Atualizar o projeto atual com os dados deste QFD? O que você já fez aqui é mantido; as especificações vindas do QFD são atualizadas.')) return false;
-    const r = importarQFD(PC.p, d, arq.name);
-    const feito = preencherTudo(PC.p);   // o que der para montar a partir do QFD já sai pronto (só completa o vazio)
+    if (projetoTemConteudo(PC.raiz) && !confirm('Atualizar o projeto atual com os dados deste QFD? O que você já fez aqui é mantido; as especificações vindas do QFD são atualizadas.')) return false;
+    const r = importarQFD(PC.raiz, d, arq.name);
+    const feito = preencherTudo(PC.raiz);   // o que der para montar a partir do QFD já sai pronto (só completa o vazio)
     salvar();
     location.hash = '#/inicio';
     renderPagina();
-    avisar(`QFD importado: ${r.especificacoes} especificação(ões), ${r.necessidades} necessidade(s), ${PC.p.concorrentes.length} concorrente(s). ${feito.length} item(ns) pré-preenchido(s): revise no Início.`, 'ok', 7000);
+    avisar(`QFD importado: ${r.especificacoes} especificação(ões), ${r.necessidades} necessidade(s), ${PC.raiz.concorrentes.length} concorrente(s). ${feito.length} item(ns) pré-preenchido(s): revise no Início.`, 'ok', 7000);
     return true;
 }
 
 async function carregarExemplo() {
-    if (projetoTemConteudo(PC.p) && !confirm('Carregar o exemplo substitui o projeto atual neste navegador. Baixe o ZIP antes se quiser guardá-lo. Continuar?')) return;
-    for (const id of imagensUsadas(PC.p)) await Imagens.apagar(id);
+    if (projetoTemConteudo(PC.raiz) && !confirm('Carregar o exemplo substitui o projeto atual neste navegador. Baixe o ZIP antes se quiser guardá-lo. Continuar?')) return;
+    for (const id of imagensUsadas(PC.raiz)) await Imagens.apagar(id);
     const p = await criarExemplo();
     PC.substituir(p);
     App.salvoEm = new Date();
@@ -342,8 +342,8 @@ async function carregarExemplo() {
 }
 
 async function novoProjeto() {
-    if (projetoTemConteudo(PC.p) && !confirm('Começar um projeto novo apaga o atual deste navegador. Baixe o ZIP antes se quiser guardá-lo. Continuar?')) return;
-    for (const id of imagensUsadas(PC.p)) await Imagens.apagar(id);
+    if (projetoTemConteudo(PC.raiz) && !confirm('Começar um projeto novo apaga o atual deste navegador. Baixe o ZIP antes se quiser guardá-lo. Continuar?')) return;
+    for (const id of imagensUsadas(PC.raiz)) await Imagens.apagar(id);
     PC.substituir(criarProjetoVazio());
     App.salvoEm = new Date();
     location.hash = '#/inicio';

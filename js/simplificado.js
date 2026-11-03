@@ -40,7 +40,7 @@ const REF_MARWEDEL = 'MARWEDEL, P. <i>Embedded system design: embedded systems f
  * [radicais procurados no nome do bloco, [[nome, descrição, alocação], …]]
  */
 const MODULOS_PRONTOS = [
-    [['aliment', 'energiz', 'fonte', 'receber a energia', 'bateria', 'suprir'], [
+    [['aliment', 'energiz', 'fonte', 'receber a energia', 'bateria', 'suprir', 'armazenar energia', 'armazenar a energia', 'acumular'], [
         ['Fonte chaveada CA-CC (trilho DIN)', 'Converte 127/220 V CA em 5, 12 ou 24 V CC, com proteção contra curto e sobretensão; certificada.', 'hw'],
         ['Conversor CC-CC (buck/boost)', 'Ajusta a tensão da bateria ou da fonte para a eletrônica, com eficiência acima de 85 %.', 'hw'],
         ['Bateria de lítio com BMS', 'Pacote com proteção de carga, descarga, corrente e temperatura.', 'hw'],
@@ -99,7 +99,7 @@ const MODULOS_PRONTOS = [
         ['LED e buzzer de estado', 'Indicação simples de funcionamento e falha.', 'hw'],
         ['Painel web (Node-RED ou Grafana)', 'Gráficos e comandos pelo navegador.', 'sw'],
         ['Aplicativo de celular via BLE', 'Configuração e leitura pelo telefone.', 'sw']]],
-    [['registr', 'armazen', 'grav', 'guardar', 'historic'], [
+    [['registr', 'armazenar dados', 'armazenar os dados', 'grav', 'guardar dados', 'guardar os dados', 'historic'], [
         ['Cartão microSD (sistema de arquivos FAT)', 'Registro local de dados em CSV.', 'hwsw'],
         ['Relógio de tempo real (DS3231)', 'Data e hora corretas mesmo sem energia.', 'hw'],
         ['Banco de dados de séries temporais (InfluxDB)', 'Histórico na nuvem ou num servidor local.', 'sw']]],
@@ -464,7 +464,7 @@ if (typeof exportarParaGestao === 'function') {
 {
     const salvarAntesSimpl = PC.salvar;
     PC.salvar = function () {
-        try { if (this.p && fluxoSimplificado(this.p)) sincronizarConcepcaoSimpl(this.p); } catch (e) { console.warn('fluxo simplificado', e); }
+        try { partesDo(this.raiz).forEach(x => { if (fluxoSimplificado(x)) sincronizarConcepcaoSimpl(x); }); } catch (e) { console.warn('fluxo simplificado', e); }
         return salvarAntesSimpl.apply(this, arguments);
     };
 }

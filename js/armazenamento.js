@@ -80,7 +80,7 @@ async function enviarAgora() {
     if (!ARM.pendente) { atualizarSelo(); return; }
     if (!nuvemConectada()) { ARM.erro = 'entre na nuvem para salvar'; atualizarSelo(); return; }
     ARM.enviando = true; ARM.pendente = false; ARM.erro = ''; atualizarSelo();
-    try { await enviarAtual(PC.p); ARM.ultimo = new Date(); }
+    try { await enviarAtual(PC.raiz); ARM.ultimo = new Date(); }
     catch (e) { ARM.pendente = true; ARM.erro = 'não salvou na nuvem (' + (e.message || e) + '); tento de novo em 1 min'; }
     finally {
         ARM.enviando = false; atualizarSelo();
@@ -173,15 +173,15 @@ function perguntarArmazenamento() {
 async function passarParaNuvem() {
     try { await nuvemGarantir(); }
     catch (e) { avisar('Sem entrar na nuvem o projeto continua neste computador. Você pode escolher a nuvem depois no Início.', 'erro', 8000); if (!modoArmazenamento()) definirModo('pc'); salvarNoNavegador(); atualizarSelo(); renderPagina(true); return; }
-    pastaDoProjeto(PC.p); // mesmo nome = mesma pasta: o projeto passa a ser a versão mais nova dela (sobrescreve o "-atual")
-    definirModo('nuvem', PC.p.nuvemPasta);
+    pastaDoProjeto(PC.raiz); // mesmo nome = mesma pasta: o projeto passa a ser a versão mais nova dela (sobrescreve o "-atual")
+    definirModo('nuvem', PC.raiz.nuvemPasta);
     ARM.carregado = true; ARM.pendente = true; ARM.ultimaVersao = 0;
     avisar('Enviando o projeto para a nuvem da equipe…', 'ok', 60000);
     await enviarAgora();
     if (ARM.erro) { avisar('A nuvem não respondeu: ' + ARM.erro + '. O projeto continua aberto aqui; não feche a página até aparecer "salvo na nuvem".', 'erro', 12000); return; }
     try { localStorage.removeItem(PC_CHAVE); } catch (e) { /* ok */ }
     renderPagina(true);
-    avisar(`Projeto salvo na nuvem da equipe (pasta "${PC.p.nuvemPasta}"). A partir de agora ele é salvo só lá, sozinho.`, 'ok', 9000);
+    avisar(`Projeto salvo na nuvem da equipe (pasta "${PC.raiz.nuvemPasta}"). A partir de agora ele é salvo só lá, sozinho.`, 'ok', 9000);
 }
 
 // ---------------------------------------------------------------- abrir da nuvem ao entrar no sistema
@@ -229,7 +229,7 @@ async function abrirDaNuvemAoIniciar() {
 
 function htmlModoArmazenamento() {
     const m = modoArmazenamento();
-    if (m === 'nuvem') return `<p class="modo-atual">Este projeto é salvo <b>só na nuvem da equipe</b> (pasta "${esc(pastaNuvemAtual() || PC.p.nuvemPasta || '')}"), sozinho, a cada alteração; uma versão datada fica guardada a cada hora de trabalho.
+    if (m === 'nuvem') return `<p class="modo-atual">Este projeto é salvo <b>só na nuvem da equipe</b> (pasta "${esc(pastaNuvemAtual() || PC.raiz.nuvemPasta || '')}"), sozinho, a cada alteração; uma versão datada fica guardada a cada hora de trabalho.
         <button type="button" class="btn-link" data-acao="arm-pc">Passar a salvar neste computador</button></p>`;
     return `<p class="modo-atual">Este projeto é salvo <b>neste computador</b>. <button type="button" class="btn-link" data-acao="arm-nuvem">Passar a salvar só na nuvem da equipe</button></p>`;
 }
@@ -256,11 +256,11 @@ Object.assign(ACOES, {
         let extras = '';
         try {
             const { biblioteca } = await pastasBase();
-            const n = await juntarBibliotecaNuvem(biblioteca, itensDoProjeto(PC.p));
-            const c = typeof sincronizarComponentesNuvem === 'function' ? (await sincronizarComponentesNuvem(componentesDoProjeto(PC.p))).novosNaNuvem : 0;
+            const n = await juntarBibliotecaNuvem(biblioteca, itensDoProjeto(PC.raiz));
+            const c = typeof sincronizarComponentesNuvem === 'function' ? (await sincronizarComponentesNuvem(componentesDoProjeto(PC.raiz))).novosNaNuvem : 0;
             if (n || c) extras = ` ${n} princípio(s) novo(s) na biblioteca e ${c} item(ns) novo(s) no banco de componentes da equipe.`;
         } catch (e) { /* o projeto já está salvo */ }
-        avisar(`Projeto completo salvo no MEGA (pasta "${PC.p.nuvemPasta}"), com uma versão datada.${extras}`, 'ok', 8000);
+        avisar(`Projeto completo salvo no MEGA (pasta "${PC.raiz.nuvemPasta}"), com uma versão datada.${extras}`, 'ok', 8000);
     },
     'arm-abrir-nuvem': () => abrirDaNuvemAoIniciar(),
     'arm-sair-nuvem': () => {
@@ -294,7 +294,7 @@ if (ACOES['nuvem-abrir-versao']) {
         const eraNuvem = emNuvem();
         ARM.abrindoDaNuvem = eraNuvem;
         try { await orig(b); } finally { ARM.abrindoDaNuvem = false; }
-        if (eraNuvem && pr) { PC.p.nuvemPasta = pr.nome; definirModo('nuvem', pr.nome); ARM.carregado = true; ARM.pendente = false; ARM.ultimo = new Date(); try { localStorage.removeItem(PC_CHAVE); } catch (e) { /* ok */ } atualizarSelo(); }
+        if (eraNuvem && pr) { PC.raiz.nuvemPasta = pr.nome; definirModo('nuvem', pr.nome); ARM.carregado = true; ARM.pendente = false; ARM.ultimo = new Date(); try { localStorage.removeItem(PC_CHAVE); } catch (e) { /* ok */ } atualizarSelo(); }
     };
 }
 
@@ -304,7 +304,7 @@ renderPagina = function (...a) {
     renderPaginaOriginal(...a);
     atualizarSelo();
     if (emNuvem() && !ARM.carregado) { if (!$('#tela-nuvem') && !NUVEM.conectando) abrirDaNuvemAoIniciar(); return; }
-    if (!modoArmazenamento() && projetoTemConteudo(PC.p)) setTimeout(() => { if (!modoArmazenamento() && projetoTemConteudo(PC.p)) perguntarArmazenamento(); }, 400);
+    if (!modoArmazenamento() && projetoTemConteudo(PC.raiz)) setTimeout(() => { if (!modoArmazenamento() && projetoTemConteudo(PC.raiz)) perguntarArmazenamento(); }, 400);
 };
 
 window.addEventListener('beforeunload', e => {

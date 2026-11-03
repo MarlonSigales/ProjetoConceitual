@@ -822,7 +822,7 @@ teste('FMEA ↔ preliminar: verificação de segurança acompanha a FMEA sem rep
 teste('Fluxo simplificado: blocos com solução existente só pedem teste de integração', () => {
     const p = normalizarProjeto({ projeto: { nome: 'Controlador' }, tipoProjeto: 'automacao', fluxo: 'simplificado',
         especificacoes: [{ id: 'e1', descricao: 'Tempo de resposta', meta: '≤ 100', unidade: 'ms' }], formulacao: 'Controlar a temperatura' });
-    igual(p.fluxo, 'simplificado'); igual(etapasConceitual(p).map(e => e[0]), ['escopo', 'funcao-global', 'estrutura', 'blocos', 'concepcao', 'analises', 'relatorio']);
+    igual(p.fluxo, 'simplificado'); igual(etapasConceitual(p).map(e => e[0]), ['escopo', 'funcao-global', 'estrutura', 'blocos', 'desenvolvimento', 'concepcao', 'analises', 'relatorio']);
     const est = montarEstruturaInicial(p, []); p.estruturas.push(est); p.estruturaEscolhida = est.id;
     aplicarModelo(est, noGlobal(est).id, 'automacao');
     const folhas = funcoesFolha(est), capt = folhas.find(f => /Captar/.test(f.nome)), proc = folhas.find(f => /Processar/.test(f.nome));
@@ -844,6 +844,74 @@ teste('Fluxo simplificado: blocos com solução existente só pedem teste de int
     const g = exportarParaGestao(p); igual(g.fluxo, 'simplificado'); ok(g.planoTestes.length > 3);
     ok(/Plano de testes/.test(corpoRelatorio(p, {})), 'relatório com plano de testes');
     const q = normalizarProjeto(JSON.parse(JSON.stringify(p))); igual(q.blocos[proc.id].alocacao, 'sw', 'blocos sobrevivem à normalização');
+});
+
+
+teste('Desenvolvimento dos blocos: Nilsson e Riedel (circuito) e Nise (controle)', () => {
+    const p = normalizarProjeto({ tipoProjeto: 'automacao', fluxo: 'simplificado', especificacoes: [{ id: 'e1', descricao: 'Temperatura', meta: '25 ± 2' }], formulacao: 'x' });
+    const est = montarEstruturaInicial(p, []); p.estruturas.push(est); p.estruturaEscolhida = est.id; aplicarModelo(est, noGlobal(est).id, 'automacao');
+    const fs = funcoesFolha(est), cond = fs.find(f => /Condicionar/.test(f.nome)), proc = fs.find(f => /Processar/.test(f.nome));
+    aplicarSugestoesBlocos(p); desenvolverBloco(p, cond, 'hw'); desenvolverBloco(p, proc, 'hwsw');
+    p.blocos[proc.id].metodo = 'controle';
+    igual(metodoDe(cond, p.blocos[cond.id]), 'circuito');
+    let st = statusEtapas(p); igual(st.desenvolvimento.estado, 'vazio');
+    const d = devDe(p.blocos[cond.id]);
+    d.circuito.modelo = 'Amplificador não inversor';
+    d.circuito.componentes.push({ id: 'c1', componente: 'MOSFET', grandeza: 'Vds', trabalho: '24', pico: '36', falha: '60' });
+    perto(fatorSeguranca(d.circuito.componentes[0]), 1.667, 0.01, 'fator de segurança');
+    d.iteracoes.push({ id: 'i1', etapa: 'bancada', medido: 'ganho 9', atende: 'x', decisao: 'voltar-modelo' });
+    ok(/voltar ao modelo/.test(situacaoDev(cond, p.blocos[cond.id]).texto));
+    d.iteracoes.push({ id: 'i2', etapa: 'bancada', medido: 'ganho 10', atende: 'ok', decisao: '' });
+    ok(situacaoDev(cond, p.blocos[cond.id]).feito, 'circuito atende');
+    const k = devDe(p.blocos[proc.id]).controle;
+    ['sistema', 'diagrama', 'esquema', 'modelo', 'reducao', 'projeto'].forEach(a => { k[a] = 'ok'; });
+    k.testes.push({ id: 't1', entrada: 'degrau', resultado: 'acomodação 2 s', atende: 'ok' });
+    k.conflito = true;
+    ok(pendencias(p).some(x => /reespecificar/.test(x.texto)), 'conflito pede reespecificar');
+    k.reespecificacao = 'Sobressinal até 10 %';
+    st = statusEtapas(p); igual(st.desenvolvimento.estado, 'feito');
+    ok(planoTestes(p).some(x => x.nivel === 'Unidade' && /Nilsson/.test(x.teste)) && planoTestes(p).some(x => x.nivel === 'Unidade' && /Nise/.test(x.teste)), 'plano de testes pelos métodos');
+    ok(/Desenvolvimento dos blocos/.test(corpoRelatorio(p, {})), 'relatório');
+    igual(normalizarProjeto(JSON.parse(JSON.stringify(p))).blocos[cond.id].dev.iteracoes.length, 2, 'normalização mantém');
+});
+
+teste('Projeto misto: duas partes, especificações divididas e um só resultado para o Gestão', () => {
+    const r = normalizarProjeto({ projeto: { nome: 'Semeadora elétrica' }, tipoProjeto: 'misto', formulacao: 'Semear',
+        especificacoes: [{ id: 'a', idQFD: 'q1', descricao: 'Massa do chassi', meta: '≤ 300 kg', origem: 'qfd' }, { id: 'b', idQFD: 'q2', descricao: 'Autonomia da bateria', meta: '≥ 8 h', origem: 'qfd' }, { id: 'c', idQFD: 'q3', descricao: 'Velocidade de trabalho', meta: '6 km/h', origem: 'qfd', disciplina: 'ambas' }] });
+    garantirParteEletrica(r);
+    igual(r.especificacoes.map(e => e.disciplina), ['mecanico', 'eletrico', 'ambas'], 'divisão sugerida');
+    const pe = r.parteEletrica; ok(pe && pe.ehParteEletrica && pe.fluxo === 'simplificado');
+    igual(pe.especificacoes.map(e => e.descricao), ['Autonomia da bateria', 'Velocidade de trabalho']);
+    igual(especsUsadas(r).map(e => e.descricao), ['Massa do chassi', 'Velocidade de trabalho'], 'parte mecânica sem as elétricas');
+    const est = montarEstruturaInicial(pe, []); pe.estruturas.push(est); pe.estruturaEscolhida = est.id; aplicarModelo(est, noGlobal(est).id, 'eletrico');
+    pe.especificacoes[0].funcoesIds = [funcoesFolha(est)[0].id];
+    aplicarSugestoesBlocos(pe); sincronizarConcepcaoSimpl(pe);
+    r.especificacoes[1].meta = '≥ 10 h'; sincronizarParteEletrica(r);
+    igual(pe.especificacoes[0].meta, '≥ 10 h', 'meta atualizada'); igual(pe.especificacoes[0].funcoesIds.length, 1, 'desdobramento da parte elétrica mantido');
+    const re = normalizarProjeto(JSON.parse(JSON.stringify(r))); ok(re.parteEletrica && re.parteEletrica.estruturas.length === 1, 'ida e volta');
+    const r2 = normalizarProjeto({ tipoProjeto: 'misto', especificacoes: r.especificacoes, parteEletrica: pe });
+    const g = exportarParaGestao(Object.assign(r2, { estruturas: [] }));
+    ok(g.misto, 'misto');
+    const pe2 = r; const est2 = montarEstruturaInicial(pe2, []); pe2.estruturas.push(est2); pe2.estruturaEscolhida = est2.id; aplicarModelo(est2, noGlobal(est2).id, 'mecanico');
+    const g2 = exportarParaGestao(pe2);
+    ok(g2.conceitual.funcoes.some(f => /\(elétrica\)/.test(f.nome)) && g2.conceitual.concepcoes.some(c => /Parte elétrica/.test(c.nome)), 'funções e concepção da parte elétrica');
+    ok(g2.planoTestes.some(x => x.bloco === 'Mecânica × elétrica' && /Velocidade/.test(x.teste)), 'integração entre as partes');
+});
+
+teste('Aceite da parte elétrica: envio, aceite e alteração depois do envio', () => {
+    const p = normalizarProjeto({ tipoProjeto: 'eletrico', funcaoGlobal: { nome: 'Alimentar a carga', entradas: {}, saidas: {} } });
+    ok(parteRestrita(p) && !parteRestrita(normalizarProjeto({ tipoProjeto: 'mecanico' })), 'só o elétrico');
+    ok(!etapasComAceite(p).includes('escopo'), 'especificações livres');
+    igual(estadoAceite(p, 'funcao-global').estado, 'nao-enviado');
+    const h = hashEtapa(p, 'funcao-global');
+    p.aceites['funcao-global'] = { enviado: { por: 'Ana', em: '2026-11-03T10:00', hash: h }, coordenador: { decisao: 'aceito', por: 'Coord', em: 'x', motivo: '', hash: h }, gestor: null };
+    igual(estadoAceite(p, 'funcao-global').estado, 'aguardando');
+    p.aceites['funcao-global'].gestor = { decisao: 'aceito', por: 'Gestor', em: 'x', motivo: '', hash: h };
+    igual(estadoAceite(p, 'funcao-global').estado, 'aceito');
+    p.funcaoGlobal.nome = 'Alimentar e proteger a carga';
+    igual(estadoAceite(p, 'funcao-global').estado, 'alterado', 'mudou depois do aceite');
+    const q = normalizarProjeto(JSON.parse(JSON.stringify(p))); igual(q.aceites['funcao-global'].gestor.decisao, 'aceito', 'aceites sobrevivem');
+    ok(resumoAceites(p).some(x => x.etapa === 'funcao-global' && x.estado === 'alterado'), 'resumo para o Gestão');
 });
 
 // ---------------------------------------------------------------- execução

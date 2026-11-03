@@ -279,7 +279,7 @@ async function comAviso(texto, f) {
 
 Object.assign(ACOES, {
     'nuvem-salvar': async () => {
-        const r = await comAviso('Salvando na nuvem da equipe…', () => salvarNaNuvem(PC.p));
+        const r = await comAviso('Salvando na nuvem da equipe…', () => salvarNaNuvem(PC.raiz));
         renderPagina(true);
         avisar(`Salvo na nuvem: pasta "${r.pasta}"${r.biblioteca ? `; ${r.biblioteca} princípio(s) novo(s) na biblioteca da equipe` : ''}${r.componentes ? `; ${r.componentes} componente(s)/material(is) novo(s) no banco da equipe` : ''}.`, 'ok', 7000);
     },
@@ -298,9 +298,9 @@ Object.assign(ACOES, {
         const pr = App.nuvemLista[+b.dataset.i];
         const sel = $(`[data-nuvem-versao="${b.dataset.i}"]`);
         const arq = pr.versoes[sel ? +sel.value : 0];
-        if (projetoTemConteudo(PC.p) && !confirm(`Abrir "${pr.nome}" da nuvem substitui o projeto deste navegador (o que estiver salvo na nuvem continua lá). Continuar?`)) return;
+        if (projetoTemConteudo(PC.raiz) && !confirm(`Abrir "${pr.nome}" da nuvem substitui o projeto deste navegador (o que estiver salvo na nuvem continua lá). Continuar?`)) return;
         const blob = await comAviso('Baixando da nuvem…', () => baixar(arq));
-        const anteriores = imagensUsadas(PC.p);
+        const anteriores = imagensUsadas(PC.raiz);
         const { dados } = await lerZipOuJson(new File([blob], arq.name, { type: 'application/zip' }));
         const novo = normalizarProjeto(dados);
         const usadas = new Set(imagensUsadas(novo));
