@@ -19,7 +19,7 @@ Atualizado em 27/10/2026 (versão 3). Os números são fixos (servem de referên
 - Testar em 360, 768, 1024 e 1920 px: nada sai da tela.
 
 === O QUE FALTA (do mais simples para o mais difícil)
-56 [futuro] Versão simplificada do todo (QFD → conceitual → preliminar) para projetos elétricos, eletrônicos, de sistemas
+56 [resolvido 03/11/2026: fluxo simplificado de Marwedel (js/simplificado.js): escolhido no Início para os tipos elétrico, automação/eletrônico e misto; diagrama de blocos, soluções dos blocos com sugestão do que já existe (biblioteca da equipe e módulos prontos do mercado: só falta o teste de integração) ou desenvolver em hardware/software com plataforma; concepção montada sozinha; plano de testes do Modelo V na concepção, no protótipo, no relatório e no Gestão. Os passos de Nilsson e Riedel e de Nise continuam nos próximos passos da concepção] Versão simplificada do todo (QFD → conceitual → preliminar) para projetos elétricos, eletrônicos, de sistemas
    embarcados e de automação (pedido de 28/10/2026), escolhida junto com o tipo de projeto, baseada nas metodologias da tese
    (Sigales, 2025, seção 2.1) e da dissertação (Sigales, 2021):
    - fluxo elétrico de Nilsson e Riedel adaptado ao modelo de consenso (Ogliari, 1999): especificações → conceito

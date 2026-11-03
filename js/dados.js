@@ -42,7 +42,7 @@ const MATURIDADES = {
 };
 /** Custo relativo do princípio (quando não se sabe o valor em R$). */
 const CUSTOS = { baixo: { nome: 'Barato', peso: 1 }, medio: { nome: 'Médio', peso: 5 }, alto: { nome: 'Caro', peso: 10 } };
-const ORIGENS_PRINCIPIO = { manual: 'equipe', catalogo: 'catálogo', ia: 'IA', qfd: 'ideia do QFD', biblioteca: 'biblioteca' };
+const ORIGENS_PRINCIPIO = { manual: 'equipe', catalogo: 'catálogo', ia: 'IA', qfd: 'ideia do QFD', biblioteca: 'biblioteca', modulo: 'solução existente' };
 
 /** Quadro 1 — métodos de busca por princípios de solução (Reis, 2003, apud Spagnolo, 2011) */
 const METODOS_BUSCA = {
@@ -113,6 +113,8 @@ function criarProjetoVazio() {
         projeto: { nome: '', cliente: '', instituicao: '', responsavel: '', equipe: [] },
         origemQFD: null,                 // { arquivo, importadoEm }
         tipoProjeto: '',                 // chave de TIPOS_PROJETO
+        fluxo: '',                       // '' = completo (Pahl, Reis); 'simplificado' = elétrico/eletrônico/automação (Marwedel)
+        blocos: {},                      // fluxo simplificado: { [funcId]: { decisao: 'reuso'|'desenvolver', principioId, alocacao: 'hw'|'sw'|'hwsw', plataforma, testes } }
         qfdBackup: null,                 // backup completo do QFD (vai para o Gestão de Projetos junto com as funções)
         concorrentes: [],                // { id, nome, idQFD, notas: { [necessidadeId]: 1..5 } }
         notasNosso: {},                  // notas do nosso produto atual no QFD { [necessidadeId]: 1..5 }
@@ -318,6 +320,13 @@ function normalizarProjeto(p) {
     out.concepcao.complementos = lista(out.concepcao.complementos);
     out.etapasConcluidas = lista(p.etapasConcluidas).filter(x => typeof x === 'string');
     if (!TIPOS_PROJETO[out.tipoProjeto]) out.tipoProjeto = '';
+    out.fluxo = p.fluxo === 'simplificado' ? 'simplificado' : '';
+    out.blocos = {};
+    Object.entries(p.blocos && typeof p.blocos === 'object' ? p.blocos : {}).forEach(([k, b]) => {
+        if (!b || typeof b !== 'object') return;
+        out.blocos[k] = { decisao: ['reuso', 'desenvolver'].includes(b.decisao) ? b.decisao : '', principioId: txt(b.principioId, 60), alocacao: ['hw', 'sw', 'hwsw'].includes(b.alocacao) ? b.alocacao : '',
+            plataforma: txt(b.plataforma, 300), testes: txt(b.testes, 1000) };
+    });
     out.concorrentes = lista(p.concorrentes).map(c => Object.assign({ id: uid('cc'), nome: '', notas: {} }, c, { notas: Object.assign({}, c.notas || {}) }));
     out.notasNosso = Object.assign({}, p.notasNosso || {});
     out.referencias = lista(p.referencias).map(r => Object.assign({ id: uid('rf'), tipo: '', identificacao: '', titulo: '', resumo: '', link: '' }, r));
@@ -830,18 +839,21 @@ function statusEtapas(p) {
         out.analises = s(est && !altas && !medias && out.concepcao.estado === 'feito', est && folhas.length > 0, altas + medias ? `${altas} importante(s), ${medias} a melhorar` : 'nada pendente');
     }
     out.relatorio = s(out.concepcao.estado === 'feito', out.estrutura.estado !== 'vazio', out.concepcao.estado === 'feito' ? 'pronto para gerar' : 'pode gerar a qualquer momento');
+    if (typeof statusSimplificado === 'function' && p.fluxo === 'simplificado') Object.assign(out, statusSimplificado(p, out));
     if (typeof statusPreliminar === 'function') Object.assign(out, statusPreliminar(p));
     p.etapasConcluidas.forEach(id => { if (out[id] && out[id].estado !== 'feito') out[id] = { estado: 'feito', resumo: out[id].resumo + ' · marcada como concluída', marcada: true }; });
     return out;
 }
 
+/** Etapas do conceitual conforme o fluxo do projeto (completo ou simplificado de Marwedel). */
+function etapasConceitual(p) { return (p || PC.p) && (p || PC.p).fluxo === 'simplificado' && typeof ETAPAS_SIMPL !== 'undefined' ? ETAPAS_SIMPL : ETAPAS; }
 /** Etapas do conceitual seguidas das do preliminar (quando o módulo está carregado). */
-function todasEtapas() { return typeof ETAPAS_PRELIM !== 'undefined' ? ETAPAS.concat(ETAPAS_PRELIM) : ETAPAS; }
+function todasEtapas(p) { const c = etapasConceitual(p); return typeof ETAPAS_PRELIM !== 'undefined' ? c.concat(ETAPAS_PRELIM) : c; }
 
 function proximaEtapa(p, st) {
     st = st || statusEtapas(p);
-    const e = ETAPAS.find(([id]) => id !== 'relatorio' && st[id].estado !== 'feito');
-    return e ? { id: e[0], numero: e[1], nome: e[2] } : { id: 'relatorio', numero: '9', nome: 'Relatório' };
+    const L = etapasConceitual(p), e = L.find(([id]) => id !== 'relatorio' && st[id].estado !== 'feito'), r = L[L.length - 1];
+    return e ? { id: e[0], numero: e[1], nome: e[2] } : { id: 'relatorio', numero: r[1], nome: r[2] };
 }
 
 // ============================================================================

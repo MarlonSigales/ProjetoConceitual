@@ -150,8 +150,8 @@ function atualizarCasca() {
     $('#topbar-projeto-nome').textContent = p.projeto.nome || 'Projeto sem nome';
     $('#sidebar-nav').innerHTML =
         `<a href="#/inicio" class="sidebar-link ${App.pagina === 'inicio' ? 'ativo' : ''}"><span class="sidebar-num">⌂</span><span>Início</span></a>
-         <span class="sidebar-grupo">Etapas</span>` +
-        ETAPAS.map(linkEtapa).join('') +
+         <span class="sidebar-grupo">Etapas${p.fluxo === 'simplificado' ? ' <small>(fluxo simplificado)</small>' : ''}</span>` +
+        etapasConceitual(p).map(linkEtapa).join('') +
         (typeof ETAPAS_PRELIM !== 'undefined' ? `<span class="sidebar-grupo">Projeto preliminar${p.concepcao.varianteId ? '' : ' <small>(após a concepção)</small>'}</span>` + ETAPAS_PRELIM.map(linkEtapa).join('') : '');
     function linkEtapa([id, num, nome]) {
         const s = st[id];
@@ -199,10 +199,11 @@ function renderPagina(manterRolagem = false) {
     const p = PC.p;
     const raiz = $('#app');
     const num = (todasEtapas().find(e => e[0] === id) || [])[1];
+    const tit = (p.fluxo === 'simplificado' && typeof TITULOS_SIMPL !== 'undefined' && TITULOS_SIMPL[id]) || [pg.titulo, pg.sub];
     raiz.innerHTML = `<div class="container">
         <header class="page-titulo">
-            <h1>${num ? `<span class="titulo-num">${num}</span>` : ''}${esc(pg.titulo)}</h1>
-            ${pg.sub ? `<p>${pg.sub}</p>` : ''}
+            <h1>${num ? `<span class="titulo-num">${num}</span>` : ''}${esc(tit[0])}</h1>
+            ${tit[1] ? `<p>${tit[1]}</p>` : ''}
             <div class="etapa-conclusao" id="etapa-conclusao"></div>
         </header>
         ${pg.render(p)}
@@ -358,8 +359,9 @@ PAGINAS.inicio = {
     sub: 'Do fim do QFD à concepção escolhida: escopo, estrutura de funções, princípios de solução, matriz morfológica e seleção — seguindo Pahl et al. (2005), Reis (2003) e Spagnolo (2011).',
     render(p) {
         const st = statusEtapas(p), prox = proximaEtapa(p, st);
-        const nEtapas = ETAPAS.length - 1;
-        const feitas = ETAPAS.filter(([id]) => id !== 'relatorio' && st[id].estado === 'feito').length;
+        const ETS = etapasConceitual(p);
+        const nEtapas = ETS.length - 1;
+        const feitas = ETS.filter(([id]) => id !== 'relatorio' && st[id].estado === 'feito').length;
         const tem = projetoTemConteudo(p);
         const comecar = `
         <section class="card comecar">
@@ -395,7 +397,7 @@ PAGINAS.inicio = {
         ${htmlPreenchimento(p)}
         ${htmlInicioPreliminar(p, st)}
         <section class="cartoes-etapas">
-            ${ETAPAS.map(([id, num, nome]) => `<a class="cartao-etapa estado-${st[id].estado}" href="#/${id}">
+            ${ETS.map(([id, num, nome]) => `<a class="cartao-etapa estado-${st[id].estado}" href="#/${id}">
                 <span class="sidebar-num">${st[id].estado === 'feito' ? '✓' : num}</span>
                 <span><b>${esc(nome)}</b><small>${esc(st[id].resumo)}</small></span></a>`).join('')}
         </section>
@@ -421,13 +423,13 @@ function htmlInicioPreliminar(p, st) {
 function htmlTipoProjeto(p) {
     return `<div class="tipo-projeto"><span class="tipo-rotulo">Tipo de projeto${p.tipoProjeto ? '' : ' <b class="falta">(escolha um)</b>'}:</span>
         <div class="tipos" role="radiogroup" aria-label="Tipo de projeto">${Object.entries(TIPOS_PROJETO).map(([k, t]) => `<button type="button" role="radio" aria-checked="${p.tipoProjeto === k}" class="tipo ${p.tipoProjeto === k ? 'ativo' : ''}" data-acao="tipo-projeto" data-tipo="${k}" title="${escAttr(t.exemplo)}"><span aria-hidden="true">${t.icone}</span> ${esc(t.nome)}</button>`).join('')}</div>
-        <small>Muda as sugestões do catálogo, os modelos prontos de estrutura e os fluxos sugeridos.</small></div>`;
+        <small>Muda as sugestões do catálogo, os modelos prontos de estrutura e os fluxos sugeridos.</small></div>${typeof htmlEscolhaFluxo === 'function' ? htmlEscolhaFluxo(p) : ''}`;
 }
 
 /** Botão "preencher o que der" e o resumo do último preenchimento automático. */
 function htmlPreenchimento(p) {
     const u = p.ultimoPreenchimento;
-    const nomeEt = id => (ETAPAS.find(e => e[0] === id) || [])[2] || id;
+    const nomeEt = id => (todasEtapas(p).find(e => e[0] === id) || [])[2] || id;
     return `<section class="card preencher">
         <div class="card-topo"><h2>✨ Preenchimento automático</h2>
             <button type="button" class="btn btn-primary" data-acao="preencher-tudo">Preencher o que estiver vazio</button></div>

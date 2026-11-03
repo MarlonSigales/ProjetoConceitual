@@ -651,3 +651,17 @@ body:not(.modo-nuvem) .so-nuvem { display: none !important; }
 .memoria { margin: 0.5rem 0 0; background: #f2f7f5; border-radius: 6px; padding: 0.5rem 0.6rem; overflow-wrap: anywhere; }
 .efeitos { margin: 0.3rem 0; padding-left: 1.2rem; }
 #calc-tipo { max-width: 100%; }
+
+/* fluxo simplificado (Marwedel): soluções dos blocos */
+.escolha-fluxo { margin-top: .8rem; }
+.bloco-simpl .bloco-escolha { margin: .3rem 0 .6rem; }
+.bloco-sugestoes ul { list-style: none; padding: 0; margin: .4rem 0 .6rem; display: grid; gap: .4rem; }
+.bloco-sugestoes li { border: 1px solid #d5e0dd; border-radius: 6px; padding: .45rem .6rem; display: block; }
+.bloco-sugestoes li.escolhida { border-color: #409580; background: #eef7f4; }
+.bloco-sugestoes li .btn { float: right; margin-left: .5rem; }
+.bloco-sugestoes small { color: #5b6b6b; }
+.plano-testes td:first-child { white-space: nowrap; }
+.bloco-sugestoes summary { cursor: pointer; color: #085357; font-weight: 600; margin: .3rem 0; }
+.bloco-outra { display: flex; gap: .5rem; align-items: center; }
+.bloco-outra input { flex: 1; min-width: 0; }
+.bloco-outra .btn { white-space: nowrap; }

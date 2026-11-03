@@ -262,6 +262,20 @@ function corpoRelatorio(p, opcoes = {}) {
             ${secao('Referências', refsPrelim)}
         </div></div>`;
     }
+    if (p.fluxo === 'simplificado' && typeof secoesRelatorioSimpl === 'function') {
+        const sm = secoesRelatorioSimpl(p);
+        const refsSimpl = referencias.replace('<ul class="referencias">', `<ul class="referencias"><li>${REF_MARWEDEL}</li>`);
+        return `<div class="rel"><div class="pagina">${capa}</div><div class="pagina">
+        ${secao('Especificação', escopo)}
+        ${secao('Função global', funcaoGlobal)}
+        ${secao('Diagrama de blocos', estrutura)}
+        ${secao('Soluções dos blocos: reuso e hardware × software', sm.blocos)}
+        ${secao('Concepção', concepcao)}
+        ${secao('Plano de testes (Modelo V)', sm.testes)}
+        ${secao('Análises e TRL', analises)}
+        ${secao('Referências', refsSimpl)}
+    </div></div>`;
+    }
     return `<div class="rel"><div class="pagina">${capa}</div><div class="pagina">
         ${secao('Escopo do problema', escopo)}
         ${secao('Função global', funcaoGlobal)}

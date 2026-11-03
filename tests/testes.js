@@ -817,6 +817,35 @@ teste('FMEA ↔ preliminar: verificação de segurança acompanha a FMEA sem rep
     l.s = 3; sincronizarFmeaRodadas(p); igual(p.fmea.filter(x => x.origem === 'rodada').length, 1, 'não duplica'); igual(l.s, 3, 'nota da equipe fica');
 });
 
+
+// ---------------------------------------------------------------- fluxo simplificado (Marwedel)
+teste('Fluxo simplificado: blocos com solução existente só pedem teste de integração', () => {
+    const p = normalizarProjeto({ projeto: { nome: 'Controlador' }, tipoProjeto: 'automacao', fluxo: 'simplificado',
+        especificacoes: [{ id: 'e1', descricao: 'Tempo de resposta', meta: '≤ 100', unidade: 'ms' }], formulacao: 'Controlar a temperatura' });
+    igual(p.fluxo, 'simplificado'); igual(etapasConceitual(p).map(e => e[0]), ['escopo', 'funcao-global', 'estrutura', 'blocos', 'concepcao', 'analises', 'relatorio']);
+    const est = montarEstruturaInicial(p, []); p.estruturas.push(est); p.estruturaEscolhida = est.id;
+    aplicarModelo(est, noGlobal(est).id, 'automacao');
+    const folhas = funcoesFolha(est), capt = folhas.find(f => /Captar/.test(f.nome)), proc = folhas.find(f => /Processar/.test(f.nome));
+    ok(solucoesExistentes(p, capt).some(s => /sensor/i.test(s.nome)), 'sugere sensor pronto');
+    ok(solucoesExistentes(p, proc).some(s => /ESP32|CLP/.test(s.nome)), 'sugere controlador pronto');
+    const n = aplicarSugestoesBlocos(p);
+    igual(n.reuso + n.dev, folhas.length, 'todos os blocos decididos');
+    sincronizarConcepcaoSimpl(p);
+    const v = p.variantes.find(x => x.id === p.concepcao.varianteId);
+    ok(v && folhas.every(f => v.escolhas[f.id]), 'concepção montada com os blocos');
+    desenvolverBloco(p, proc, 'sw');
+    const pl = planoTestes(p);
+    ok(pl.some(x => x.nivel === 'Unidade' && /Processar/.test(x.bloco)), 'bloco desenvolvido tem teste de unidade');
+    ok(!pl.some(x => x.nivel === 'Unidade' && /Captar/.test(x.bloco)), 'bloco reaproveitado não tem teste de unidade');
+    ok(pl.some(x => x.nivel === 'Integração' && /Captar/.test(x.bloco) && /só falta/.test(x.criterio)), 'reaproveitado: só integração');
+    ok(pl.some(x => x.nivel === 'Sistema' && /Tempo de resposta/.test(x.teste)) && pl.some(x => x.bloco === 'Mau uso'), 'sistema e mau uso');
+    const st = statusEtapas(p); igual(st.blocos.estado, 'feito');
+    ok(!pendencias(p).some(x => ['principios', 'matriz', 'selecao'].includes(x.etapa)), 'sem pendências da matriz');
+    const g = exportarParaGestao(p); igual(g.fluxo, 'simplificado'); ok(g.planoTestes.length > 3);
+    ok(/Plano de testes/.test(corpoRelatorio(p, {})), 'relatório com plano de testes');
+    const q = normalizarProjeto(JSON.parse(JSON.stringify(p))); igual(q.blocos[proc.id].alocacao, 'sw', 'blocos sobrevivem à normalização');
+});
+
 // ---------------------------------------------------------------- execução
 (async () => {
     const lista = document.getElementById('lista');

@@ -43,6 +43,15 @@ Pahl et al. (2005) e Reis (2003).
 | 8 | Análises e TRL | O que falta (com link para a etapa), desdobramento especificação → função, maturidade das soluções da concepção (TRL provável), concorrentes; exportação para o Gestão de Projetos |
 | 9 | Relatório | Mesmo design do Gestão de Projetos e do QFD; imprimir/PDF, HTML único ou dentro do ZIP |
 
+### Fluxo simplificado (elétrico, eletrônico, embarcado e automação)
+
+Escolhido no Início para os tipos Elétrico, Automação/eletrônico e Misto. Segue o fluxo simplificado de Marwedel:
+especificação → função global → **diagrama de blocos** → **soluções dos blocos** → concepção e **plano de testes** → análises → relatório.
+Para cada bloco, o sistema procura uma solução que **já existe** (biblioteca da equipe, com os projetos anteriores, e módulos
+prontos do mercado) e sugere usá-la: o bloco reaproveitado só precisa do **teste de integração**. Os blocos que não têm solução
+pronta são desenvolvidos em hardware, software ou os dois, com a plataforma. A concepção é montada sozinha, e o plano de testes
+segue o Modelo V (unidade, integração, sistema e aceitação, com uso e mau uso).
+
 ## Arquivo do projeto
 
 - Tudo fica guardado **no navegador** (dados no `localStorage`, fotos no IndexedDB).
@@ -65,6 +74,7 @@ js/assistente.js    preenchimento automático a partir do QFD
 js/esboco.js        desenho à mão (dedo, caneta, mouse)
 js/biblioteca.js    biblioteca da equipe e links de busca de patentes
 js/fmea.js          FMEA da concepção
+js/simplificado.js  fluxo simplificado (Marwedel): blocos, reuso, hardware × software e plano de testes do Modelo V
 js/tour.js          tour da primeira visita
 js/nuvem.js         nuvem da equipe (conta MEGA; biblioteca megajs carregada só quando a nuvem é usada)
 js/ia.js            pacote e pedido para IA multiagente; importação da resposta
@@ -83,6 +93,7 @@ todoQA.txt          diretrizes, próximos passos e o que já foi feito
 
 - BACK, N. et al. *Projeto integrado de produtos*. Manole, 2008.
 - FERREIRA, M. G. G. *Utilização de modelos para a representação de produtos no projeto conceitual*. UFSC, 1997.
+- MARWEDEL, P. *Embedded system design*. 4. ed. Springer, 2021.
 - PAHL, G.; BEITZ, W.; FELDHUSEN, J.; GROTE, K.-H. *Projeto na engenharia*. 6. ed. Blücher, 2005.
 - REIS, A. V. *Desenvolvimento de concepções para a dosagem e deposição de precisão para sementes miúdas*. UFSC, 2003.
 - ROOZENBURG, N. F. M.; EEKELS, J. *Product design: fundamentals and methods*. Wiley, 1995.
